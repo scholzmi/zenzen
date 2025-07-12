@@ -12,12 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let gameBoard = [], score = 0, highscore = 0;
     let figuresInSlots = [null, null, null];
     let selectedFigure = null, selectedSlotIndex = -1;
-    const TOUCH_Y_OFFSET = -40;
+    const TOUCH_Y_OFFSET = -60; // Offset, um die Vorschau über dem Finger zu zeigen
     let gameConfig = {};
     const GRID_SIZE = 9;
 
     async function initializeGame() {
-        // Clear any lingering animations
         highscoreElement.classList.remove('pulsate');
         gameBoardElement.classList.remove('crumble');
         
@@ -106,6 +105,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const boardRect = gameBoardElement.getBoundingClientRect();
         const cellSize = boardRect.width / GRID_SIZE;
+
+        // **KORREKTUR**: Benutze die clientX/clientY des Events, nicht die Position des Spielfelds
         const xPos = event.clientX - boardRect.left;
         const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
         
@@ -117,8 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleInteractionEnd(event) {
         if (!selectedFigure) return;
-
-        // Prevent multi-touch issues on end
+        
+        // Remove listeners immediately to prevent conflicts
         const moveHandler = (e) => handleInteractionMove(e.touches ? e.touches[0] : e);
         const endHandler = (e) => handleInteractionEnd(e.changedTouches ? e.changedTouches[0] : e);
         document.removeEventListener('touchmove', moveHandler);
@@ -279,7 +280,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (block === 1) {
                 const boardY = placeY + y, boardX = placeX + x;
                 if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
-                    gameBoardElement.children[boardY * GRID_SIZE + boardX].style.backgroundColor = color;
+                    if(gameBoard[boardY][boardX] === 0) { // Nur auf leere Zellen zeichnen
+                        gameBoardElement.children[boardY * GRID_SIZE + boardX].style.backgroundColor = color;
+                    }
                 }
             }
         }));
