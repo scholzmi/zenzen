@@ -79,9 +79,20 @@ document.addEventListener('DOMContentLoaded', () => {
         root.style.setProperty('--mobileBackgroundColor', gameConfig.mobileBackgroundColor || '#e0f7fa');
         root.style.setProperty('--linePreview', gameConfig.linePreview || 'rgba(84, 160, 255, 0.2)');
         root.style.setProperty('--activeSlotBorder', gameConfig.activeSlotBorder || '#1dd1a1');
+        
+        // **KORRIGIERT**: Stellt sicher, dass die Farben korrekt verarbeitet werden
         if (gameConfig.title) {
+            // Verarbeitet das z_colors Array
+            if (gameConfig.title.z_colors && Array.isArray(gameConfig.title.z_colors)) {
+                gameConfig.title.z_colors.forEach((color, index) => {
+                    root.style.setProperty(`--title-z_colors_${index}`, color);
+                });
+            }
+            // Verarbeitet die restlichen Farb-Eigenschaften
             Object.keys(gameConfig.title).forEach(key => {
-                root.style.setProperty(`--title-${key.replace('_', '-')}`, gameConfig.title[key]);
+                if (key !== 'z_colors') {
+                     root.style.setProperty(`--title-${key.replace('_', '-')}`, gameConfig.title[key]);
+                }
             });
         }
     }
@@ -190,7 +201,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // SPIEL-LOGIK
     // ===================================================================================
     
-    /** **NEU**: Rotiert eine Figur um 90 Grad */
     function rotateFigure90Degrees(matrix) {
         const rows = matrix.length;
         const cols = matrix[0].length;
@@ -261,8 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const baseColor = gameConfig.figurePalettes[category]?.placed || gameConfig.figurePalettes['default'].placed;
                 let finalFigure = { ...randomFigure, id: i, color: varyColor(baseColor), category: category };
                 
-                // **NEU**: Figur zufällig rotieren
-                const rotations = Math.floor(Math.random() * 4); // 0, 1, 2, or 3 rotations
+                const rotations = Math.floor(Math.random() * 4);
                 for(let r = 0; r < rotations; r++) {
                     finalFigure.form = rotateFigure90Degrees(finalFigure.form);
                 }
@@ -298,7 +307,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function isGameOver() {
         for (const figure of figuresInSlots) {
             if (figure) {
-                // Hier prüfen wir jetzt nur noch die eine (zufällig gedrehte) Form
                 for (let y = 0; y <= GRID_SIZE - figure.form.length; y++) {
                     for (let x = 0; x <= GRID_SIZE - figure.form[0].length; x++) {
                         if (canPlace(figure, x, y)) return false;

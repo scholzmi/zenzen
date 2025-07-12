@@ -26,7 +26,6 @@ body {
     justify-content: flex-start;
     align-items: center;
     flex-direction: column;
-    /* --- HIER WURDE DIE ÄNDERUNG GEMACHT --- */
     background: url('bg.png') center/cover no-repeat;
     position: relative;
     overscroll-behavior: none;
