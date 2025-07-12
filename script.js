@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let figuresInSlots = [null, null, null];
     let selectedFigure = null, selectedSlotIndex = -1;
     // --- HIER IST DIE ÄNDERUNG ---
-    const TOUCH_Y_OFFSET = -90; // Größerer Abstand
+    const TOUCH_Y_OFFSET = -120; // Abstand weiter vergrößert
     let gameConfig = {};
     const GRID_SIZE = 9;
     let isDragging = false;
