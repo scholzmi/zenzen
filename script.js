@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // DOM Elements
     const gameBoardElement = document.getElementById('game-board');
     const scoreElement = document.getElementById('score');
     const highscoreElement = document.getElementById('highscore');
@@ -7,14 +8,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const figureSlots = document.querySelectorAll('.figure-slot');
     const scoreAnimationElement = document.getElementById('score-animation');
 
+    // Game State
     let gameBoard = [], score = 0, highscore = 0;
     let figuresInSlots = [null, null, null];
     let selectedFigure = null, selectedSlotIndex = -1;
-    const TOUCH_Y_OFFSET = -60;
+    const TOUCH_Y_OFFSET = -40;
     let gameConfig = {};
     const GRID_SIZE = 9;
 
     async function initializeGame() {
+        // Clear any lingering animations
         highscoreElement.classList.remove('pulsate');
         gameBoardElement.classList.remove('crumble');
         
@@ -55,8 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function createGameBoard() {
         gameBoardElement.innerHTML = '';
-        const cellSize = gameBoardElement.clientWidth / GRID_SIZE;
         gameBoard = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
+        const cellSize = gameBoardElement.clientWidth / GRID_SIZE;
         for (let y = 0; y < GRID_SIZE; y++) {
             for (let x = 0; x < GRID_SIZE; x++) {
                 const cell = document.createElement('div');
@@ -67,7 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 gameBoardElement.appendChild(cell);
             }
         }
-        // Skalieren der Blöcke in den Slots basierend auf der Zellengröße
         document.documentElement.style.setProperty('--figure-block-size', `${Math.max(10, cellSize / 2.5)}px`);
     }
 
@@ -103,10 +105,10 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
 
         const boardRect = gameBoardElement.getBoundingClientRect();
+        const cellSize = boardRect.width / GRID_SIZE;
         const xPos = event.clientX - boardRect.left;
         const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
         
-        const cellSize = gameBoardElement.clientWidth / GRID_SIZE;
         const cellX = Math.floor(xPos / cellSize);
         const cellY = Math.floor(yPos / cellSize);
         
@@ -116,10 +118,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleInteractionEnd(event) {
         if (!selectedFigure) return;
 
+        // Prevent multi-touch issues on end
+        const moveHandler = (e) => handleInteractionMove(e.touches ? e.touches[0] : e);
+        const endHandler = (e) => handleInteractionEnd(e.changedTouches ? e.changedTouches[0] : e);
+        document.removeEventListener('touchmove', moveHandler);
+        document.removeEventListener('touchend', endHandler);
+        document.removeEventListener('mousemove', moveHandler);
+        document.removeEventListener('mouseup', endHandler);
+
         const boardRect = gameBoardElement.getBoundingClientRect();
+        const cellSize = boardRect.width / GRID_SIZE;
         const xPos = event.clientX - boardRect.left;
         const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
-        const cellSize = gameBoardElement.clientWidth / GRID_SIZE;
         const cellX = Math.floor(xPos / cellSize);
         const cellY = Math.floor(yPos / cellSize);
 
@@ -129,15 +139,10 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedFigure = null;
         selectedSlotIndex = -1;
         drawGameBoard();
-        
-        // Remove listeners by recreating the handler functions (or using named functions)
-        // For simplicity, we can't remove anonymous functions, but in a real app, use named functions and remove them.
-        // This simple game doesn't suffer much from lingering listeners as they are re-added on next drag start.
     }
-
+    
     function rotateFigure90Degrees(matrix) {
-        const newMatrix = matrix[0].map((_, colIndex) => matrix.map(row => row[row.length - 1 - colIndex]));
-        return newMatrix.map(row => row.reverse());
+        return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])).reverse();
     }
 
     function placeFigure(figure, centerX, centerY) {
@@ -239,17 +244,15 @@ document.addEventListener('DOMContentLoaded', () => {
             setCookie('highscore', highscore, 365);
         }
 
-        // Warte auf die Crumble-Animation
         setTimeout(() => {
             if (isNewHighscore) {
                 highscoreElement.textContent = highscore;
                 highscoreElement.classList.add('pulsate');
-                // Warte auf die Pulsate-Animation
-                setTimeout(initializeGame, 1800); // 3 pulses * 0.6s
+                setTimeout(initializeGame, 1800);
             } else {
                 initializeGame();
             }
-        }, 1000); // Dauer der Crumble-Animation
+        }, 1000);
     }
 
     function drawGameBoard() {
@@ -270,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const placeX = centerX - Math.floor(figure.form[0].length / 2);
         const placeY = centerY - Math.floor(figure.form.length / 2);
         const canBePlaced = canPlace(figure, placeX, placeY);
-        const color = canBePlaced ? gameConfig.figurePalettes[figure.category].preview : 'rgba(255, 77, 77, 0.5)';
+        const color = canBePlaced ? figure.color + '80' : 'rgba(255, 77, 77, 0.5)';
         
         figure.form.forEach((row, y) => row.forEach((block, x) => {
             if (block === 1) {
@@ -289,8 +292,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (figure) {
             const container = document.createElement('div');
             container.classList.add('figure-container');
-            container.style.gridTemplateRows = `repeat(${figure.form.length}, var(--figure-block-size))`;
-            container.style.gridTemplateColumns = `repeat(${figure.form[0].length}, var(--figure-block-size))`;
+            const blockSize = 'var(--figure-block-size)';
+            container.style.gridTemplateRows = `repeat(${figure.form.length}, ${blockSize})`;
+            container.style.gridTemplateColumns = `repeat(${figure.form[0].length}, ${blockSize})`;
             figure.form.forEach(row => row.forEach(block => {
                 const blockDiv = document.createElement('div');
                 if (block === 1) {
@@ -303,20 +307,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function showScoreAnimation(value) {
-        if (!scoreAnimationElement || value === 0) return;
-        scoreAnimationElement.textContent = `+${value}`;
-        scoreAnimationElement.classList.remove('animate');
-        void scoreAnimationElement.offsetWidth;
-        
-        const boardRect = gameBoardElement.getBoundingClientRect();
-        const randX = boardRect.width * (0.2 + Math.random() * 0.6);
-        const randY = boardRect.height * (0.1 + Math.random() * 0.2);
-        scoreAnimationElement.style.left = `${randX}px`;
-        scoreAnimationElement.style.top = `${randY}px`;
-        scoreAnimationElement.classList.add('animate');
-    }
-    
     function parseShape(shapeCoords) {
         let tempMatrix = Array.from({ length: 5 }, () => Array(5).fill(0));
         let minRow = 5, maxRow = -1, minCol = 5, maxCol = -1;
@@ -328,6 +318,19 @@ document.addEventListener('DOMContentLoaded', () => {
             minCol = Math.min(minCol, col); maxCol = Math.max(maxCol, col);
         });
         return tempMatrix.slice(minRow, maxRow + 1).map(row => row.slice(minCol, maxCol + 1));
+    }
+    
+    function showScoreAnimation(value) {
+        if (!scoreAnimationElement || value === 0) return;
+        scoreAnimationElement.textContent = `+${value}`;
+        scoreAnimationElement.classList.remove('animate');
+        void scoreAnimationElement.offsetWidth;
+        const boardRect = gameBoardElement.getBoundingClientRect();
+        const randX = boardRect.width * (0.2 + Math.random() * 0.6);
+        const randY = boardRect.height * (0.1 + Math.random() * 0.2);
+        scoreAnimationElement.style.left = `${randX}px`;
+        scoreAnimationElement.style.top = `${randY}px`;
+        scoreAnimationElement.classList.add('animate');
     }
 
     function setCookie(name, value, days) {
