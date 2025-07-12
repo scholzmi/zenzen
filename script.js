@@ -80,15 +80,12 @@ document.addEventListener('DOMContentLoaded', () => {
         root.style.setProperty('--linePreview', gameConfig.linePreview || 'rgba(84, 160, 255, 0.2)');
         root.style.setProperty('--activeSlotBorder', gameConfig.activeSlotBorder || '#1dd1a1');
         
-        // **KORRIGIERT**: Stellt sicher, dass die Farben korrekt verarbeitet werden
         if (gameConfig.title) {
-            // Verarbeitet das z_colors Array
             if (gameConfig.title.z_colors && Array.isArray(gameConfig.title.z_colors)) {
                 gameConfig.title.z_colors.forEach((color, index) => {
                     root.style.setProperty(`--title-z_colors_${index}`, color);
                 });
             }
-            // Verarbeitet die restlichen Farb-Eigenschaften
             Object.keys(gameConfig.title).forEach(key => {
                 if (key !== 'z_colors') {
                      root.style.setProperty(`--title-${key.replace('_', '-')}`, gameConfig.title[key]);
@@ -421,7 +418,9 @@ document.addEventListener('DOMContentLoaded', () => {
         scoreAnimationElement.classList.remove('animate');
         void scoreAnimationElement.offsetWidth;
         scoreAnimationElement.textContent = `+${value}`;
-        scoreAnimationElement.style.color = '#34A853';
+        // **NEU**: Farbe an das Eisthema angepasst
+        scoreAnimationElement.style.color = '#aed6f1'; 
+        
         const boardRect = gameBoardElement.getBoundingClientRect();
         const randX = boardRect.width * 0.2 + Math.random() * boardRect.width * 0.6;
         const randY = boardRect.height * 0.1 + Math.random() * boardRect.height * 0.2;
