@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedSlotIndex = -1;
     let ghostElement = null;
     let ghostOffsetX, ghostOffsetY;
+    const GHOST_Y_OFFSET = 60; // **NEW**: Vertical offset in pixels (approx. 1-1.5cm)
 
     // === Configuration ===
     let gameConfig = {};
@@ -158,7 +159,8 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedSlotIndex = slotIndex;
         selectedFigure = JSON.parse(JSON.stringify(figuresInSlots[selectedSlotIndex]));
 
-        createGhostElement(event, targetSlot);
+        // **MODIFIED**: Pass the original slot to the ghost function
+        createGhostElement(event, targetSlot); 
         targetSlot.classList.add('dragging');
 
         document.addEventListener('touchmove', handleInteractionMove, { passive: false });
@@ -172,9 +174,13 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const event = e.touches ? e.touches[0] : e;
         e.preventDefault();
+        
+        // **MODIFIED**: Apply the vertical offset here
+        const newX = event.clientX - ghostOffsetX;
+        const newY = event.clientY - ghostOffsetY - GHOST_Y_OFFSET;
+        ghostElement.style.transform = `translate(${newX}px, ${newY}px) scale(1.5)`;
 
-        ghostElement.style.transform = `translate(${event.clientX - ghostOffsetX}px, ${event.clientY - ghostOffsetY}px) scale(1.5)`;
-
+        // The logic to find the element under the finger remains the same
         ghostElement.style.display = 'none';
         const elementUnder = document.elementFromPoint(event.clientX, event.clientY);
         ghostElement.style.display = '';
@@ -194,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const event = e.changedTouches ? e.changedTouches[0] : e;
         
-        ghostElement.style.display = 'none';
+        // **MODIFIED**: The position to check for drop is the finger position, not the ghost's
         const elementUnder = document.elementFromPoint(event.clientX, event.clientY);
         
         document.body.removeChild(ghostElement);
@@ -229,17 +235,20 @@ document.addEventListener('DOMContentLoaded', () => {
         ghostElement.style.pointerEvents = 'none';
         ghostElement.style.zIndex = '1000';
         ghostElement.style.opacity = '0.8';
-
-        const rect = slot.getBoundingClientRect();
+        
+        // Center the ghost on the touch point initially, the move handler will add the offset
+        const rect = figureContainer.getBoundingClientRect();
         ghostOffsetX = event.clientX - rect.left;
         ghostOffsetY = event.clientY - rect.top;
 
-        ghostElement.style.transform = `translate(${rect.left}px, ${rect.top}px) scale(1.5)`;
+        const initialX = event.clientX - ghostOffsetX;
+        const initialY = event.clientY - ghostOffsetY - GHOST_Y_OFFSET;
+        ghostElement.style.transform = `translate(${initialX}px, ${initialY}px) scale(1.5)`;
         document.body.appendChild(ghostElement);
     }
 
     // ===================================================================================
-    // GAME LOGIC
+    // GAME LOGIC (Unchanged)
     // ===================================================================================
 
     function placeFigure(figure, centerX, centerY) {
@@ -388,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ===================================================================================
-    // DRAWING & RENDERING
+    // DRAWING & RENDERING (Unchanged)
     // ===================================================================================
 
     function drawGameBoard() {
@@ -436,7 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
             container.classList.add('figure-container');
             const form = figure.form;
             const size = Math.max(form.length, form[0].length);
-            const blockSize = size > 4 ? 14 : 20; // smaller blocks for bigger figures
+            const blockSize = size > 4 ? 14 : 20;
             container.style.gridTemplateRows = `repeat(${form.length}, ${blockSize}px)`;
             container.style.gridTemplateColumns = `repeat(${form[0].length}, ${blockSize}px)`;
             form.forEach(row => row.forEach(block => {
@@ -468,7 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // ===================================================================================
-    // HELPER FUNCTIONS
+    // HELPER FUNCTIONS (Unchanged)
     // ===================================================================================
 
     function parseShape(shapeCoords) {

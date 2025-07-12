@@ -203,7 +203,9 @@ body, #game-board {
     background-color: rgba(255, 255, 255, 0.2); /* Added slight background */
 }
 .figure-slot:active { cursor: grabbing; }
-.figure-slot.dragging { opacity: 0.3; }
+.figure-slot.dragging .figure-container {
+    visibility: hidden;
+}
 .active-slot {
     border-color: var(--activeSlotBorder);
     border-style: solid;
