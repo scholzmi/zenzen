@@ -12,10 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let gameBoard = [], score = 0, highscore = 0;
     let figuresInSlots = [null, null, null];
     let selectedFigure = null, selectedSlotIndex = -1;
-    const TOUCH_Y_OFFSET = -60; // Offset, um die Vorschau über dem Finger zu zeigen
+    // --- HIER IST DIE ÄNDERUNG ---
+    const TOUCH_Y_OFFSET = -90; // Größerer Abstand
     let gameConfig = {};
     const GRID_SIZE = 9;
-    let isDragging = false; // Verhindert Konflikte
+    let isDragging = false;
 
     async function initializeGame() {
         highscoreElement.classList.remove('pulsate');
@@ -73,10 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.documentElement.style.setProperty('--figure-block-size', `${Math.max(10, cellSize / 2.5)}px`);
     }
 
-    // ===================================================================================
-    // EVENT LISTENERS
-    // ===================================================================================
-
     function assignEventListeners() {
         figureSlots.forEach(slot => {
             slot.addEventListener('touchstart', (e) => handleInteractionStart(e), { passive: false });
@@ -84,10 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // ===================================================================================
-    // TOUCH- / MAUS-STEUERUNG (NEU & KORRIGIERT)
-    // ===================================================================================
-
     function handleInteractionStart(e) {
         if (isDragging) return;
         
@@ -121,7 +114,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('mousemove', moveHandler);
         document.addEventListener('mouseup', endHandler);
 
-        // Initial preview
         handleInteractionMove(event);
     }
     
@@ -158,10 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
         isDragging = false;
         drawGameBoard();
     }
-    
-    // ===================================================================================
-    // SPIEL-LOGIK (unverändert)
-    // ===================================================================================
     
     function rotateFigure90Degrees(matrix) {
         return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])).reverse();
