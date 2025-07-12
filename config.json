@@ -1,25 +1,19 @@
 {
-    "version": "V0.12",
-    "lastModification": "dark mode",
-    "gameVersion": "1.03",
-    "mobileBackgroundColor": "#e0f7fa",
-    "zonkProbability": 0.05,
-    "jokerProbability": 0.25,
-    "linePreview": "rgba(84, 160, 255, 0.2)",
-    "activeSlotBorder": "#1dd1a1",
+    "version": "V0.15",
+    "lastModification": "Frozen Theme Redesign",
+    "gameVersion": "0.01",
+    "mobileBackgroundColor": "#d4e6f1",
+    "linePreview": "rgba(174, 214, 241, 0.5)",
+    "activeSlotBorder": "#aed6f1",
     "title": {
-        "red": "#ff6b6b",
-        "yellow": "#feca57",
-        "yellow_text": "#576574",
-        "blue": "#48dbfb",
-        "green": "#1dd1a1",
-        "purple": "#5f27cd"
+        "z_colors": ["#5499c7", "#a9cce3", "#85c1e9"],
+        "e_color": "#ebf5fb",
+        "n_color": "#aed6f1"
     },
     "figurePalettes": {
-        "default": { "placed": "#00d2d3", "preview": "rgba(0, 210, 211, 0.5)" },
-        "normal":  { "placed": "#54a0ff", "preview": "rgba(84, 160, 255, 0.5)" },
-        "joker":   { "placed": "#5f27cd", "preview": "rgba(95, 39, 205, 0.5)" },
-        "zonk":    { "placed": "#778ca3", "preview": "rgba(119, 140, 163, 0.5)" }
+        "normal":  { "placed": "#5dade2", "preview": "rgba(93, 173, 226, 0.5)" },
+        "joker":   { "placed": "#76d7c4", "preview": "rgba(118, 215, 196, 0.5)" },
+        "zonk":    { "placed": "#af7ac5", "preview": "rgba(175, 122, 197, 0.5)" }
     },
     "figures": {
         "normal": [
@@ -27,7 +21,9 @@
             { "name": "Block 2x3", "shape": [1, 2, 3, 6, 7, 8] },
             { "name": "Block 3x3", "shape": [1, 2, 3, 6, 7, 8, 11, 12, 13] },
             { "name": "L-Klein", "shape": [1, 6, 11, 12] },
+            { "name": "L-Gross", "shape": [1, 6, 11, 16, 17] },
             { "name": "L-Klein 2", "shape": [5, 10, 14, 15] },
+            { "name": "L-Gross 2", "shape": [5, 10, 15, 19, 20] },
             { "name": "T-Form", "shape": [1, 2, 3, 7] },
             { "name": "S-Form", "shape": [2, 3, 6, 7] },
             { "name": "Z-Form", "shape": [1, 2, 7, 8] },
