@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // === DOM Elements ===
+    // === DOM-Elemente ===
     const gameBoardElement = document.getElementById('game-board');
     const scoreElement = document.getElementById('score');
     const highscoreElement = document.getElementById('highscore');
@@ -12,59 +12,46 @@ document.addEventListener('DOMContentLoaded', () => {
     const gameOverText = document.getElementById('game-over-text');
     const restartBtn = document.getElementById('restart-btn');
 
-    // === Game State ===
+    // === Spiel-Zustand ===
     let gameBoard = [], score = 0, highscore = 0;
     let figuresInSlots = [null, null, null];
     let roundCounter = 0;
 
-    // === Touch/Drag State ===
+    // === Touch-Steuerung ===
     let selectedFigure = null;
     let selectedSlotIndex = -1;
-    let ghostElement = null;
-    let ghostOffsetX, ghostOffsetY;
-    const GHOST_Y_OFFSET = 60; // **NEW**: Vertical offset in pixels (approx. 1-1.5cm)
+    const TOUCH_Y_OFFSET = -60; // NEU: Negativer Wert, um Vorschau ÜBER dem Finger zu zeichnen
 
-    // === Configuration ===
+    // === Konfiguration ===
     let gameConfig = {};
     const GRID_SIZE = 9;
     
     // ===================================================================================
-    // INITIALIZATION
+    // INITIALISIERUNG
     // ===================================================================================
 
     async function initializeGame() {
         if (!gameBoardElement || !scoreElement || !highscoreElement || figureSlots.length !== 3) {
-            console.error("Critical DOM elements are missing. Aborting initialization.");
-            document.body.innerHTML = "<p style='color:red;padding:20px;'>Critical HTML elements are missing. Check element IDs.</p>";
+            console.error("Kritische DOM-Elemente fehlen. Initialisierung abgebrochen.");
             return;
         }
-
         gameBoardElement.classList.remove('crumble');
-        
         const configLoaded = await loadConfiguration();
-        if (!configLoaded) {
-            gameBoardElement.innerHTML = '<p style="color:red;text-align:center;padding:20px;">Error: config.json could not be loaded!</p>';
-            return;
-        }
-
+        if (!configLoaded) return;
         applyStylingFromConfig();
-
         const serverVersion = gameConfig.gameVersion || "1.0";
         const localVersion = getCookie('gameVersion');
         if (serverVersion !== localVersion) {
             setCookie('highscore', '0', 365);
             setCookie('gameVersion', serverVersion, 365);
         }
-
         highscore = parseInt(getCookie('highscore') || '0', 10);
         highscoreElement.textContent = highscore;
-
         score = 0;
         scoreElement.textContent = score;
         roundCounter = 0;
         selectedFigure = null;
         selectedSlotIndex = -1;
-
         createGameBoard();
         generateNewFigures();
     }
@@ -72,21 +59,17 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadConfiguration() {
         try {
             const response = await fetch('config.json?v=' + new Date().getTime());
-            if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+            if (!response.ok) throw new Error(`Netzwerk-Antwort war nicht ok: ${response.statusText}`);
             gameConfig = await response.json();
-            
             if (versionInfoElement) versionInfoElement.textContent = gameConfig.version || "?.??";
             if (lastModificationElement) lastModificationElement.textContent = gameConfig.lastModification || "N/A";
-
             const parseAndStore = (pool) => Array.isArray(pool) ? pool.map(f => ({ ...f, form: parseShape(f.shape) })) : [];
             gameConfig.figures.normalPool = parseAndStore(gameConfig.figures.normal);
             gameConfig.figures.zonkPool = parseAndStore(gameConfig.figures.zonk);
             gameConfig.figures.jokerPool = parseAndStore(gameConfig.figures.joker);
-            
             return true;
         } catch (error) {
-            console.error('Error loading configuration:', error);
-            if (versionInfoElement) versionInfoElement.textContent = "Config Error!";
+            console.error('Fehler beim Laden der Konfiguration:', error);
             return false;
         }
     }
@@ -96,8 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         root.style.setProperty('--mobileBackgroundColor', gameConfig.mobileBackgroundColor || '#e0f7fa');
         root.style.setProperty('--linePreview', gameConfig.linePreview || 'rgba(84, 160, 255, 0.2)');
         root.style.setProperty('--activeSlotBorder', gameConfig.activeSlotBorder || '#1dd1a1');
-        
-        if(gameConfig.title) {
+        if (gameConfig.title) {
             Object.keys(gameConfig.title).forEach(key => {
                 root.style.setProperty(`--title-${key.replace('_', '-')}`, gameConfig.title[key]);
             });
@@ -129,7 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
             gameOverContainer.classList.remove('visible');
             initializeGame();
         });
-
         figureSlots.forEach(slot => {
             slot.addEventListener('touchstart', handleTouchStart, { passive: false });
             slot.addEventListener('mousedown', handleMouseDown);
@@ -137,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // ===================================================================================
-    // MOUSE/TOUCH HANDLERS
+    // TOUCH- / MAUS-STEUERUNG
     // ===================================================================================
     
     function handleMouseDown(e) {
@@ -152,103 +133,68 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function handleInteractionStart(event, targetSlot) {
         if (selectedFigure) return;
-
         const slotIndex = parseInt(targetSlot.dataset.slotId, 10);
         if (!figuresInSlots[slotIndex]) return;
 
         selectedSlotIndex = slotIndex;
         selectedFigure = JSON.parse(JSON.stringify(figuresInSlots[selectedSlotIndex]));
-
-        // **MODIFIED**: Pass the original slot to the ghost function
-        createGhostElement(event, targetSlot); 
         targetSlot.classList.add('dragging');
-
+        
+        // Listener für die Bewegung hinzufügen
         document.addEventListener('touchmove', handleInteractionMove, { passive: false });
         document.addEventListener('touchend', handleInteractionEnd);
         document.addEventListener('mousemove', handleInteractionMove);
         document.addEventListener('mouseup', handleInteractionEnd);
+
+        // **NEU**: Sofort eine Vorschau an der Startposition zeichnen
+        handleInteractionMove(event);
     }
 
     function handleInteractionMove(e) {
-        if (!ghostElement) return;
-        
+        if (!selectedFigure) return;
         const event = e.touches ? e.touches[0] : e;
         e.preventDefault();
+
+        // Position des Fingers (oder der Maus) relativ zum Spielfeld holen
+        const boardRect = gameBoardElement.getBoundingClientRect();
+        const xPos = event.clientX - boardRect.left;
+        const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET; // Y-Versatz anwenden
+
+        // Umrechnen in Gitter-Koordinaten
+        const cellX = Math.floor(xPos / 40);
+        const cellY = Math.floor(yPos / 40);
         
-        // **MODIFIED**: Apply the vertical offset here
-        const newX = event.clientX - ghostOffsetX;
-        const newY = event.clientY - ghostOffsetY - GHOST_Y_OFFSET;
-        ghostElement.style.transform = `translate(${newX}px, ${newY}px) scale(1.5)`;
-
-        // The logic to find the element under the finger remains the same
-        ghostElement.style.display = 'none';
-        const elementUnder = document.elementFromPoint(event.clientX, event.clientY);
-        ghostElement.style.display = '';
-
-        const cell = elementUnder ? elementUnder.closest('.cell') : null;
-        if (cell) {
-            const x = parseInt(cell.dataset.x, 10);
-            const y = parseInt(cell.dataset.y, 10);
-            drawPreview(selectedFigure, x, y);
-        } else {
-            drawGameBoard();
-        }
+        drawPreview(selectedFigure, cellX, cellY);
     }
     
     function handleInteractionEnd(e) {
         if (!selectedFigure) return;
-
         const event = e.changedTouches ? e.changedTouches[0] : e;
         
-        // **MODIFIED**: The position to check for drop is the finger position, not the ghost's
-        const elementUnder = document.elementFromPoint(event.clientX, event.clientY);
-        
-        document.body.removeChild(ghostElement);
-        document.querySelector('.figure-slot.dragging')?.classList.remove('dragging');
-        ghostElement = null;
+        // Zielzelle basierend auf der finalen Fingerposition (mit Versatz) bestimmen
+        const boardRect = gameBoardElement.getBoundingClientRect();
+        const xPos = event.clientX - boardRect.left;
+        const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
+        const cellX = Math.floor(xPos / 40);
+        const cellY = Math.floor(yPos / 40);
 
-        const cell = elementUnder ? elementUnder.closest('.cell') : null;
-        if (cell) {
-            const x = parseInt(cell.dataset.x, 10);
-            const y = parseInt(cell.dataset.y, 10);
-            placeFigure(selectedFigure, x, y);
-        }
+        placeFigure(selectedFigure, cellX, cellY);
         
+        // Aufräumen
+        document.querySelector('.figure-slot.dragging')?.classList.remove('dragging');
         selectedFigure = null;
         selectedSlotIndex = -1;
         drawGameBoard();
 
+        // Listener entfernen
         document.removeEventListener('touchmove', handleInteractionMove);
         document.removeEventListener('touchend', handleInteractionEnd);
         document.removeEventListener('mousemove', handleInteractionMove);
         document.removeEventListener('mouseup', handleInteractionEnd);
     }
-    
-    function createGhostElement(event, slot) {
-        const figureContainer = slot.querySelector('.figure-container');
-        if (!figureContainer) return;
-        
-        ghostElement = figureContainer.cloneNode(true);
-        ghostElement.style.position = 'fixed';
-        ghostElement.style.left = '0';
-        ghostElement.style.top = '0';
-        ghostElement.style.pointerEvents = 'none';
-        ghostElement.style.zIndex = '1000';
-        ghostElement.style.opacity = '0.8';
-        
-        // Center the ghost on the touch point initially, the move handler will add the offset
-        const rect = figureContainer.getBoundingClientRect();
-        ghostOffsetX = event.clientX - rect.left;
-        ghostOffsetY = event.clientY - rect.top;
-
-        const initialX = event.clientX - ghostOffsetX;
-        const initialY = event.clientY - ghostOffsetY - GHOST_Y_OFFSET;
-        ghostElement.style.transform = `translate(${initialX}px, ${initialY}px) scale(1.5)`;
-        document.body.appendChild(ghostElement);
-    }
 
     // ===================================================================================
-    // GAME LOGIC (Unchanged)
+    // SPIEL-LOGIK (unverändert)
     // ===================================================================================
 
     function placeFigure(figure, centerX, centerY) {
@@ -281,8 +227,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (figuresInSlots.every(f => f === null)) {
             generateNewFigures();
-        } else {
-            drawGameBoard();
         }
 
         if (isGameOver()) {
@@ -293,11 +237,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function generateNewFigures() {
         roundCounter++;
         const { zonkProbability, jokerProbability } = gameConfig;
-
         for (let i = 0; i < 3; i++) {
             let randomFigure = null;
             let category = 'normal';
-            
             const randomNumber = Math.random();
             if (gameConfig.figures.zonkPool.length > 0 && randomNumber < zonkProbability) {
                 randomFigure = gameConfig.figures.zonkPool[Math.floor(Math.random() * gameConfig.figures.zonkPool.length)];
@@ -309,18 +251,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 randomFigure = gameConfig.figures.normalPool[Math.floor(Math.random() * gameConfig.figures.normalPool.length)];
                 category = 'normal';
             }
-            
             if (randomFigure) {
                 const baseColor = gameConfig.figurePalettes[category]?.placed || gameConfig.figurePalettes['default'].placed;
                 figuresInSlots[i] = { ...randomFigure, id: i, color: varyColor(baseColor), category: category };
             } else {
-                 figuresInSlots[i] = null;
+                figuresInSlots[i] = null;
             }
             drawFigureInSlot(i);
         }
-        
         drawGameBoard();
-
         if (isGameOver()) {
             setTimeout(handleGameOver, 100);
         }
@@ -349,9 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const figHeight = figure.form.length;
                 for (let y = 0; y <= GRID_SIZE - figHeight; y++) {
                     for (let x = 0; x <= GRID_SIZE - figWidth; x++) {
-                        if (canPlace(figure, x, y)) {
-                            return false;
-                        }
+                        if (canPlace(figure, x, y)) return false;
                     }
                 }
             }
@@ -367,19 +304,16 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let x = 0; x < GRID_SIZE; x++) {
             if (gameBoard.every(row => row[x] !== 0)) colsToClear.push(x);
         }
-        
         const linesCleared = rowsToClear.length + colsToClear.length;
         if (linesCleared > 0) {
             rowsToClear.forEach(y => gameBoard[y].fill(0));
             colsToClear.forEach(x => gameBoard.forEach(row => row[x] = 0));
         }
-        
         return Math.pow(linesCleared, 3) * 10;
     }
 
     function handleGameOver() {
         gameBoardElement.classList.add('crumble');
-        
         setTimeout(() => {
             if (score > highscore) {
                 highscore = score;
@@ -397,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ===================================================================================
-    // DRAWING & RENDERING (Unchanged)
+    // ZEICHNEN & RENDERING
     // ===================================================================================
 
     function drawGameBoard() {
@@ -416,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function drawPreview(figure, centerX, centerY) {
-        drawGameBoard();
+        drawGameBoard(); // Immer zuerst das Brett säubern
         const figureHeight = figure.form.length;
         const figureWidth = figure.form[0].length;
         const placeX = centerX - Math.floor(figureWidth / 2);
@@ -425,7 +359,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const previewColor = canBePlaced 
             ? (gameConfig.figurePalettes[figure.category] || gameConfig.figurePalettes['default']).preview 
             : 'rgba(233, 78, 119, 0.5)';
-
         figure.form.forEach((row, y) => row.forEach((block, x) => {
             if (block === 1) {
                 const boardY = placeY + y, boardX = placeX + x;
@@ -477,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // ===================================================================================
-    // HELPER FUNCTIONS (Unchanged)
+    // HELFER-FUNKTIONEN (unverändert)
     // ===================================================================================
 
     function parseShape(shapeCoords) {
@@ -528,7 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ===================================================================================
-    // START THE GAME
+    // SPIEL STARTEN
     // ===================================================================================
     assignEventListeners();
     initializeGame();
