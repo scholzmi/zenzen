@@ -1,77 +1,66 @@
-/* Grundlegende Body-Styles */
+/* Basic Body Styles */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: #3c4043;
     margin: 0;
-    padding: 20px 10px 60px 10px; /* Padding angepasst für Mobile */
-    height: 100vh;
+    padding: 20px 10px 60px 10px;
+    min-height: 100vh;
     box-sizing: border-box;
     display: flex;
-    justify-content: flex-start; /* Oben beginnen */
+    justify-content: flex-start;
     align-items: center;
-    flex-direction: column; /* Alles untereinander anordnen */
-    background-color: var(--mobileBackgroundColor, #e0f7fa); /* Direkter Hintergrund, kein Bild mehr */
+    flex-direction: column;
+    background-color: var(--mobileBackgroundColor, #e0f7fa);
     position: relative;
     overscroll-behavior: none;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
 }
 
-/* Entfernt ::before Pseudoelement für Hintergrundbild */
-
-body, #spielbrett {
+body, #game-board {
     user-select: none;
 }
 
-/* Hauptcontainer für das Layout */
-.haupt-container {
+/* Main Layout Container */
+.main-container {
     display: flex;
-    flex-direction: column; /* Stellt sicher, dass alles untereinander ist */
+    flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    gap: 20px; /* Abstand zwischen Elementen */
+    gap: 20px;
     width: 100%;
-    max-width: 420px; /* Maximale Breite für bessere Lesbarkeit auf Tablets */
+    max-width: 420px;
 }
 
-/* Wrapper für den Boss-Key (funktionalität wird später entfernt, stört aber nicht) */
-.spiel-wrapper, .seiten-box, footer {
-    transition: opacity 0.3s ease-in-out;
-}
-body.boss-key-aktiv .spiel-wrapper,
-body.boss-key-aktiv .seiten-box,
-body.boss-key-aktiv footer {
-    opacity: 0;
-    pointer-events: none;
-}
-
-/* Titel im Block-Design */
+/* Game Title */
 .block-title {
     display: flex;
     justify-content: center;
     gap: 5px;
-    margin-bottom: 15px; /* Reduzierter Abstand */
+    margin-bottom: 15px;
     flex-wrap: wrap;
 }
 .block-char {
-    width: 35px;
-    height: 35px;
+    width: 38px; /* Slightly larger */
+    height: 38px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 24px;
+    font-size: 26px;
     font-weight: bold;
-    border-radius: 4px;
+    border-radius: 6px; /* More rounded */
     border: 1px solid rgba(0,0,0,0.2);
+    /* --- Winter Style --- */
+    text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #00f, 0 0 20px #00f, 0 0 25px #00f, 0 0 30px #00f, 0 0 35px #00f;
+    box-shadow: inset 0px 2px 3px rgba(255, 255, 255, 0.3), inset 0px -2px 3px rgba(0, 0, 0, 0.2);
 }
-/* Farben für ZZZEN (aus config) */
 .c-z, .c-z2, .c-z3 { background-color: var(--title-red, #ff6b6b); }
 .c-e { background-color: var(--title-yellow, #feca57); color: var(--title-yellow_text, #576574); }
 .c-n { background-color: var(--title-blue, #48dbfb); }
 
-
-.spiel-wrapper {
+/* Game Wrapper */
+.game-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -80,15 +69,15 @@ body.boss-key-aktiv footer {
     width: 100%;
 }
 
-/* Punkte-Container über dem Spielfeld */
-.punkte-container {
+/* Score Display */
+.score-container {
     display: flex;
     justify-content: space-around;
     width: 100%;
-    max-width: 364px; /* Breite des Spielfelds */
+    max-width: 364px;
     margin-bottom: 15px;
 }
-.punkte-anzeige {
+.score-display {
     font-family: 'Arial Black', Gadget, sans-serif;
     font-size: 2em;
     font-weight: bold;
@@ -100,8 +89,8 @@ body.boss-key-aktiv footer {
     text-align: center;
 }
 
-/* Punkte-Animation */
-.punkte-animation {
+/* Score-Up Animation */
+.score-animation {
     position: absolute;
     font-size: 2.5em;
     font-family: 'Arial Black', Gadget, sans-serif;
@@ -111,17 +100,17 @@ body.boss-key-aktiv footer {
     pointer-events: none;
     z-index: 100;
 }
-.punkte-animation.animieren {
-    animation: punkteExplosion 1.2s ease-out forwards;
+.score-animation.animate {
+    animation: scoreExplosion 1.2s ease-out forwards;
 }
-@keyframes punkteExplosion {
+@keyframes scoreExplosion {
     0% { opacity: 1; transform: scale(0.5); }
     50% { opacity: 1; transform: scale(1.5); }
     100% { opacity: 0; transform: scale(1); }
 }
 
-/* PayPal Box (ehemals .rechts-container) */
-.seiten-box.paypal-box {
+/* Donation Box */
+.donation-box {
     width: 100%;
     max-width: 420px;
     background-color: transparent;
@@ -129,22 +118,29 @@ body.boss-key-aktiv footer {
     padding: 0;
     opacity: 0.8;
 }
-
-.spende-bereich {
+.donation-area {
     text-align: center;
     background-color: rgba(255, 255, 255, 0.5);
-    padding: 20px;
+    padding: 15px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
-.kaffee-tasse {
-    font-size: 50px;
+.donation-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px; /* Space between cup and QR */
     margin-bottom: 10px;
+}
+.coffee-cup {
+    font-size: 50px;
 }
 .qr-code {
     width: 110px;
     height: 110px;
-    margin-bottom: 10px;
 }
 .paypal-link {
     color: #1a73e8;
@@ -156,9 +152,8 @@ body.boss-key-aktiv footer {
     text-decoration: underline;
 }
 
-
-/* Spielbrett */
-#spielbrett {
+/* Game Board */
+#game-board {
     display: grid;
     grid-template-columns: repeat(9, 40px);
     grid-template-rows: repeat(9, 40px);
@@ -167,14 +162,14 @@ body.boss-key-aktiv footer {
     width: max-content;
     position: relative;
 }
-.zelle {
+.cell {
     width: 40px;
     height: 40px;
     border: 1px solid #E0E0E0;
     box-sizing: border-box;
     transition: background-color 0.1s;
 }
-.belegt {
+.occupied {
     border: 1px solid rgba(0, 0, 0, 0.2);
 }
 .blocker {
@@ -182,22 +177,21 @@ body.boss-key-aktiv footer {
     border-color: var(--blocker) !important;
 }
 
-@keyframes zerbroeseln {
+@keyframes crumble {
     from { transform: scale(1) translateY(0); opacity: 1; }
     to { transform: scale(0) translateY(200px); opacity: 0; }
 }
-#spielbrett.zerbroeselt .zelle.belegt {
-    animation: zerbroeseln 1s ease-in forwards;
+#game-board.crumble .cell.occupied {
+    animation: crumble 1s ease-in forwards;
     animation-delay: var(--delay, 0s);
 }
 
-.linie-vorschau {
-    background-color: var(--linie_vorschau) !important;
+.line-preview {
+    background-color: var(--linePreview) !important;
 }
 
-
-/* Figuren Auswahl */
-#figuren-auswahl {
+/* Figure Selection */
+#figure-selection {
     display: flex;
     justify-content: space-around;
     align-items: center;
@@ -208,7 +202,7 @@ body.boss-key-aktiv footer {
     padding: 10px;
     box-sizing: border-box;
 }
-.figur-slot {
+.figure-slot {
     width: 33.33%;
     aspect-ratio: 1 / 1;
     display: flex;
@@ -217,18 +211,22 @@ body.boss-key-aktiv footer {
     border: 2px dashed #e0e0e0;
     border-radius: 8px;
     transition: all 0.2s;
+    cursor: grab;
 }
-
-.aktiver-slot {
-    border-color: var(--active_slot_border);
+.figure-slot:active {
+    cursor: grabbing;
+}
+.active-slot {
+    border-color: var(--activeSlotBorder);
     border-style: solid;
     transform: scale(1.05);
 }
 
-.figur-container {
+.figure-container {
     display: grid;
+    pointer-events: none; /* Make sure drag events go to the slot */
 }
-.figur-block {
+.figure-block {
     width: 20px;
     height: 20px;
     border: 1px solid #fff;
@@ -247,7 +245,7 @@ footer {
     background-color: rgba(255, 255, 255, 0.8);
     box-shadow: 0 -1px 5px rgba(0,0,0,0.1);
     font-weight: 300;
-    font-size: 0.8em; /* Etwas kleiner für Mobile */
+    font-size: 0.8em;
     z-index: 100;
 }
 footer a {
@@ -258,7 +256,7 @@ footer a:hover {
     text-decoration: underline;
 }
 
-/* Modal-Styling */
+/* Modal Styling */
 .modal-container {
     position: fixed;
     top: 0;
@@ -276,11 +274,11 @@ footer a:hover {
     padding: 15px;
     box-sizing: border-box;
 }
-.modal-container.sichtbar {
+.modal-container.visible {
     opacity: 1;
     pointer-events: all;
 }
-.versteckt {
+.hidden {
     display: none !important;
 }
 .modal-box {
@@ -321,23 +319,22 @@ footer a:hover {
     color: #1a73e8;
 }
 
-.spende-bereich-modal .kaffee-tasse {
+.donation-area-modal .coffee-cup {
     font-size: 40px;
 }
 
-/* Anpassungen für kleinere Displays */
+/* Responsive Scaling for small devices */
 @media (max-width: 380px) {
-    #spielbrett {
-        /* Skaliert das Spielfeld, wenn der Bildschirm zu schmal wird */
+    #game-board {
         transform: scale(0.9);
         transform-origin: top center;
     }
-    #figuren-auswahl {
+    #figure-selection {
         transform: scale(0.9);
         transform-origin: top center;
-        margin-top: -20px; /* Kompensiert Skalierungslücke */
+        margin-top: -20px;
     }
-    .punkte-anzeige {
+    .score-display {
         font-size: 1.5em;
         min-width: 100px;
     }
