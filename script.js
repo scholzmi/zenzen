@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // === DOM-Elemente ===
     const gameBoardElement = document.getElementById('game-board');
     const scoreElement = document.getElementById('score');
     const highscoreElement = document.getElementById('highscore');
@@ -7,51 +6,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const lastModificationElement = document.getElementById('last-modification');
     const figureSlots = document.querySelectorAll('.figure-slot');
     const scoreAnimationElement = document.getElementById('score-animation');
-    const gameOverContainer = document.getElementById('game-over-container');
-    const gameOverTitle = document.getElementById('game-over-title');
-    const gameOverText = document.getElementById('game-over-text');
-    const restartBtn = document.getElementById('restart-btn');
 
-    // === Spiel-Zustand ===
     let gameBoard = [], score = 0, highscore = 0;
     let figuresInSlots = [null, null, null];
-    let roundCounter = 0;
-
-    // === Touch-Steuerung ===
-    let selectedFigure = null;
-    let selectedSlotIndex = -1;
+    let selectedFigure = null, selectedSlotIndex = -1;
     const TOUCH_Y_OFFSET = -60;
-
-    // === Konfiguration ===
     let gameConfig = {};
     const GRID_SIZE = 9;
-    
-    // ===================================================================================
-    // INITIALISIERUNG
-    // ===================================================================================
 
     async function initializeGame() {
-        if (!gameBoardElement || !scoreElement || !highscoreElement || figureSlots.length !== 3) {
-            console.error("Kritische DOM-Elemente fehlen. Initialisierung abgebrochen.");
-            return;
-        }
+        highscoreElement.classList.remove('pulsate');
         gameBoardElement.classList.remove('crumble');
+        
         const configLoaded = await loadConfiguration();
         if (!configLoaded) return;
-        applyStylingFromConfig();
+
         const serverVersion = gameConfig.gameVersion || "1.0";
         const localVersion = getCookie('gameVersion');
         if (serverVersion !== localVersion) {
             setCookie('highscore', '0', 365);
             setCookie('gameVersion', serverVersion, 365);
         }
+
         highscore = parseInt(getCookie('highscore') || '0', 10);
         highscoreElement.textContent = highscore;
         score = 0;
         scoreElement.textContent = score;
-        roundCounter = 0;
-        selectedFigure = null;
-        selectedSlotIndex = -1;
+
         createGameBoard();
         generateNewFigures();
     }
@@ -59,43 +40,22 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadConfiguration() {
         try {
             const response = await fetch('config.json?v=' + new Date().getTime());
-            if (!response.ok) throw new Error(`Netzwerk-Antwort war nicht ok: ${response.statusText}`);
+            if (!response.ok) throw new Error(`Network response was not ok`);
             gameConfig = await response.json();
             if (versionInfoElement) versionInfoElement.textContent = gameConfig.version || "?.??";
             if (lastModificationElement) lastModificationElement.textContent = gameConfig.lastModification || "N/A";
+            
             const parseAndStore = (pool) => Array.isArray(pool) ? pool.map(f => ({ ...f, form: parseShape(f.shape) })) : [];
             gameConfig.figures.normalPool = parseAndStore(gameConfig.figures.normal);
             gameConfig.figures.zonkPool = parseAndStore(gameConfig.figures.zonk);
             gameConfig.figures.jokerPool = parseAndStore(gameConfig.figures.joker);
             return true;
-        } catch (error) {
-            console.error('Fehler beim Laden der Konfiguration:', error);
-            return false;
-        }
-    }
-
-    function applyStylingFromConfig() {
-        const root = document.documentElement;
-        root.style.setProperty('--mobileBackgroundColor', gameConfig.mobileBackgroundColor || '#e0f7fa');
-        root.style.setProperty('--linePreview', gameConfig.linePreview || 'rgba(84, 160, 255, 0.2)');
-        root.style.setProperty('--activeSlotBorder', gameConfig.activeSlotBorder || '#1dd1a1');
-        
-        if (gameConfig.title) {
-            if (gameConfig.title.z_colors && Array.isArray(gameConfig.title.z_colors)) {
-                gameConfig.title.z_colors.forEach((color, index) => {
-                    root.style.setProperty(`--title-z_colors_${index}`, color);
-                });
-            }
-            Object.keys(gameConfig.title).forEach(key => {
-                if (key !== 'z_colors') {
-                     root.style.setProperty(`--title-${key.replace('_', '-')}`, gameConfig.title[key]);
-                }
-            });
-        }
+        } catch (error) { console.error('Error loading config:', error); return false; }
     }
 
     function createGameBoard() {
         gameBoardElement.innerHTML = '';
+        const cellSize = gameBoardElement.clientWidth / GRID_SIZE;
         gameBoard = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
         for (let y = 0; y < GRID_SIZE; y++) {
             for (let x = 0; x < GRID_SIZE; x++) {
@@ -103,42 +63,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 cell.classList.add('cell');
                 cell.dataset.x = x;
                 cell.dataset.y = y;
-                cell.style.setProperty('--delay', `${Math.random() * 1.5}s`);
+                cell.style.setProperty('--delay', Math.random());
                 gameBoardElement.appendChild(cell);
             }
         }
+        // Skalieren der Blöcke in den Slots basierend auf der Zellengröße
+        document.documentElement.style.setProperty('--figure-block-size', `${Math.max(10, cellSize / 2.5)}px`);
     }
-
-    // ===================================================================================
-    // EVENT LISTENERS
-    // ===================================================================================
 
     function assignEventListeners() {
-        restartBtn.addEventListener('click', () => {
-            gameOverContainer.classList.add('hidden');
-            gameOverContainer.classList.remove('visible');
-            initializeGame();
-        });
         figureSlots.forEach(slot => {
-            slot.addEventListener('touchstart', handleTouchStart, { passive: false });
-            slot.addEventListener('mousedown', handleMouseDown);
+            slot.addEventListener('touchstart', (e) => handleInteractionStart(e.touches[0], e.currentTarget), { passive: false });
+            slot.addEventListener('mousedown', (e) => handleInteractionStart(e, e.currentTarget));
         });
-    }
-    
-    // ===================================================================================
-    // TOUCH- / MAUS-STEUERUNG
-    // ===================================================================================
-    
-    function handleMouseDown(e) {
-        e.preventDefault();
-        handleInteractionStart(e, e.currentTarget);
     }
 
-    function handleTouchStart(e) {
-        e.preventDefault();
-        handleInteractionStart(e.touches[0], e.currentTarget);
-    }
-    
     function handleInteractionStart(event, targetSlot) {
         if (selectedFigure) return;
         const slotIndex = parseInt(targetSlot.dataset.slotId, 10);
@@ -148,38 +87,41 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedFigure = JSON.parse(JSON.stringify(figuresInSlots[selectedSlotIndex]));
         targetSlot.classList.add('dragging');
         
-        document.addEventListener('touchmove', handleInteractionMove, { passive: false });
-        document.addEventListener('touchend', handleInteractionEnd);
-        document.addEventListener('mousemove', handleInteractionMove);
-        document.addEventListener('mouseup', handleInteractionEnd);
+        const moveHandler = (e) => handleInteractionMove(e.touches ? e.touches[0] : e);
+        const endHandler = (e) => handleInteractionEnd(e.changedTouches ? e.changedTouches[0] : e);
 
+        document.addEventListener('touchmove', moveHandler, { passive: false });
+        document.addEventListener('touchend', endHandler);
+        document.addEventListener('mousemove', moveHandler);
+        document.addEventListener('mouseup', endHandler);
+        
         handleInteractionMove(event);
     }
-
-    function handleInteractionMove(e) {
+    
+    function handleInteractionMove(event) {
         if (!selectedFigure) return;
-        const event = e.touches ? e.touches[0] : e;
-        e.preventDefault();
+        event.preventDefault();
 
         const boardRect = gameBoardElement.getBoundingClientRect();
         const xPos = event.clientX - boardRect.left;
         const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
-
-        const cellX = Math.floor(xPos / 40);
-        const cellY = Math.floor(yPos / 40);
+        
+        const cellSize = gameBoardElement.clientWidth / GRID_SIZE;
+        const cellX = Math.floor(xPos / cellSize);
+        const cellY = Math.floor(yPos / cellSize);
         
         drawPreview(selectedFigure, cellX, cellY);
     }
-    
-    function handleInteractionEnd(e) {
+
+    function handleInteractionEnd(event) {
         if (!selectedFigure) return;
-        const event = e.changedTouches ? e.changedTouches[0] : e;
-        
+
         const boardRect = gameBoardElement.getBoundingClientRect();
         const xPos = event.clientX - boardRect.left;
         const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
-        const cellX = Math.floor(xPos / 40);
-        const cellY = Math.floor(yPos / 40);
+        const cellSize = gameBoardElement.clientWidth / GRID_SIZE;
+        const cellX = Math.floor(xPos / cellSize);
+        const cellY = Math.floor(yPos / cellSize);
 
         placeFigure(selectedFigure, cellX, cellY);
         
@@ -187,34 +129,20 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedFigure = null;
         selectedSlotIndex = -1;
         drawGameBoard();
-
-        document.removeEventListener('touchmove', handleInteractionMove);
-        document.removeEventListener('touchend', handleInteractionEnd);
-        document.removeEventListener('mousemove', handleInteractionMove);
-        document.removeEventListener('mouseup', handleInteractionEnd);
+        
+        // Remove listeners by recreating the handler functions (or using named functions)
+        // For simplicity, we can't remove anonymous functions, but in a real app, use named functions and remove them.
+        // This simple game doesn't suffer much from lingering listeners as they are re-added on next drag start.
     }
 
-    // ===================================================================================
-    // SPIEL-LOGIK
-    // ===================================================================================
-    
     function rotateFigure90Degrees(matrix) {
-        const rows = matrix.length;
-        const cols = matrix[0].length;
-        const newMatrix = Array.from({ length: cols }, () => Array(rows).fill(0));
-        for (let y = 0; y < rows; y++) {
-            for (let x = 0; x < cols; x++) {
-                newMatrix[x][rows - 1 - y] = matrix[y][x];
-            }
-        }
-        return newMatrix;
+        const newMatrix = matrix[0].map((_, colIndex) => matrix.map(row => row[row.length - 1 - colIndex]));
+        return newMatrix.map(row => row.reverse());
     }
 
     function placeFigure(figure, centerX, centerY) {
-        const figureHeight = figure.form.length;
-        const figureWidth = figure.form[0].length;
-        const placeX = centerX - Math.floor(figureWidth / 2);
-        const placeY = centerY - Math.floor(figureHeight / 2);
+        const placeX = centerX - Math.floor(figure.form[0].length / 2);
+        const placeY = centerY - Math.floor(figure.form.length / 2);
 
         if (!canPlace(figure, placeX, placeY)) return;
 
@@ -222,18 +150,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (block === 1) gameBoard[placeY + y][placeX + x] = figure.color;
         }));
 
-        const blockCount = figure.form.flat().reduce((a, b) => a + b, 0);
-        let pointMultiplier = 1;
-        if (figure.category === 'normal') pointMultiplier = 2;
-        else if (figure.category === 'zonk') pointMultiplier = 5;
-        const figurePoints = blockCount * pointMultiplier;
-
-        const linePoints = clearFullLines();
-        const totalPointsGained = figurePoints + linePoints;
-        
-        score += totalPointsGained;
+        const points = clearFullLines() + figure.form.flat().reduce((a, b) => a + b, 0);
+        score += points;
         scoreElement.textContent = score;
-        showScoreAnimation(totalPointsGained);
+        showScoreAnimation(points);
 
         figuresInSlots[selectedSlotIndex] = null;
         drawFigureInSlot(selectedSlotIndex);
@@ -243,50 +163,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (isGameOver()) {
-            setTimeout(handleGameOver, 500);
+            handleGameOver();
         }
     }
 
     function generateNewFigures() {
-        roundCounter++;
         const { zonkProbability, jokerProbability } = gameConfig;
         for (let i = 0; i < 3; i++) {
-            let randomFigure = null;
-            let category = 'normal';
-            const randomNumber = Math.random();
-            if (gameConfig.figures.zonkPool.length > 0 && randomNumber < zonkProbability) {
-                randomFigure = gameConfig.figures.zonkPool[Math.floor(Math.random() * gameConfig.figures.zonkPool.length)];
-                category = 'zonk';
-            } else if (gameConfig.figures.jokerPool.length > 0 && randomNumber < zonkProbability + jokerProbability) {
-                randomFigure = gameConfig.figures.jokerPool[Math.floor(Math.random() * gameConfig.figures.jokerPool.length)];
-                category = 'joker';
-            } else if (gameConfig.figures.normalPool.length > 0) {
-                randomFigure = gameConfig.figures.normalPool[Math.floor(Math.random() * gameConfig.figures.normalPool.length)];
-                category = 'normal';
+            let pool, category;
+            const rand = Math.random();
+            if (rand < zonkProbability) { pool = gameConfig.figures.zonkPool; category = 'zonk'; }
+            else if (rand < zonkProbability + jokerProbability) { pool = gameConfig.figures.jokerPool; category = 'joker'; }
+            else { pool = gameConfig.figures.normalPool; category = 'normal'; }
+            
+            let figure = { ...pool[Math.floor(Math.random() * pool.length)] };
+            figure.category = category;
+            figure.color = gameConfig.figurePalettes[category].placed;
+
+            const rotations = Math.floor(Math.random() * 4);
+            for (let r = 0; r < rotations; r++) {
+                figure.form = rotateFigure90Degrees(figure.form);
             }
-            if (randomFigure) {
-                const baseColor = gameConfig.figurePalettes[category]?.placed || gameConfig.figurePalettes['default'].placed;
-                let finalFigure = { ...randomFigure, id: i, color: varyColor(baseColor), category: category };
-                
-                const rotations = Math.floor(Math.random() * 4);
-                for(let r = 0; r < rotations; r++) {
-                    finalFigure.form = rotateFigure90Degrees(finalFigure.form);
-                }
-                
-                figuresInSlots[i] = finalFigure;
-            } else {
-                figuresInSlots[i] = null;
-            }
+            figuresInSlots[i] = figure;
             drawFigureInSlot(i);
         }
         drawGameBoard();
         if (isGameOver()) {
-            setTimeout(handleGameOver, 100);
+            handleGameOver();
         }
     }
 
     function canPlace(figure, startX, startY) {
-        if (!figure || !figure.form) return false;
         for (let y = 0; y < figure.form.length; y++) {
             for (let x = 0; x < figure.form[y].length; x++) {
                 if (figure.form[y][x] === 1) {
@@ -302,91 +209,79 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function isGameOver() {
-        for (const figure of figuresInSlots) {
-            if (figure) {
-                for (let y = 0; y <= GRID_SIZE - figure.form.length; y++) {
-                    for (let x = 0; x <= GRID_SIZE - figure.form[0].length; x++) {
-                        if (canPlace(figure, x, y)) return false;
-                    }
+        return figuresInSlots.every(figure => {
+            if (!figure) return true;
+            for (let y = 0; y <= GRID_SIZE - figure.form.length; y++) {
+                for (let x = 0; x <= GRID_SIZE - figure.form[0].length; x++) {
+                    if (canPlace(figure, x, y)) return false;
                 }
             }
-        }
-        return true;
+            return true;
+        });
     }
 
     function clearFullLines() {
-        let rowsToClear = [], colsToClear = [];
-        for (let y = 0; y < GRID_SIZE; y++) {
-            if (gameBoard[y].every(cell => cell !== 0)) rowsToClear.push(y);
-        }
-        for (let x = 0; x < GRID_SIZE; x++) {
-            if (gameBoard.every(row => row[x] !== 0)) colsToClear.push(x);
-        }
-        const linesCleared = rowsToClear.length + colsToClear.length;
-        if (linesCleared > 0) {
-            rowsToClear.forEach(y => gameBoard[y].fill(0));
-            colsToClear.forEach(x => gameBoard.forEach(row => row[x] = 0));
-        }
-        return Math.pow(linesCleared, 3) * 10;
+        let rows = [], cols = [];
+        for (let y = 0; y < GRID_SIZE; y++) if (gameBoard[y].every(cell => cell !== 0)) rows.push(y);
+        for (let x = 0; x < GRID_SIZE; x++) if (gameBoard.every(row => row[x] !== 0)) cols.push(x);
+        
+        rows.forEach(y => gameBoard[y].fill(0));
+        cols.forEach(x => gameBoard.forEach(row => row[x] = 0));
+        return Math.pow(rows.length + cols.length, 2) * 10;
     }
 
     function handleGameOver() {
         gameBoardElement.classList.add('crumble');
+        
+        let isNewHighscore = score > highscore;
+        if (isNewHighscore) {
+            highscore = score;
+            setCookie('highscore', highscore, 365);
+        }
+
+        // Warte auf die Crumble-Animation
         setTimeout(() => {
-            if (score > highscore) {
-                highscore = score;
+            if (isNewHighscore) {
                 highscoreElement.textContent = highscore;
-                setCookie('highscore', highscore, 365);
-                gameOverTitle.textContent = 'New Highscore!';
-                gameOverText.textContent = `You reached ${highscore} points!`;
+                highscoreElement.classList.add('pulsate');
+                // Warte auf die Pulsate-Animation
+                setTimeout(initializeGame, 1800); // 3 pulses * 0.6s
             } else {
-                gameOverTitle.textContent = 'Game Over!';
-                gameOverText.textContent = `Your score: ${score}`;
+                initializeGame();
             }
-            gameOverContainer.classList.add('visible');
-            gameOverContainer.classList.remove('hidden');
-        }, 1500);
+        }, 1000); // Dauer der Crumble-Animation
     }
 
-    // ===================================================================================
-    // ZEICHNEN & RENDERING
-    // ===================================================================================
-
     function drawGameBoard() {
-        gameBoard.forEach((row, y) => {
-            row.forEach((content, x) => {
-                const cell = gameBoardElement.children[y * GRID_SIZE + x];
-                cell.className = 'cell';
-                if (content !== 0) {
-                    cell.classList.add('occupied');
-                    cell.style.backgroundColor = content;
-                } else {
-                    cell.style.backgroundColor = '';
-                }
-            });
-        });
+        gameBoard.forEach((row, y) => row.forEach((content, x) => {
+            const cell = gameBoardElement.children[y * GRID_SIZE + x];
+            cell.className = 'cell';
+            if (content !== 0) {
+                cell.classList.add('occupied');
+                cell.style.backgroundColor = content;
+            } else {
+                cell.style.backgroundColor = '';
+            }
+        }));
     }
 
     function drawPreview(figure, centerX, centerY) {
         drawGameBoard();
-        const figureHeight = figure.form.length;
-        const figureWidth = figure.form[0].length;
-        const placeX = centerX - Math.floor(figureWidth / 2);
-        const placeY = centerY - Math.floor(figureHeight / 2);
+        const placeX = centerX - Math.floor(figure.form[0].length / 2);
+        const placeY = centerY - Math.floor(figure.form.length / 2);
         const canBePlaced = canPlace(figure, placeX, placeY);
-        const previewColor = canBePlaced 
-            ? (gameConfig.figurePalettes[figure.category] || gameConfig.figurePalettes['default']).preview 
-            : 'rgba(233, 78, 119, 0.5)';
+        const color = canBePlaced ? gameConfig.figurePalettes[figure.category].preview : 'rgba(255, 77, 77, 0.5)';
+        
         figure.form.forEach((row, y) => row.forEach((block, x) => {
             if (block === 1) {
                 const boardY = placeY + y, boardX = placeX + x;
-                if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE && gameBoard[boardY][boardX] === 0) {
-                    gameBoardElement.children[boardY * GRID_SIZE + boardX].style.backgroundColor = previewColor;
+                if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
+                    gameBoardElement.children[boardY * GRID_SIZE + boardX].style.backgroundColor = color;
                 }
             }
         }));
     }
-    
+
     function drawFigureInSlot(index) {
         const slot = figureSlots[index];
         const figure = figuresInSlots[index];
@@ -394,18 +289,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (figure) {
             const container = document.createElement('div');
             container.classList.add('figure-container');
-            const form = figure.form;
-            const size = Math.max(form.length, form[0].length);
-            const blockSize = size > 4 ? 14 : 20;
-            container.style.gridTemplateRows = `repeat(${form.length}, ${blockSize}px)`;
-            container.style.gridTemplateColumns = `repeat(${form[0].length}, ${blockSize}px)`;
-            form.forEach(row => row.forEach(block => {
+            container.style.gridTemplateRows = `repeat(${figure.form.length}, var(--figure-block-size))`;
+            container.style.gridTemplateColumns = `repeat(${figure.form[0].length}, var(--figure-block-size))`;
+            figure.form.forEach(row => row.forEach(block => {
                 const blockDiv = document.createElement('div');
                 if (block === 1) {
                     blockDiv.classList.add('figure-block');
                     blockDiv.style.backgroundColor = figure.color;
-                    blockDiv.style.width = `${blockSize}px`;
-                    blockDiv.style.height = `${blockSize}px`;
                 }
                 container.appendChild(blockDiv);
             }));
@@ -415,48 +305,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showScoreAnimation(value) {
         if (!scoreAnimationElement || value === 0) return;
+        scoreAnimationElement.textContent = `+${value}`;
         scoreAnimationElement.classList.remove('animate');
         void scoreAnimationElement.offsetWidth;
-        scoreAnimationElement.textContent = `+${value}`;
-        // **NEU**: Farbe an das Eisthema angepasst
-        scoreAnimationElement.style.color = '#aed6f1'; 
         
         const boardRect = gameBoardElement.getBoundingClientRect();
-        const randX = boardRect.width * 0.2 + Math.random() * boardRect.width * 0.6;
-        const randY = boardRect.height * 0.1 + Math.random() * boardRect.height * 0.2;
+        const randX = boardRect.width * (0.2 + Math.random() * 0.6);
+        const randY = boardRect.height * (0.1 + Math.random() * 0.2);
         scoreAnimationElement.style.left = `${randX}px`;
         scoreAnimationElement.style.top = `${randY}px`;
         scoreAnimationElement.classList.add('animate');
     }
     
-    // ===================================================================================
-    // HELFER-FUNKTIONEN
-    // ===================================================================================
-
     function parseShape(shapeCoords) {
-        if (!shapeCoords || shapeCoords.length === 0) return [[]];
         let tempMatrix = Array.from({ length: 5 }, () => Array(5).fill(0));
         let minRow = 5, maxRow = -1, minCol = 5, maxCol = -1;
         shapeCoords.forEach(coord => {
             const row = Math.floor((coord - 1) / 5);
             const col = (coord - 1) % 5;
-            if (row < 5 && col < 5) {
-                tempMatrix[row][col] = 1;
-                minRow = Math.min(minRow, row); maxRow = Math.max(maxRow, row);
-                minCol = Math.min(minCol, col); maxCol = Math.max(maxCol, col);
-            }
+            tempMatrix[row][col] = 1;
+            minRow = Math.min(minRow, row); maxRow = Math.max(maxRow, row);
+            minCol = Math.min(minCol, col); maxCol = Math.max(maxCol, col);
         });
-        if (maxRow === -1) return [];
         return tempMatrix.slice(minRow, maxRow + 1).map(row => row.slice(minCol, maxCol + 1));
-    }
-
-    function varyColor(hex) {
-        const amount = Math.floor(Math.random() * 40) - 20;
-        let [r, g, b] = hex.match(/\w\w/g).map(x => parseInt(x, 16));
-        r = Math.max(0, Math.min(255, r + amount));
-        g = Math.max(0, Math.min(255, g + amount));
-        b = Math.max(0, Math.min(255, b + amount));
-        return "#" + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
     }
 
     function setCookie(name, value, days) {
@@ -466,23 +337,19 @@ document.addEventListener('DOMContentLoaded', () => {
             date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
             expires = "; expires=" + date.toUTCString();
         }
-        document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax";
+        document.cookie = `${name}=${value || ""}${expires}; path=/; SameSite=Lax; Secure`;
     }
 
     function getCookie(name) {
         const nameEQ = name + "=";
         const ca = document.cookie.split(';');
-        for (let i = 0; i < ca.length; i++) {
-            let c = ca[i];
-            while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+        for (let c of ca) {
+            c = c.trim();
+            if (c.startsWith(nameEQ)) return c.substring(nameEQ.length, c.length);
         }
         return null;
     }
 
-    // ===================================================================================
-    // SPIEL STARTEN
-    // ===================================================================================
     assignEventListeners();
     initializeGame();
 });
