@@ -1,35 +1,33 @@
 {
-    "version": "V0.01",
-    "letzteAenderung": "mobile first",
-    "gameVersion": "1.00",
+    "version": "V0.04",
+    "lastModification": "Config finalized",
+    "gameVersion": "1.03",
     "mobileBackgroundColor": "#e0f7fa",
     "zonkProbability": 0.05,
-    "backgroundImage": "winter.jpg",
-    "linie_vorschau": "rgba(84, 160, 255, 0.2)",
-    "active_slot_border": "#1dd1a1",
-            "title": {
-                "red": "#ff6b6b",
-                "yellow": "#feca57",
-                "yellow_text": "#576574",
-                "blue": "#48dbfb",
-                "green": "#1dd1a1",
-                "purple": "#5f27cd"
-            },
-            "figurePalettes": {
-                "default": { "placed": "#00d2d3", "preview": "rgba(0, 210, 211, 0.5)" },
-                "normal":  { "placed": "#54a0ff", "preview": "rgba(84, 160, 255, 0.5)" },
-                "joker":   { "placed": "#5f27cd", "preview": "rgba(95, 39, 205, 0.5)" },
-                "zonk":    { "placed": "#778ca3", "preview": "rgba(119, 140, 163, 0.5)" }
-            },
+    "jokerProbability": 0.25,
+    "linePreview": "rgba(84, 160, 255, 0.2)",
+    "activeSlotBorder": "#1dd1a1",
+    "title": {
+        "red": "#ff6b6b",
+        "yellow": "#feca57",
+        "yellow_text": "#576574",
+        "blue": "#48dbfb",
+        "green": "#1dd1a1",
+        "purple": "#5f27cd"
+    },
+    "figurePalettes": {
+        "default": { "placed": "#00d2d3", "preview": "rgba(0, 210, 211, 0.5)" },
+        "normal":  { "placed": "#54a0ff", "preview": "rgba(84, 160, 255, 0.5)" },
+        "joker":   { "placed": "#5f27cd", "preview": "rgba(95, 39, 205, 0.5)" },
+        "zonk":    { "placed": "#778ca3", "preview": "rgba(119, 140, 163, 0.5)" }
+    },
     "figures": {
         "normal": [
             { "name": "I-4", "shape": [1, 2, 3, 4] },
             { "name": "Block 2x3", "shape": [1, 2, 3, 6, 7, 8] },
             { "name": "Block 3x3", "shape": [1, 2, 3, 6, 7, 8, 11, 12, 13] },
             { "name": "L-Klein", "shape": [1, 6, 11, 12] },
-            { "name": "L-Gross", "shape": [1, 6, 11, 16, 17] },
             { "name": "L-Klein 2", "shape": [5, 10, 14, 15] },
-            { "name": "L-Gross 2", "shape": [5, 10, 15, 19, 20] },
             { "name": "T-Form", "shape": [1, 2, 3, 7] },
             { "name": "S-Form", "shape": [2, 3, 6, 7] },
             { "name": "Z-Form", "shape": [1, 2, 7, 8] },
