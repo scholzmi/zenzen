@@ -1,21 +1,12 @@
 {
-    "version": "V12.0_mobile",
-    "letzteAenderung": "Mobile-First Refactoring",
-    "gameSettings": {
-        "gameVersion": "2.0",
-        "mobileBackgroundColor": "#e0f7fa",
-        "zonkProbability": 0.05,
-        "jokerProbability": 0.25
-    },
-    "colorSchemes": {
-        "Winter": {
-            "backgroundImage": "winter.jpg",
-            "blocker": "#7f8c8d",
-            "joker_box_full": "#54a0ff",
-            "joker_box_empty": "rgba(84, 160, 255, 0.3)",
-            "linie_vorschau": "rgba(84, 160, 255, 0.2)",
-            "active_slot_border": "#1dd1a1",
-            "timer_bar": "linear-gradient(to right, #ff6b6b, #48dbfb, #1dd1a1)",
+    "version": "V0.01",
+    "letzteAenderung": "mobile first",
+    "gameVersion": "1.00",
+    "mobileBackgroundColor": "#e0f7fa",
+    "zonkProbability": 0.05,
+    "backgroundImage": "winter.jpg",
+    "linie_vorschau": "rgba(84, 160, 255, 0.2)",
+    "active_slot_border": "#1dd1a1",
             "title": {
                 "red": "#ff6b6b",
                 "yellow": "#feca57",
@@ -24,30 +15,12 @@
                 "green": "#1dd1a1",
                 "purple": "#5f27cd"
             },
-            "buttons": {
-                "primary_border": "#48dbfb",
-                "primary_text": "#48dbfb",
-                "primary_hover_bg": "#48dbfb",
-                "disabled_border": "#95a5a6",
-                "disabled_text": "#95a5a6",
-                "success_bg": "#1dd1a1",
-                "success_text": "#ffffff",
-                "success_hover_text": "#1dd1a1",
-                "danger_bg": "#ff6b6b",
-                "danger_text": "#ffffff",
-                "danger_hover_text": "#ff6b6b",
-                "auto_panic_bg": "#ff6b6b",
-                "auto_panic_border": "#ff6b6b",
-                "wieder_aktiv_glow": "#1dd1a1"
-            },
             "figurePalettes": {
                 "default": { "placed": "#00d2d3", "preview": "rgba(0, 210, 211, 0.5)" },
                 "normal":  { "placed": "#54a0ff", "preview": "rgba(84, 160, 255, 0.5)" },
                 "joker":   { "placed": "#5f27cd", "preview": "rgba(95, 39, 205, 0.5)" },
                 "zonk":    { "placed": "#778ca3", "preview": "rgba(119, 140, 163, 0.5)" }
-            }
-        }
-    },
+            },
     "figures": {
         "normal": [
             { "name": "I-4", "shape": [1, 2, 3, 4] },
