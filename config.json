@@ -2,6 +2,8 @@
     "version": "V0.18",
     "lastModification": "Frozen Theme Redesign",
     "gameVersion": "0.01",
+    "zonkProbability": 0.05,
+    "jokerProbability": 0.25,
     "mobileBackgroundColor": "#d4e6f1",
     "linePreview": "rgba(174, 214, 241, 0.5)",
     "activeSlotBorder": "#aed6f1",
