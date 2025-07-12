@@ -1,155 +1,13 @@
 {
-    "version": "V11.24",
-    "letzteAenderung": "Hintergrundbilder",
+    "version": "V12.0_mobile",
+    "letzteAenderung": "Mobile-First Refactoring",
     "gameSettings": {
-        "gameVersion": "1.0",
+        "gameVersion": "2.0",
         "mobileBackgroundColor": "#e0f7fa",
-        "panicBlinkDuration": 1000,
-        "panicBlinkFrequency": "0.2s",
-        "panicCooldownRounds": 3,
-        "normal": {
-            "timerDuration": 60,
-            "timerPenaltyCount": 1,
-            "jokerPenaltyCount": 3,
-            "refreshPenaltyPoints": 200,
-            "panicCostIncrement": 50,
-            "numberOfJokers": 3,
-            "zonkProbability": 0.03,
-            "jokerProbability": 0.30,
-            "jokerProbabilityReductionInterval": 12,
-            "jokerProbabilityMinimum": 0.08
-        },
-        "hard": {
-            "timerDuration": 30,
-            "timerPenaltyCount": 2,
-            "jokerPenaltyCount": 5,
-            "refreshPenaltyPoints": 200,
-            "panicCostIncrement": 100,
-            "numberOfJokers": 3,
-            "zonkProbability": 0.05,
-            "jokerProbability": 0.25,
-            "jokerProbabilityReductionInterval": 8,
-            "jokerProbabilityMinimum": 0.04
-        }
+        "zonkProbability": 0.05,
+        "jokerProbability": 0.25
     },
     "colorSchemes": {
-        "Frühling": {
-            "backgroundImage": "frühjahr.jpg",
-            "blocker": "#5D4037",
-            "joker_box_full": "#AED581",
-            "joker_box_empty": "rgba(174, 213, 129, 0.3)",
-            "linie_vorschau": "rgba(174, 213, 129, 0.2)",
-            "active_slot_border": "#FFD54F",
-            "timer_bar": "linear-gradient(to right, #EF9A9A, #FFF59D, #A5D6A7)",
-            "title": {
-                "red": "#EF9A9A",
-                "yellow": "#FFF59D",
-                "yellow_text": "#8D6E63",
-                "blue": "#90CAF9",
-                "green": "#A5D6A7",
-                "purple": "#CE93D8"
-            },
-            "buttons": {
-                "primary_border": "#90CAF9",
-                "primary_text": "#90CAF9",
-                "primary_hover_bg": "#90CAF9",
-                "disabled_border": "#E0E0E0",
-                "disabled_text": "#E0E0E0",
-                "success_bg": "#A5D6A7",
-                "success_text": "#1B5E20",
-                "success_hover_text": "#A5D6A7",
-                "danger_bg": "#EF9A9A",
-                "danger_text": "#B71C1C",
-                "danger_hover_text": "#EF9A9A",
-                "auto_panic_bg": "#EF9A9A",
-                "auto_panic_border": "#EF9A9A",
-                "wieder_aktiv_glow": "#A5D6A7"
-            },
-            "figurePalettes": {
-                "default": { "placed": "#90CAF9", "preview": "rgba(144, 202, 249, 0.5)" },
-                "normal":  { "placed": "#FFB74D", "preview": "rgba(255, 183, 77, 0.5)" },
-                "joker":   { "placed": "#81C784", "preview": "rgba(129, 199, 132, 0.5)" },
-                "zonk":    { "placed": "#BA68C8", "preview": "rgba(186, 104, 200, 0.5)" }
-            }
-        },
-        "Sommer": {
-            "backgroundImage": "sommer.jpg",
-            "blocker": "#2c3e50",
-            "joker_box_full": "#1abc9c",
-            "joker_box_empty": "rgba(26, 188, 156, 0.3)",
-            "linie_vorschau": "rgba(26, 188, 156, 0.2)",
-            "active_slot_border": "#f1c40f",
-            "timer_bar": "linear-gradient(to right, #e74c3c, #f1c40f, #2ecc71)",
-            "title": {
-                "red": "#e74c3c",
-                "yellow": "#f1c40f",
-                "yellow_text": "#f39c12",
-                "blue": "#3498db",
-                "green": "#2ecc71",
-                "purple": "#9b59b6"
-            },
-            "buttons": {
-                "primary_border": "#3498db",
-                "primary_text": "#3498db",
-                "primary_hover_bg": "#3498db",
-                "disabled_border": "#95a5a6",
-                "disabled_text": "#95a5a6",
-                "success_bg": "#2ecc71",
-                "success_text": "#ffffff",
-                "success_hover_text": "#2ecc71",
-                "danger_bg": "#e74c3c",
-                "danger_text": "#ffffff",
-                "danger_hover_text": "#e74c3c",
-                "auto_panic_bg": "#e74c3c",
-                "auto_panic_border": "#e74c3c",
-                "wieder_aktiv_glow": "#2ecc71"
-            },
-            "figurePalettes": {
-                "default": { "placed": "#3498db", "preview": "rgba(52, 152, 219, 0.5)" },
-                "normal":  { "placed": "#e67e22", "preview": "rgba(230, 126, 34, 0.5)" },
-                "joker":   { "placed": "#27ae60", "preview": "rgba(39, 174, 96, 0.5)" },
-                "zonk":    { "placed": "#8e44ad", "preview": "rgba(142, 68, 173, 0.5)" }
-            }
-        },
-        "Herbst": {
-            "backgroundImage": "herbst.jpg",
-            "blocker": "#2c3e50",
-            "joker_box_full": "#27ae60",
-            "joker_box_empty": "rgba(39, 174, 96, 0.3)",
-            "linie_vorschau": "rgba(39, 174, 96, 0.2)",
-            "active_slot_border": "#f39c12",
-            "timer_bar": "linear-gradient(to right, #c0392b, #f39c12, #27ae60)",
-            "title": {
-                "red": "#c0392b",
-                "yellow": "#f1c40f",
-                "yellow_text": "#7f8c8d",
-                "blue": "#2980b9",
-                "green": "#27ae60",
-                "purple": "#8e44ad"
-            },
-            "buttons": {
-                "primary_border": "#2980b9",
-                "primary_text": "#2980b9",
-                "primary_hover_bg": "#2980b9",
-                "disabled_border": "#bdc3c7",
-                "disabled_text": "#bdc3c7",
-                "success_bg": "#27ae60",
-                "success_text": "#ffffff",
-                "success_hover_text": "#27ae60",
-                "danger_bg": "#c0392b",
-                "danger_text": "#ffffff",
-                "danger_hover_text": "#c0392b",
-                "auto_panic_bg": "#c0392b",
-                "auto_panic_border": "#c0392b",
-                "wieder_aktiv_glow": "#27ae60"
-            },
-            "figurePalettes": {
-                "default": { "placed": "#3498db", "preview": "rgba(52, 152, 219, 0.5)" },
-                "normal":  { "placed": "#d35400", "preview": "rgba(211, 84, 0, 0.5)" },
-                "joker":   { "placed": "#16a085", "preview": "rgba(22, 160, 133, 0.5)" },
-                "zonk":    { "placed": "#8e44ad", "preview": "rgba(142, 68, 173, 0.5)" }
-            }
-        },
         "Winter": {
             "backgroundImage": "winter.jpg",
             "blocker": "#7f8c8d",
@@ -192,37 +50,37 @@
     },
     "figures": {
         "normal": [
-            { "name": "I-4", "shape": [1, 2, 3, 4], "symmetrisch": false },
-            { "name": "Block 2x3", "shape": [1, 2, 3, 6, 7, 8], "symmetrisch": false },
-            { "name": "Block 3x3", "shape": [1, 2, 3, 6, 7, 8, 11, 12, 13], "symmetrisch": true },
-            { "name": "L-Klein", "shape": [1, 6, 11, 12], "symmetrisch": false },
-            { "name": "L-Gross", "shape": [1, 6, 11, 16, 17], "symmetrisch": false },
-            { "name": "L-Klein 2", "shape": [5, 10, 14, 15], "symmetrisch": false },
-            { "name": "L-Gross 2", "shape": [5, 10, 15, 19, 20], "symmetrisch": false },
-            { "name": "T-Form", "shape": [1, 2, 3, 7], "symmetrisch": false },
-            { "name": "S-Form", "shape": [2, 3, 6, 7], "symmetrisch": false },
-            { "name": "Z-Form", "shape": [1, 2, 7, 8], "symmetrisch": false },
-            { "name": "Plus", "shape": [2, 6, 7, 8, 12], "symmetrisch": true },
-            { "name": "U-Klein", "shape": [1, 3, 6, 7, 8], "symmetrisch": false },
-            { "name": "Winkel-Klein", "shape": [1, 2, 6], "symmetrisch": false },
-            { "name": "Winkel-Gross", "shape": [1, 2, 3, 6, 11], "symmetrisch": false },
-            { "name": "Diagonale-3", "shape": [1, 7, 13], "symmetrisch": false }
+            { "name": "I-4", "shape": [1, 2, 3, 4] },
+            { "name": "Block 2x3", "shape": [1, 2, 3, 6, 7, 8] },
+            { "name": "Block 3x3", "shape": [1, 2, 3, 6, 7, 8, 11, 12, 13] },
+            { "name": "L-Klein", "shape": [1, 6, 11, 12] },
+            { "name": "L-Gross", "shape": [1, 6, 11, 16, 17] },
+            { "name": "L-Klein 2", "shape": [5, 10, 14, 15] },
+            { "name": "L-Gross 2", "shape": [5, 10, 15, 19, 20] },
+            { "name": "T-Form", "shape": [1, 2, 3, 7] },
+            { "name": "S-Form", "shape": [2, 3, 6, 7] },
+            { "name": "Z-Form", "shape": [1, 2, 7, 8] },
+            { "name": "Plus", "shape": [2, 6, 7, 8, 12] },
+            { "name": "U-Klein", "shape": [1, 3, 6, 7, 8] },
+            { "name": "Winkel-Klein", "shape": [1, 2, 6] },
+            { "name": "Winkel-Gross", "shape": [1, 2, 3, 6, 11] },
+            { "name": "Diagonale-3", "shape": [1, 7, 13] }
         ],
         "zonk": [
-            { "name": "I-5", "shape": [1, 2, 3, 4, 5], "symmetrisch": false },
-            { "name": "Block 4x4", "shape": [1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 16, 17, 18, 19], "symmetrisch": true },
-            { "name": "U-Gross", "shape": [1, 3, 6, 8, 11, 12, 13], "symmetrisch": false },
-            { "name": "X of death", "shape": [1, 5, 7, 9, 13, 17, 19, 21, 25], "symmetrisch": true },
-            { "name": "+ of death", "shape": [3, 8, 11, 12, 13, 14, 15, 18, 23], "symmetrisch": true },
-            { "name": "Diagonale-4", "shape": [1, 7, 13, 19], "symmetrisch": false },
-            { "name": "ZZoro", "shape": [1, 2, 3, 4, 5, 7, 13, 19, 21,22,23,24,25], "symmetrisch": false },
-            { "name": "Square 5x5", "shape": [1, 2, 3, 4, 5, 6, 10, 11, 15, 16, 20, 21, 22, 23, 24, 25], "symmetrisch": true}
+            { "name": "I-5", "shape": [1, 2, 3, 4, 5] },
+            { "name": "Block 4x4", "shape": [1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 16, 17, 18, 19] },
+            { "name": "U-Gross", "shape": [1, 3, 6, 8, 11, 12, 13] },
+            { "name": "X of death", "shape": [1, 5, 7, 9, 13, 17, 19, 21, 25] },
+            { "name": "+ of death", "shape": [3, 8, 11, 12, 13, 14, 15, 18, 23] },
+            { "name": "Diagonale-4", "shape": [1, 7, 13, 19] },
+            { "name": "ZZoro", "shape": [1, 2, 3, 4, 5, 7, 13, 19, 21,22,23,24,25] },
+            { "name": "Square 5x5", "shape": [1, 2, 3, 4, 5, 6, 10, 11, 15, 16, 20, 21, 22, 23, 24, 25]}
         ],
         "joker": [
-            { "name": "Punkt", "shape": [1], "symmetrisch": true },
-            { "name": "I-3", "shape": [1, 2, 3], "symmetrisch": false },
-            { "name": "Block 2x2", "shape": [1, 2, 6, 7], "symmetrisch": true },
-            { "name": "Joker I-2", "shape": [1, 2], "symmetrisch": false }
+            { "name": "Punkt", "shape": [1] },
+            { "name": "I-3", "shape": [1, 2, 3] },
+            { "name": "Block 2x2", "shape": [1, 2, 6, 7] },
+            { "name": "Joker I-2", "shape": [1, 2] }
         ]
     }
 }
