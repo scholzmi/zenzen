@@ -32,7 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===================================================================================
 
     async function initializeGame() {
-        // Ensure all DOM elements are found before proceeding
         if (!gameBoardElement || !scoreElement || !highscoreElement || figureSlots.length !== 3) {
             console.error("Critical DOM elements are missing. Aborting initialization.");
             document.body.innerHTML = "<p style='color:red;padding:20px;'>Critical HTML elements are missing. Check element IDs.</p>";
@@ -66,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedSlotIndex = -1;
 
         createGameBoard();
-        generateNewFigures(); // This will also draw the board and figures
+        generateNewFigures();
     }
 
     async function loadConfiguration() {
@@ -151,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function handleInteractionStart(event, targetSlot) {
-        if (selectedFigure) return; // Prevent starting a new drag if one is active
+        if (selectedFigure) return;
 
         const slotIndex = parseInt(targetSlot.dataset.slotId, 10);
         if (!figuresInSlots[slotIndex]) return;
@@ -198,7 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ghostElement.style.display = 'none';
         const elementUnder = document.elementFromPoint(event.clientX, event.clientY);
         
-        // Final cleanup
         document.body.removeChild(ghostElement);
         document.querySelector('.figure-slot.dragging')?.classList.remove('dragging');
         ghostElement = null;
@@ -232,11 +230,11 @@ document.addEventListener('DOMContentLoaded', () => {
         ghostElement.style.zIndex = '1000';
         ghostElement.style.opacity = '0.8';
 
-        const rect = figureContainer.getBoundingClientRect();
-        ghostOffsetX = event.clientX - rect.left + (rect.width / 2);
-        ghostOffsetY = event.clientY - rect.top + (rect.height / 2);
+        const rect = slot.getBoundingClientRect();
+        ghostOffsetX = event.clientX - rect.left;
+        ghostOffsetY = event.clientY - rect.top;
 
-        ghostElement.style.transform = `translate(${event.clientX - ghostOffsetX}px, ${event.clientY - ghostOffsetY}px) scale(1.5)`;
+        ghostElement.style.transform = `translate(${rect.left}px, ${rect.top}px) scale(1.5)`;
         document.body.appendChild(ghostElement);
     }
 

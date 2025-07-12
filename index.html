@@ -1,66 +1,68 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>ZZZEN</title> <link rel="stylesheet" href="style.css">
+    <title>ZZZEN</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
-    <div class="haupt-container">
+    <div class="main-container">
         
-        <div class="spiel-wrapper">
+        <div class="game-wrapper">
             <div class="block-title">
                 <span class="block-char c-z">Z</span><span class="block-char c-z2">Z</span><span class="block-char c-z3">Z</span><span class="block-char c-e">E</span><span class="block-char c-n">N</span>
             </div>
 
-            <div class="punkte-container">
-                <div id="punkte" class="punkte-anzeige">0</div>
-                <div id="rekord" class="punkte-anzeige">0</div>
+            <div class="score-container">
+                <div id="score" class="score-display">0</div>
+                <div id="highscore" class="score-display">0</div>
             </div>
 
-            <div id="spielbrett" class="grid-container"></div>
-            <div id="punkte-animation" class="punkte-animation"></div>
+            <div id="game-board" class="grid-container"></div>
+            <div id="score-animation" class="score-animation"></div>
 
-            <div id="figuren-auswahl">
-                <div class="figur-slot" data-slot-id="0"></div><div class="figur-slot" data-slot-id="1"></div><div class="figur-slot" data-slot-id="2"></div>
+            <div id="figure-selection">
+                <div class="figure-slot" data-slot-id="0"></div><div class="figure-slot" data-slot-id="1"></div><div class="figure-slot" data-slot-id="2"></div>
             </div>
         </div>
 
-        <div id="info-container" class="seiten-box paypal-box">
-            <div class="spende-bereich">
-                <div class="kaffee-tasse">☕</div> 
-                <a href="https://paypal.me/mischolz" target="_blank" title="Spenden via PayPal.me">
-                    <img src="qrcode.png" alt="PayPal Spenden QR-Code" class="qr-code">
-                </a>
-                <br>
+        <div class="donation-box">
+            <div class="donation-area">
+                <div class="donation-content">
+                    <div class="coffee-cup">☕</div>
+                    <a href="https://paypal.me/mischolz" target="_blank" title="Donate via PayPal.me">
+                        <img src="qrcode.png" alt="PayPal Donation QR-Code" class="qr-code">
+                    </a>
+                </div>
                 <a href="https://paypal.me/mischolz" target="_blank" class="paypal-link">paypal.me/mischolz</a>
             </div>
         </div>
     </div>
 
-    <div id="game-over-container" class="modal-container versteckt">
+    <div id="game-over-container" class="modal-container hidden">
         <div class="modal-box">
-            <h2 id="game-over-titel">Spiel vorbei!</h2>
-            <p id="game-over-text">Deine Punktzahl: 0</p>
-            <div class="spende-bereich-modal">
-                 <div class="kaffee-tasse">☕</div>
-                <a href="https://paypal.me/mischolz" target="_blank" title="Spenden via PayPal.me">
-                    <img src="qrcode.png" alt="PayPal Spenden QR-Code" class="qr-code">
+            <h2 id="game-over-title">Game Over!</h2>
+            <p id="game-over-text">Your Score: 0</p>
+            <div class="donation-area-modal">
+                 <div class="coffee-cup">☕</div>
+                 <a href="https://paypal.me/mischolz" target="_blank" title="Donate via PayPal.me">
+                    <img src="qrcode.png" alt="PayPal Donation QR-Code" class="qr-code">
                 </a>
                 <br>
                 <a href="https://paypal.me/mischolz" target="_blank" class="paypal-link">paypal.me/mischolz</a>
             </div>
             <div class="modal-buttons">
-                <button id="neustart-btn">Okay</button>
+                <button id="restart-btn">Click to Restart</button>
             </div>
         </div>
     </div>
 
     <footer>
-        Michael Scholz | Kleeweg 8, 22885 Barsbüttel, Deutschland | +49 174 482 5558 | <a href="mailto:scholzm@me.com?subject=Feedback%20ZZZEN">scholzm@me.com</a> | Version: <span id="version-impressum"></span> | <span id="letzte-aenderung"></span>
+        Michael Scholz | Kleeweg 8, 22885 Barsbüttel, Germany | +49 174 482 5558 | <a href="mailto:scholzm@me.com?subject=Feedback%20ZZZEN">scholzm@me.com</a> | Version: <span id="version-info"></span> | <span id="last-modification"></span>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=1.1"></script> 
 </body>
 </html>
