@@ -21,18 +21,24 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedFigure = null;
     let selectedSlotIndex = -1;
     let ghostElement = null;
-    let touchStartX, touchStartY, ghostOffsetX, ghostOffsetY;
+    let ghostOffsetX, ghostOffsetY;
 
     // === Configuration ===
     let gameConfig = {};
     const GRID_SIZE = 9;
-    const CELL_SIZE = 40; // in pixels
-
+    
     // ===================================================================================
     // INITIALIZATION
     // ===================================================================================
 
     async function initializeGame() {
+        // Ensure all DOM elements are found before proceeding
+        if (!gameBoardElement || !scoreElement || !highscoreElement || figureSlots.length !== 3) {
+            console.error("Critical DOM elements are missing. Aborting initialization.");
+            document.body.innerHTML = "<p style='color:red;padding:20px;'>Critical HTML elements are missing. Check element IDs.</p>";
+            return;
+        }
+
         gameBoardElement.classList.remove('crumble');
         
         const configLoaded = await loadConfiguration();
@@ -60,14 +66,13 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedSlotIndex = -1;
 
         createGameBoard();
-        drawGameBoard();
-        generateNewFigures();
+        generateNewFigures(); // This will also draw the board and figures
     }
 
     async function loadConfiguration() {
         try {
             const response = await fetch('config.json?v=' + new Date().getTime());
-            if (!response.ok) throw new Error(`Network response was not ok`);
+            if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
             gameConfig = await response.json();
             
             if (versionInfoElement) versionInfoElement.textContent = gameConfig.version || "?.??";
@@ -125,35 +130,29 @@ document.addEventListener('DOMContentLoaded', () => {
             initializeGame();
         });
 
-        // Touch Listeners for mobile
         figureSlots.forEach(slot => {
             slot.addEventListener('touchstart', handleTouchStart, { passive: false });
-        });
-        
-        // Mouse Listeners for desktop testing
-        figureSlots.forEach(slot => {
             slot.addEventListener('mousedown', handleMouseDown);
         });
     }
     
     // ===================================================================================
-    // MOUSE/TOUCH HANDLERS (UNIFIED LOGIC)
+    // MOUSE/TOUCH HANDLERS
     // ===================================================================================
     
     function handleMouseDown(e) {
-        // Prevent default behavior (like text selection) and treat as a touch start
         e.preventDefault();
         handleInteractionStart(e, e.currentTarget);
     }
 
     function handleTouchStart(e) {
-        // Prevent default behavior (like scrolling)
         e.preventDefault();
-        // Use the first touch point
         handleInteractionStart(e.touches[0], e.currentTarget);
     }
     
     function handleInteractionStart(event, targetSlot) {
+        if (selectedFigure) return; // Prevent starting a new drag if one is active
+
         const slotIndex = parseInt(targetSlot.dataset.slotId, 10);
         if (!figuresInSlots[slotIndex]) return;
 
@@ -161,9 +160,8 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedFigure = JSON.parse(JSON.stringify(figuresInSlots[selectedSlotIndex]));
 
         createGhostElement(event, targetSlot);
-        targetSlot.classList.add('dragging'); // Visually indicate dragging
+        targetSlot.classList.add('dragging');
 
-        // Add move and end listeners to the whole document
         document.addEventListener('touchmove', handleInteractionMove, { passive: false });
         document.addEventListener('touchend', handleInteractionEnd);
         document.addEventListener('mousemove', handleInteractionMove);
@@ -173,34 +171,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleInteractionMove(e) {
         if (!ghostElement) return;
         
-        // If it's a touch event, use the first touch point
         const event = e.touches ? e.touches[0] : e;
         e.preventDefault();
 
-        // Move the ghost element
-        ghostElement.style.left = `${event.clientX - ghostOffsetX}px`;
-        ghostElement.style.top = `${event.clientY - ghostOffsetY}px`;
+        ghostElement.style.transform = `translate(${event.clientX - ghostOffsetX}px, ${event.clientY - ghostOffsetY}px) scale(1.5)`;
 
-        // Check what's under the ghost element
-        ghostElement.style.display = 'none'; // Temporarily hide to see what's underneath
-        const elementUnder = document.elementFromPoint(event.clientX, event.clientY);
-        ghostElement.style.display = ''; // Show it again
-
-        const cell = elementUnder ? elementUnder.closest('.cell') : null;
-        if (cell) {
-            const x = parseInt(cell.dataset.x, 10);
-            const y = parseInt(cell.dataset.y, 10);
-            drawPreview(selectedFigure, x, y);
-        } else {
-            drawGameBoard(); // Clear preview if not over board
-        }
-    }
-    
-    function handleInteractionEnd(e) {
-        if (!selectedFigure) return;
-
-        // Determine drop location
-        const event = e.changedTouches ? e.changedTouches[0] : e;
         ghostElement.style.display = 'none';
         const elementUnder = document.elementFromPoint(event.clientX, event.clientY);
         ghostElement.style.display = '';
@@ -209,18 +184,36 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cell) {
             const x = parseInt(cell.dataset.x, 10);
             const y = parseInt(cell.dataset.y, 10);
-            placeFigure(selectedFigure, x, y);
+            drawPreview(selectedFigure, x, y);
+        } else {
+            drawGameBoard();
         }
+    }
+    
+    function handleInteractionEnd(e) {
+        if (!selectedFigure) return;
+
+        const event = e.changedTouches ? e.changedTouches[0] : e;
         
-        // Cleanup
+        ghostElement.style.display = 'none';
+        const elementUnder = document.elementFromPoint(event.clientX, event.clientY);
+        
+        // Final cleanup
         document.body.removeChild(ghostElement);
         document.querySelector('.figure-slot.dragging')?.classList.remove('dragging');
         ghostElement = null;
+
+        const cell = elementUnder ? elementUnder.closest('.cell') : null;
+        if (cell) {
+            const x = parseInt(cell.dataset.x, 10);
+            const y = parseInt(cell.dataset.y, 10);
+            placeFigure(selectedFigure, x, y);
+        }
+        
         selectedFigure = null;
         selectedSlotIndex = -1;
         drawGameBoard();
 
-        // Remove global listeners
         document.removeEventListener('touchmove', handleInteractionMove);
         document.removeEventListener('touchend', handleInteractionEnd);
         document.removeEventListener('mousemove', handleInteractionMove);
@@ -233,24 +226,22 @@ document.addEventListener('DOMContentLoaded', () => {
         
         ghostElement = figureContainer.cloneNode(true);
         ghostElement.style.position = 'fixed';
+        ghostElement.style.left = '0';
+        ghostElement.style.top = '0';
         ghostElement.style.pointerEvents = 'none';
         ghostElement.style.zIndex = '1000';
         ghostElement.style.opacity = '0.8';
-        ghostElement.style.transform = 'scale(1.5)'; // Make it larger while dragging
 
         const rect = figureContainer.getBoundingClientRect();
-        ghostOffsetX = event.clientX - rect.left;
-        ghostOffsetY = event.clientY - rect.top;
+        ghostOffsetX = event.clientX - rect.left + (rect.width / 2);
+        ghostOffsetY = event.clientY - rect.top + (rect.height / 2);
 
-        ghostElement.style.left = `${event.clientX - ghostOffsetX}px`;
-        ghostElement.style.top = `${event.clientY - ghostOffsetY}px`;
-
+        ghostElement.style.transform = `translate(${event.clientX - ghostOffsetX}px, ${event.clientY - ghostOffsetY}px) scale(1.5)`;
         document.body.appendChild(ghostElement);
     }
 
-
     // ===================================================================================
-    // GAME LOGIC (Mostly Unchanged)
+    // GAME LOGIC
     // ===================================================================================
 
     function placeFigure(figure, centerX, centerY) {
@@ -283,6 +274,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (figuresInSlots.every(f => f === null)) {
             generateNewFigures();
+        } else {
+            drawGameBoard();
         }
 
         if (isGameOver()) {
@@ -318,6 +311,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             drawFigureInSlot(i);
         }
+        
+        drawGameBoard();
+
         if (isGameOver()) {
             setTimeout(handleGameOver, 100);
         }
@@ -442,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
             container.classList.add('figure-container');
             const form = figure.form;
             const size = Math.max(form.length, form[0].length);
-            const blockSize = size > 4 ? 12 : 20;
+            const blockSize = size > 4 ? 14 : 20; // smaller blocks for bigger figures
             container.style.gridTemplateRows = `repeat(${form.length}, ${blockSize}px)`;
             container.style.gridTemplateColumns = `repeat(${form[0].length}, ${blockSize}px)`;
             form.forEach(row => row.forEach(block => {
