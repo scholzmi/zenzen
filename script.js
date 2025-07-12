@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const TOUCH_Y_OFFSET = -60; // Offset, um die Vorschau über dem Finger zu zeigen
     let gameConfig = {};
     const GRID_SIZE = 9;
+    let isDragging = false; // Verhindert Konflikte
 
     async function initializeGame() {
         highscoreElement.classList.remove('pulsate');
@@ -72,75 +73,95 @@ document.addEventListener('DOMContentLoaded', () => {
         document.documentElement.style.setProperty('--figure-block-size', `${Math.max(10, cellSize / 2.5)}px`);
     }
 
+    // ===================================================================================
+    // EVENT LISTENERS
+    // ===================================================================================
+
     function assignEventListeners() {
         figureSlots.forEach(slot => {
-            slot.addEventListener('touchstart', (e) => handleInteractionStart(e.touches[0], e.currentTarget), { passive: false });
-            slot.addEventListener('mousedown', (e) => handleInteractionStart(e, e.currentTarget));
+            slot.addEventListener('touchstart', (e) => handleInteractionStart(e), { passive: false });
+            slot.addEventListener('mousedown', (e) => handleInteractionStart(e));
         });
     }
+    
+    // ===================================================================================
+    // TOUCH- / MAUS-STEUERUNG (NEU & KORRIGIERT)
+    // ===================================================================================
 
-    function handleInteractionStart(event, targetSlot) {
-        if (selectedFigure) return;
+    function handleInteractionStart(e) {
+        if (isDragging) return;
+        
+        const event = e.touches ? e.touches[0] : e;
+        const targetSlot = e.currentTarget;
+
         const slotIndex = parseInt(targetSlot.dataset.slotId, 10);
         if (!figuresInSlots[slotIndex]) return;
+
+        isDragging = true;
+        e.preventDefault();
 
         selectedSlotIndex = slotIndex;
         selectedFigure = JSON.parse(JSON.stringify(figuresInSlots[selectedSlotIndex]));
         targetSlot.classList.add('dragging');
         
-        const moveHandler = (e) => handleInteractionMove(e.touches ? e.touches[0] : e);
-        const endHandler = (e) => handleInteractionEnd(e.changedTouches ? e.changedTouches[0] : e);
+        const moveHandler = (moveEvent) => {
+            handleInteractionMove(moveEvent.touches ? moveEvent.touches[0] : moveEvent);
+        };
+
+        const endHandler = (endEvent) => {
+            document.removeEventListener('touchmove', moveHandler);
+            document.removeEventListener('touchend', endHandler);
+            document.removeEventListener('mousemove', moveHandler);
+            document.removeEventListener('mouseup', endHandler);
+            handleInteractionEnd(endEvent.changedTouches ? endEvent.changedTouches[0] : endEvent);
+        };
 
         document.addEventListener('touchmove', moveHandler, { passive: false });
         document.addEventListener('touchend', endHandler);
         document.addEventListener('mousemove', moveHandler);
         document.addEventListener('mouseup', endHandler);
-        
+
+        // Initial preview
         handleInteractionMove(event);
     }
     
     function handleInteractionMove(event) {
-        if (!selectedFigure) return;
-        event.preventDefault();
+        if (!isDragging) return;
 
         const boardRect = gameBoardElement.getBoundingClientRect();
         const cellSize = boardRect.width / GRID_SIZE;
 
-        // **KORREKTUR**: Benutze die clientX/clientY des Events, nicht die Position des Spielfelds
         const xPos = event.clientX - boardRect.left;
         const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
         
-        const cellX = Math.floor(xPos / cellSize);
-        const cellY = Math.floor(yPos / cellSize);
+        const cellX = Math.round(xPos / cellSize);
+        const cellY = Math.round(yPos / cellSize);
         
         drawPreview(selectedFigure, cellX, cellY);
     }
 
     function handleInteractionEnd(event) {
-        if (!selectedFigure) return;
-        
-        // Remove listeners immediately to prevent conflicts
-        const moveHandler = (e) => handleInteractionMove(e.touches ? e.touches[0] : e);
-        const endHandler = (e) => handleInteractionEnd(e.changedTouches ? e.changedTouches[0] : e);
-        document.removeEventListener('touchmove', moveHandler);
-        document.removeEventListener('touchend', endHandler);
-        document.removeEventListener('mousemove', moveHandler);
-        document.removeEventListener('mouseup', endHandler);
+        if (!isDragging) return;
 
         const boardRect = gameBoardElement.getBoundingClientRect();
         const cellSize = boardRect.width / GRID_SIZE;
         const xPos = event.clientX - boardRect.left;
         const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
-        const cellX = Math.floor(xPos / cellSize);
-        const cellY = Math.floor(yPos / cellSize);
+        const cellX = Math.round(xPos / cellSize);
+        const cellY = Math.round(yPos / cellSize);
 
         placeFigure(selectedFigure, cellX, cellY);
         
         document.querySelector('.figure-slot.dragging')?.classList.remove('dragging');
         selectedFigure = null;
         selectedSlotIndex = -1;
+        isDragging = false;
         drawGameBoard();
     }
+    
+    // ===================================================================================
+    // SPIEL-LOGIK (unverändert)
+    // ===================================================================================
     
     function rotateFigure90Degrees(matrix) {
         return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])).reverse();
@@ -280,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (block === 1) {
                 const boardY = placeY + y, boardX = placeX + x;
                 if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
-                    if(gameBoard[boardY][boardX] === 0) { // Nur auf leere Zellen zeichnen
+                    if(gameBoard[boardY][boardX] === 0) {
                         gameBoardElement.children[boardY * GRID_SIZE + boardX].style.backgroundColor = color;
                     }
                 }
