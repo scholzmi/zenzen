@@ -1,0 +1,52 @@
+**Spielanleitung ZenPuzzle**
+
+**Ziel des Spiels:**
+Platziere die vorgegebenen Figuren auf dem 9x9 Spielfeld.
+Wenn eine horizontale oder vertikale Reihe komplett gefüllt ist, wird sie geleert und du erhältst Punkte.
+Das Spiel endet, wenn keine der drei verfügbaren Figuren mehr platziert werden kann.
+---
+
+**Steuerung (PC)**
+* **Figur wechseln:** Bewege die Maus über das Spielfeld und nutze das **Mausrad**, um eine der verfügbaren Figuren auszuwählen.
+* **Platzieren:** **Klicke** auf eine freie Stelle auf dem Spielfeld.
+* **Drehen:** Wenn du eine Figur ausgewählt hast, kannst du sie mit der **rechten Maustaste** über dem Spielfeld drehen.
+* **Abbrechen:** Drücke die **Escape-Taste**, um die Auswahl einer Figur abzubrechen.
+* **Boss-Key:** Drücke die **B-Taste**, um das Spiel zu verstecken.
+---
+
+**Steuerung (Touchscreen)**
+* **Figur auswählen:** **Tippe** auf eine der drei Figuren unten im Auswahlbereich.
+* **Figur bewegen:** Berühre das Spielfeld und **ziehe** die Figur an die gewünschte Position.
+Dein Finger kann dabei versetzt zur Figur sein, um die Sicht freizuhalten.
+* **Drehen:** Ein schneller **Doppel-Tipp** irgendwo auf dem Spielfeld dreht die Figur.
+* **Platzieren:** Um die Figur abzulegen, **halte den Finger für einen kurzen Moment ruhig** an der Zielposition. Ein kurzes Summen bestätigt das Ablegen.
+
+---
+
+**Punkte**
+* **Figuren:** Joker-Figuren zählen ihren einfachen, normale Figuren ihren doppelten und Zonk-Figuren ihren fünffachen Blockwert.
+* **Reihen:** Das Abräumen von Linien wird stark belohnt! Die Formel lautet: **(Anzahl Linien)³ * 10**
+    * **1 Reihe:** 10 Punkte
+    * **2 Reihen:** 80 Punkte
+    * **3 Reihen:** 270 Punkte
+
+---
+
+**Spielmodi:**
+* **Normal:** Das klassische, entspannte Spiel mit Timer.
+* **Schwer:** Aktiviere den Schalter für eine zusätzliche Herausforderung mit kürzerem Timer und mehr Strafsteinen!
+* **Unsichtbare Pause:** Der Timer läuft erst, wenn du die erste Figur eines Zuges platziert hast.
+---
+
+**Dreh-Joker:**
+Du hast 3 Dreh-Joker (grüne Boxen). Jede erstmalige Drehung einer Figur verbraucht einen Joker.
+Wenn alle verbraucht sind, werden sie wieder aufgefüllt, aber es erscheinen Strafsteine auf dem Feld!
+---
+
+Wenn du in Not bist, hilft Dir der **Der Panic-Button**.
+Er ist aktiv, sobald man genügend Punkte dafür erspielt hat. Nach dem Einsatz bleibt er für drei Runden gesperrt.
+Die Funktion ist simpel und mächtig:
+* **Der Koloss:** Der Button berechnet die **größtmögliche 5x5 Figur**, die noch auf das Feld passt, und gibt sie Dir in Slot 1, flankiert von zwei Jokern.
+Der Timer stoppt, damit du den Zug in Ruhe ausführen kannst. Die Kosten für den Koloss steigen von Nutzung zu Nutzung.
+Die Punkte, die Du beim Ablegen des Koloss erzielen kannst, sind begrenzt auf seine Kosten.
+* **Auto Panic:** Wenn das Spiel zu Ende wäre, Du aber noch genügend Punkte hast, dann zündet der Panic Button von alleine :-)

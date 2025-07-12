@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>ZenPuzzle</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+</head>
+<body>
+    <div class="haupt-container">
+        
+        <div class="spiel-wrapper">
+            <div class="block-title">
+                <span class="block-char c-z">Z</span><span class="block-char c-e">E</span><span class="block-char c-n">N</span>
+                <span class="block-char c-p">P</span><span class="block-char c-u">U</span><span class="block-char c-z2">Z</span><span class="block-char c-z3">Z</span><span class="block-char c-l">L</span><span class="block-char c-e2">E</span>
+            </div>
+            <div id="spielbrett" class="grid-container"></div>
+            <div id="punkte-animation" class="punkte-animation"></div>
+            
+            <div id="timer-bar-container">
+                <div id="timer-bar"></div>
+            </div>
+
+            <div class="unten-steuerung">
+                <button id="refresh-figuren-button" title="Figuren tauschen (kostet Punkte)">Panic</button>
+                <button id="rotate-button" class="versteckt" title="Ausgewählte Figur drehen">🔄 Drehen</button>
+                <div id="punkte" class="punkte-anzeige-unten">0</div>
+            </div>
+
+            <div id="figuren-auswahl">
+                <div class="figur-slot" data-slot-id="0"></div><div class="figur-slot" data-slot-id="1"></div><div class="figur-slot" data-slot-id="2"></div>
+            </div>
+        </div>
+
+        <div class="rechts-container">
+            <div class="spiel-info">
+                 <div class="info-zeile"><span class="info-label">Rekord normal</span><span id="rekord-normal" class="info-wert">0</span></div>
+                 <div class="info-zeile"><span class="info-label">Rekord schwer</span><span id="rekord-schwer" class="info-wert">0</span></div>
+                 <div class="info-zeile">
+                    <span class="info-label">Modus</span>
+                    <div class="hard-mode-box">
+                        <label class="switch">
+                            <input type="checkbox" id="hard-mode-schalter">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="hard-mode-label" class="info-wert"></span>
+                    </div>
+                </div>
+                 <div class="info-zeile">
+                    <span class="info-label">Farbschema</span>
+                    <select id="color-scheme-switcher"></select>
+                </div>
+            </div>
+            <div id="dreh-joker-leiste">
+            </div>
+            <div id="info-container" class="seiten-box paypal-box">
+                <div class="spende-bereich">
+                    <p>Gefällt dir das Spiel? Spendier mir einen Kaffee ☕!</p>
+                    <a href="https://paypal.me/mischolz" target="_blank" title="Spenden via PayPal.me">
+                        <img src="qrcode.png" alt="PayPal Spenden QR-Code" class="qr-code">
+                    </a>
+                    <br>
+                    <a href="https://paypal.me/mischolz" target="_blank" class="paypal-link">Oder direkt via PayPal.me spenden</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-over-container" class="modal-container versteckt">
+        <div class="modal-box">
+            <h2 id="game-over-titel">Spiel vorbei!</h2>
+            <p id="game-over-text">Deine Punktzahl: 12345</p>
+            <div class="spende-bereich-modal">
+                <p>Gefällt dir das Spiel? Spendier mir einen Kaffee ☕!</p>
+                <a href="https://paypal.me/mischolz" target="_blank" title="Spenden via PayPal.me">
+                    <img src="qrcode.png" alt="PayPal Spenden QR-Code" class="qr-code">
+                </a>
+                <br>
+                <a href="https://paypal.me/mischolz" target="_blank" class="paypal-link">Oder direkt via PayPal.me spenden</a>
+            </div>
+            <div class="modal-buttons">
+                <button id="neustart-normal-btn">Neustart normal</button>
+                <button id="neustart-schwer-btn">Neustart schwer</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="confirm-container" class="modal-container versteckt">
+        <div class="modal-box">
+            <h2>Modus wechseln?</h2>
+            <p>Das aktuelle Spiel wird beendet und ein neues gestartet.</p>
+            <div class="modal-buttons">
+                <button id="confirm-ja-btn">Ja, wechseln</button>
+                <button id="confirm-nein-btn">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="anleitung-modal-container" class="modal-container versteckt">
+        <div class="modal-box">
+            <h2>Spielanleitung</h2>
+            <div id="anleitung-modal-inhalt"></div>
+            <div class="modal-buttons">
+                <button id="anleitung-schliessen-btn">Schließen</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        Michael Scholz | Kleeweg 8, 22885 Barsbüttel, Deutschland | +49 174 482 5558 | <a href="mailto:scholzm@me.com?subject=Feedback%20ZenPuzzle">scholzm@me.com</a> | <a href="#" id="anleitung-link">Anleitung</a> | Version: <span id="version-impressum"></span> | <span id="letzte-aenderung"></span>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
