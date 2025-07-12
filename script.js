@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // === Touch-Steuerung ===
     let selectedFigure = null;
     let selectedSlotIndex = -1;
-    const TOUCH_Y_OFFSET = -60; // NEU: Negativer Wert, um Vorschau ÜBER dem Finger zu zeichnen
+    const TOUCH_Y_OFFSET = -60;
 
     // === Konfiguration ===
     let gameConfig = {};
@@ -140,13 +140,11 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedFigure = JSON.parse(JSON.stringify(figuresInSlots[selectedSlotIndex]));
         targetSlot.classList.add('dragging');
         
-        // Listener für die Bewegung hinzufügen
         document.addEventListener('touchmove', handleInteractionMove, { passive: false });
         document.addEventListener('touchend', handleInteractionEnd);
         document.addEventListener('mousemove', handleInteractionMove);
         document.addEventListener('mouseup', handleInteractionEnd);
 
-        // **NEU**: Sofort eine Vorschau an der Startposition zeichnen
         handleInteractionMove(event);
     }
 
@@ -155,12 +153,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const event = e.touches ? e.touches[0] : e;
         e.preventDefault();
 
-        // Position des Fingers (oder der Maus) relativ zum Spielfeld holen
         const boardRect = gameBoardElement.getBoundingClientRect();
         const xPos = event.clientX - boardRect.left;
-        const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET; // Y-Versatz anwenden
+        const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
 
-        // Umrechnen in Gitter-Koordinaten
         const cellX = Math.floor(xPos / 40);
         const cellY = Math.floor(yPos / 40);
         
@@ -171,7 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!selectedFigure) return;
         const event = e.changedTouches ? e.changedTouches[0] : e;
         
-        // Zielzelle basierend auf der finalen Fingerposition (mit Versatz) bestimmen
         const boardRect = gameBoardElement.getBoundingClientRect();
         const xPos = event.clientX - boardRect.left;
         const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
@@ -180,13 +175,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         placeFigure(selectedFigure, cellX, cellY);
         
-        // Aufräumen
         document.querySelector('.figure-slot.dragging')?.classList.remove('dragging');
         selectedFigure = null;
         selectedSlotIndex = -1;
         drawGameBoard();
 
-        // Listener entfernen
         document.removeEventListener('touchmove', handleInteractionMove);
         document.removeEventListener('touchend', handleInteractionEnd);
         document.removeEventListener('mousemove', handleInteractionMove);
@@ -194,8 +187,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ===================================================================================
-    // SPIEL-LOGIK (unverändert)
+    // SPIEL-LOGIK
     // ===================================================================================
+    
+    /** **NEU**: Rotiert eine Figur um 90 Grad */
+    function rotateFigure90Degrees(matrix) {
+        const rows = matrix.length;
+        const cols = matrix[0].length;
+        const newMatrix = Array.from({ length: cols }, () => Array(rows).fill(0));
+        for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < cols; x++) {
+                newMatrix[x][rows - 1 - y] = matrix[y][x];
+            }
+        }
+        return newMatrix;
+    }
 
     function placeFigure(figure, centerX, centerY) {
         const figureHeight = figure.form.length;
@@ -253,7 +259,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (randomFigure) {
                 const baseColor = gameConfig.figurePalettes[category]?.placed || gameConfig.figurePalettes['default'].placed;
-                figuresInSlots[i] = { ...randomFigure, id: i, color: varyColor(baseColor), category: category };
+                let finalFigure = { ...randomFigure, id: i, color: varyColor(baseColor), category: category };
+                
+                // **NEU**: Figur zufällig rotieren
+                const rotations = Math.floor(Math.random() * 4); // 0, 1, 2, or 3 rotations
+                for(let r = 0; r < rotations; r++) {
+                    finalFigure.form = rotateFigure90Degrees(finalFigure.form);
+                }
+                
+                figuresInSlots[i] = finalFigure;
             } else {
                 figuresInSlots[i] = null;
             }
@@ -284,10 +298,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function isGameOver() {
         for (const figure of figuresInSlots) {
             if (figure) {
-                const figWidth = figure.form[0].length;
-                const figHeight = figure.form.length;
-                for (let y = 0; y <= GRID_SIZE - figHeight; y++) {
-                    for (let x = 0; x <= GRID_SIZE - figWidth; x++) {
+                // Hier prüfen wir jetzt nur noch die eine (zufällig gedrehte) Form
+                for (let y = 0; y <= GRID_SIZE - figure.form.length; y++) {
+                    for (let x = 0; x <= GRID_SIZE - figure.form[0].length; x++) {
                         if (canPlace(figure, x, y)) return false;
                     }
                 }
@@ -350,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function drawPreview(figure, centerX, centerY) {
-        drawGameBoard(); // Immer zuerst das Brett säubern
+        drawGameBoard();
         const figureHeight = figure.form.length;
         const figureWidth = figure.form[0].length;
         const placeX = centerX - Math.floor(figureWidth / 2);
@@ -410,7 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // ===================================================================================
-    // HELFER-FUNKTIONEN (unverändert)
+    // HELFER-FUNKTIONEN
     // ===================================================================================
 
     function parseShape(shapeCoords) {
