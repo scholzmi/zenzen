@@ -27,6 +27,8 @@ body {
     background: url('bg.png') center/cover;
     color: var(--text-color-light);
     -webkit-tap-highlight-color: transparent;
+    /* --- HIER IST DIE ÄNDERUNG --- */
+    overflow: hidden; /* Verhindert das Scrollen auf der gesamten Seite */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -188,8 +190,7 @@ body {
 .figure-container {
     display: grid;
     pointer-events: none;
-    /* --- HIER IST DIE ÄNDERUNG --- */
-    transform: scale(1.4); /* Skalierung leicht reduziert, um Überlaufen zu verhindern */
+    transform: scale(1.4);
 }
 
 .figure-block {
@@ -207,6 +208,9 @@ body {
 .donation-box {
     text-align: center;
     padding: 10px 0;
+    /* --- HIER IST DIE ÄNDERUNG --- */
+    margin-top: -15px; /* Schiebt die Box näher an die Spiel-Karte */
+    z-index: -1; /* Stellt sicher, dass es hinter dem Spiel-Wrapper bleibt, falls es überlappt */
 }
 
 .donation-content {
