@@ -234,6 +234,17 @@ body {
     box-shadow: inset 0 0 3px rgba(255,255,255,0.5);
 }
 
+.cell.preview {
+    z-index: 10;
+    box-shadow: 0 0 10px var(--accent-color), 0 0 20px #fff;
+    border: 2px solid var(--accent-color);
+}
+.cell.preview.invalid {
+    background-color: rgba(255, 77, 77, 0.7) !important;
+    border: 2px solid #ff4d4d;
+    box-shadow: 0 0 10px #ff4d4d, 0 0 20px #fff;
+}
+
 .donation-box {
     text-align: center;
     padding: 10px 0;
