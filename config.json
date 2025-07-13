@@ -1,7 +1,7 @@
 {
-    "version": "V0.21b",
+    "version": "V0.21c",
     "lastModification": "Redesign - Kosmetik",
-    "gameVersion": "0.03",
+    "gameVersion": "0.04",
     "zonkProbability": 0.05,
     "jokerProbability": 0.25,
     "mobileBackgroundColor": "#d4e6f1",
@@ -20,7 +20,6 @@
     "figures": {
         "normal": [
             { "name": "I-4", "shape": [1, 2, 3, 4] },
-            { "name": "I-5", "shape": [1, 2, 3, 4, 5] },
             { "name": "Block 2x3", "shape": [1, 2, 3, 6, 7, 8] },
             { "name": "Block 3x3", "shape": [1, 2, 3, 6, 7, 8, 11, 12, 13] },
             { "name": "L-Klein", "shape": [1, 6, 11, 12] },
