@@ -1,29 +1,18 @@
 :root {
+    --text-color-light: #1a202c;
+    --text-color-dark: #eaf2f8;
+    --border-color-light: #85c1e9;
+    --border-color-dark: #5499c7;
+    --component-bg-light: rgba(235, 245, 251, 0.6);
+    --component-bg-dark: rgba(21, 67, 96, 0.6);
     --shadow-color-light: rgba(0, 0, 0, 0.1);
     --shadow-color-dark: rgba(0, 0, 0, 0.5);
-    /* Variablen werden jetzt pro Theme gesetzt */
-}
-
-/* THEME 1: FROZEN (STANDARD) */
-[data-theme="frozen"] {
-    --text-color: #1a202c;
-    --border-color: #85c1e9;
-    --component-bg: rgba(235, 245, 251, 0.6);
-    --footer-bg: rgba(240, 244, 248, 0.85);
-    --footer-text: #4a5568;
     --accent-color: #5dade2;
+    --footer-bg-light: rgba(240, 244, 248, 0.85);
+    --footer-bg-dark: rgba(10, 25, 47, 0.85);
+    --footer-text-light: #4a5568;
+    --footer-text-dark: #a0aec0;
 }
-
-/* THEME 2: SUNSET */
-[data-theme="sunset"] {
-    --text-color: #4a2c2a;
-    --border-color: #ff8c61;
-    --component-bg: rgba(255, 237, 219, 0.7);
-    --footer-bg: rgba(255, 237, 219, 0.9);
-    --footer-text: #7c4d32;
-    --accent-color: #ff6f61;
-}
-
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -35,16 +24,16 @@ body {
     align-items: center;
     flex-direction: column;
     min-height: 100vh;
-    background-size: cover;
-    background-position: center;
-    transition: background-image 0.5s ease-in-out;
-    color: var(--text-color);
+    background: url('bg.png') center/cover;
+    color: var(--text-color-light);
     -webkit-tap-highlight-color: transparent;
     overflow: hidden;
 }
 
-.main-container, .game-wrapper, .header-donation-link, footer {
-    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+@media (prefers-color-scheme: dark) {
+    body {
+        color: var(--text-color-dark);
+    }
 }
 
 .main-container {
@@ -57,7 +46,7 @@ body {
 
 .game-wrapper {
     width: 100%;
-    background-color: var(--component-bg);
+    background-color: var(--component-bg-light);
     border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 24px;
     padding: 20px;
@@ -69,6 +58,8 @@ body {
 
 @media (prefers-color-scheme: dark) {
     .game-wrapper {
+        background-color: var(--component-bg-dark);
+        border-color: rgba(174, 214, 241, 0.3);
         box-shadow: 0 10px 30px var(--shadow-color-dark);
     }
 }
@@ -100,6 +91,7 @@ body {
     padding: 8px 12px;
     border-radius: 12px;
     background-color: rgba(255,255,255,0.2);
+    transition: background-color 0.2s;
 }
 
 .header-donation-link:hover {
@@ -122,9 +114,11 @@ body {
     box-shadow: inset 0 1px 3px rgba(255,255,255,0.6), 0 2px 4px rgba(0,0,0,0.3);
 }
 
-.c-z1, .c-z2, .c-z3, .c-e, .c-n {
-    background-color: var(--accent-color);
-}
+.c-z1 { background-color: #5499c7; }
+.c-z2 { background-color: #a9cce3; }
+.c-z3 { background-color: #85c1e9; }
+.c-e { background-color: #ebf5fb; color: #5499c7; }
+.c-n { background-color: #aed6f1; }
 
 .score-container {
     display: flex;
@@ -132,13 +126,12 @@ body {
     align-items: center;
     margin-bottom: 20px;
     padding: 10px;
-    background-color: rgba(0,0,0,0.1);
+    background-color: rgba(255,255,255,0.1);
     border-radius: 12px;
 }
 
 .score-box {
     text-align: center;
-    width: 50%;
 }
 
 .score-display {
@@ -158,23 +151,40 @@ body {
     50% { transform: scale(1.25); color: #f8c92d; }
 }
 
+#game-board-wrapper {
+    position: relative;
+    width: 100%;
+}
+
 #game-board {
     display: grid;
     grid-template-columns: repeat(9, 1fr);
     width: 100%;
     aspect-ratio: 1 / 1;
-    border: 2px solid var(--border-color);
+    border: 2px solid var(--border-color-light);
     border-radius: 8px;
 }
 
+@media (prefers-color-scheme: dark) {
+    #game-board { border-color: var(--border-color-dark); }
+}
+
 .cell {
-    border-right: 2px solid var(--border-color);
-    border-bottom: 2px solid var(--border-color);
+    border-right: 2px solid var(--border-color-light);
+    border-bottom: 2px solid var(--border-color-light);
     box-sizing: border-box;
+    transition: background-color 0.1s ease;
 }
 
 .cell:nth-child(9n) { border-right: none; }
 .cell:nth-last-child(-n+9) { border-bottom: none; }
+
+@media (prefers-color-scheme: dark) {
+    .cell {
+        border-right-color: var(--border-color-dark);
+        border-bottom-color: var(--border-color-dark);
+    }
+}
 
 .cell.occupied {
     border-radius: 20%;
@@ -195,7 +205,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: rgba(0,0,0,0.1);
+    background-color: rgba(255,255,255,0.1);
     border: 2px dashed rgba(255,255,255,0.4);
     border-radius: 12px;
     cursor: grab;
@@ -230,22 +240,47 @@ footer {
     width: 100%;
     padding: 12px;
     box-sizing: border-box;
-    background-color: var(--footer-bg);
+    background-color: var(--footer-bg-light);
     backdrop-filter: blur(5px);
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-color-light);
     text-align: center;
     font-size: 10px;
-    color: var(--footer-text);
+    color: var(--footer-text-light);
     z-index: 1000;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
 }
 
 footer a {
-    color: var(--footer-text);
+    color: var(--footer-text-light);
     text-decoration: underline;
 }
 
+@media (prefers-color-scheme: dark) {
+    footer {
+        background-color: var(--footer-bg-dark);
+        border-top: 1px solid var(--border-color-dark);
+        color: var(--footer-text-dark);
+    }
+    footer a {
+        color: var(--footer-text-dark);
+    }
+}
+
+/* Animations */
 @keyframes crumble { from { transform: scale(1); opacity: 1; } to { transform: scale(0); opacity: 0; } }
 #game-board.crumble .cell.occupied { animation: crumble 1.5s ease-in forwards; animation-delay: calc(var(--delay, 0) * 1s); }
 .score-animation { position: absolute; font-size: 2.5em; font-family: 'Arial Black', Gadget, sans-serif; font-weight: bold; color: var(--accent-color); text-shadow: 0 0 10px #fff; opacity: 0; pointer-events: none; z-index: 100; }
 .score-animation.animate { animation: scoreExplosion 1.2s ease-out forwards; }
 @keyframes scoreExplosion { 0% { transform: translateY(0) scale(0.5); opacity: 1; } 100% { transform: translateY(-80px) scale(1.5); opacity: 0; } }
+
+/* --- HIER IST DIE ÄNDERUNG --- */
+.cell.preview {
+    z-index: 10;
+    box-shadow: 0 0 10px var(--accent-color), 0 0 20px #fff;
+    border: 2px solid var(--accent-color);
+}
+.cell.preview.invalid {
+    background-color: rgba(255, 77, 77, 0.7) !important;
+    border: 2px solid #ff4d4d;
+    box-shadow: 0 0 10px #ff4d4d, 0 0 20px #fff;
+}
