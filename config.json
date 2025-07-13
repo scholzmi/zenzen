@@ -1,7 +1,7 @@
 {
     "version": "V0.19",
     "lastModification": "Frozen Theme Redesign",
-    "gameVersion": "0.01",
+    "gameVersion": "0.02",
     "zonkProbability": 0.05,
     "jokerProbability": 0.25,
     "mobileBackgroundColor": "#d4e6f1",
@@ -20,31 +20,26 @@
     "figures": {
         "normal": [
             { "name": "I-4", "shape": [1, 2, 3, 4] },
+            { "name": "I-5", "shape": [1, 2, 3, 4, 5] },
             { "name": "Block 2x3", "shape": [1, 2, 3, 6, 7, 8] },
             { "name": "Block 3x3", "shape": [1, 2, 3, 6, 7, 8, 11, 12, 13] },
             { "name": "L-Klein", "shape": [1, 6, 11, 12] },
-            { "name": "L-Gross", "shape": [1, 6, 11, 16, 17] },
             { "name": "L-Klein 2", "shape": [5, 10, 14, 15] },
-            { "name": "L-Gross 2", "shape": [5, 10, 15, 19, 20] },
             { "name": "T-Form", "shape": [1, 2, 3, 7] },
             { "name": "S-Form", "shape": [2, 3, 6, 7] },
-            { "name": "Z-Form", "shape": [1, 2, 7, 8] },
-            { "name": "Plus", "shape": [2, 6, 7, 8, 12] },
-            { "name": "U-Klein", "shape": [1, 3, 6, 7, 8] },
-            { "name": "Winkel-Klein", "shape": [1, 2, 6] },
-            { "name": "Winkel-Gross", "shape": [1, 2, 3, 6, 11] },
-            { "name": "Diagonale-3", "shape": [1, 7, 13] }
+            { "name": "Z-Form", "shape": [1, 2, 7, 8] }
         ],
         "zonk": [
-            { "name": "I-5", "shape": [1, 2, 3, 4, 5] },
             { "name": "Block 4x4", "shape": [1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 16, 17, 18, 19] },
-            { "name": "Diagonale-4", "shape": [1, 7, 13, 19] }
+            { "name": "Plus", "shape": [2, 6, 7, 8, 12] },
+            { "name": "U-Klein", "shape": [1, 3, 6, 7, 8] }
         ],
         "joker": [
-            { "name": "Punkt", "shape": [1] },
+            { "name": "Winkel-Klein", "shape": [1, 2, 6] },
+            { "name": "I-2", "shape": [1, 2] },
             { "name": "I-3", "shape": [1, 2, 3] },
-            { "name": "Block 2x2", "shape": [1, 2, 6, 7] },
-            { "name": "Joker I-2", "shape": [1, 2] }
+            { "name": "I-4", "shape": [1, 2, 3, 4] },
+            { "name": "Block 2x2", "shape": [1, 2, 6, 7] }
         ]
     }
 }
