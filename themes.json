@@ -1,0 +1,10 @@
+[
+    {
+        "name": "frozen",
+        "backgroundImage": "bg.png"
+    },
+    {
+        "name": "sunset",
+        "backgroundImage": "bg-water.png"
+    }
+]
