@@ -47,6 +47,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('config.json?v=' + new Date().getTime());
             if (!response.ok) throw new Error(`Network response was not ok`);
             gameConfig = await response.json();
+            if (versionInfoElement) versionInfoElement.textContent = gameConfig.version || "?.??";
+            if (lastModificationElement) lastModificationElement.textContent = gameConfig.lastModification || "N/A";
+            
+            const parseAndStore = (pool) => Array.isArray(pool) ? pool.map(f => ({ ...f, form: parseShape(f.shape) })) : [];
+            gameConfig.figures.normalPool = parseAndStore(gameConfig.figures.normal);
+            gameConfig.figures.zonkPool = parseAndStore(gameConfig.figures.zonk);
+            gameConfig.figures.jokerPool = parseAndStore(gameConfig.figures.joker);
             return true;
         } catch (error) { console.error('Error loading config:', error); return false; }
     }
@@ -143,6 +150,10 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedSlotIndex = -1;
         isDragging = false;
         previewLayerElement.innerHTML = '';
+    }
+    
+    function rotateFigure90Degrees(matrix) {
+        return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])).reverse();
     }
 
     function placeFigure(figure, centerX, centerY) {
@@ -271,8 +282,75 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }));
     }
-    
-    // ... (Restliche Funktionen bleiben unverändert)
 
+    function drawFigureInSlot(index) {
+        const slot = figureSlots[index];
+        const figure = figuresInSlots[index];
+        slot.innerHTML = '';
+        if (figure) {
+            const container = document.createElement('div');
+            container.classList.add('figure-container');
+            const blockSize = 'var(--figure-block-size)';
+            container.style.gridTemplateRows = `repeat(${figure.form.length}, ${blockSize})`;
+            container.style.gridTemplateColumns = `repeat(${figure.form[0].length}, ${blockSize})`;
+            figure.form.forEach(row => row.forEach(block => {
+                const blockDiv = document.createElement('div');
+                if (block === 1) {
+                    blockDiv.classList.add('figure-block');
+                    blockDiv.style.backgroundColor = figure.color;
+                }
+                container.appendChild(blockDiv);
+            }));
+            slot.appendChild(container);
+        }
+    }
+    
+    function parseShape(shapeCoords) {
+        let tempMatrix = Array.from({ length: 5 }, () => Array(5).fill(0));
+        let minRow = 5, maxRow = -1, minCol = 5, maxCol = -1;
+        shapeCoords.forEach(coord => {
+            const row = Math.floor((coord - 1) / 5);
+            const col = (coord - 1) % 5;
+            tempMatrix[row][col] = 1;
+            minRow = Math.min(minRow, row); maxRow = Math.max(maxRow, row);
+            minCol = Math.min(minCol, col); maxCol = Math.max(maxCol, col);
+        });
+        return tempMatrix.slice(minRow, maxRow + 1).map(row => row.slice(minCol, maxCol + 1));
+    }
+    
+    function showScoreAnimation(value) {
+        if (!scoreAnimationElement || value === 0) return;
+        scoreAnimationElement.textContent = `+${value}`;
+        scoreAnimationElement.classList.remove('animate');
+        void scoreAnimationElement.offsetWidth;
+        const boardRect = gameBoardElement.getBoundingClientRect();
+        const randX = boardRect.width * (0.2 + Math.random() * 0.6);
+        const randY = boardRect.height * (0.1 + Math.random() * 0.2);
+        scoreAnimationElement.style.left = `${randX}px`;
+        scoreAnimationElement.style.top = `${randY}px`;
+        scoreAnimationElement.classList.add('animate');
+    }
+
+    function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = `${name}=${value || ""}${expires}; path=/; SameSite=Lax; Secure`;
+    }
+
+    function getCookie(name) {
+        const nameEQ = name + "=";
+        const ca = document.cookie.split(';');
+        for (let c of ca) {
+            c = c.trim();
+            if (c.startsWith(nameEQ)) return c.substring(nameEQ.length, c.length);
+        }
+        return null;
+    }
+
+    assignEventListeners();
     initializeGame();
 });
