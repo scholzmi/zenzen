@@ -20,7 +20,8 @@ body {
     padding: 20px 20px 100px 20px; 
     box-sizing: border-box;
     display: flex;
-    justify-content: flex-start;
+    /* --- HIER IST DIE ÄNDERUNG --- */
+    justify-content: center; /* Zentriert den Inhalt vertikal */
     align-items: center;
     flex-direction: column;
     min-height: 100vh;
@@ -233,18 +234,34 @@ body {
     box-shadow: inset 0 0 3px rgba(255,255,255,0.5);
 }
 
-/* Animations */
-@keyframes crumble { from { transform: scale(1); opacity: 1; } to { transform: scale(0); opacity: 0; } }
-
-/* --- HIER IST DIE ÄNDERUNG --- */
-#game-board.crumble .cell.occupied {
-    animation: crumble 1.5s ease-in forwards; /* Längere Animationsdauer */
-    animation-delay: calc(var(--delay, 0) * 1s); /* Größere Verzögerung für einen längeren Gesamteffekt */
+.donation-box {
+    text-align: center;
+    padding: 10px 0;
+    margin-top: -15px;
+    z-index: -1;
 }
 
-.score-animation { position: absolute; font-size: 2.5em; font-family: 'Arial Black', Gadget, sans-serif; font-weight: bold; color: var(--accent-color); text-shadow: 0 0 10px #fff; opacity: 0; pointer-events: none; z-index: 100; }
-.score-animation.animate { animation: scoreExplosion 1.2s ease-out forwards; }
-@keyframes scoreExplosion { 0% { transform: translateY(0) scale(0.5); opacity: 1; } 100% { transform: translateY(-80px) scale(1.5); opacity: 0; } }
+.donation-content {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    background-color: var(--component-bg-light);
+    padding: 10px 20px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px var(--shadow-color-light);
+}
+
+@media (prefers-color-scheme: dark) {
+    .donation-content {
+        background-color: var(--component-bg-dark);
+    }
+}
+
+.coffee-cup { font-size: 2.5rem; }
+.qr-code-wrapper { display: flex; flex-direction: column; align-items: center; }
+.qr-code { width: 70px; height: 70px; }
+.paypal-link { font-size: 12px; margin-top: 5px; color: var(--accent-color); text-decoration: none; font-weight: 500; }
 
 footer {
     position: fixed;
@@ -278,3 +295,10 @@ footer a {
         color: var(--footer-text-dark);
     }
 }
+
+/* Animations */
+@keyframes crumble { from { transform: scale(1); opacity: 1; } to { transform: scale(0); opacity: 0; } }
+#game-board.crumble .cell.occupied { animation: crumble 1.5s ease-in forwards; animation-delay: calc(var(--delay, 0) * 1s); }
+.score-animation { position: absolute; font-size: 2.5em; font-family: 'Arial Black', Gadget, sans-serif; font-weight: bold; color: var(--accent-color); text-shadow: 0 0 10px #fff; opacity: 0; pointer-events: none; z-index: 100; }
+.score-animation.animate { animation: scoreExplosion 1.2s ease-out forwards; }
+@keyframes scoreExplosion { 0% { transform: translateY(0) scale(0.5); opacity: 1; } 100% { transform: translateY(-80px) scale(1.5); opacity: 0; } }
