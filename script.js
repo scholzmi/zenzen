@@ -16,11 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let gameConfig = {};
     const GRID_SIZE = 9;
     let isDragging = false;
-
-    // --- NEU: Logik für Doppel-Tipp ---
-    let lastTap = 0;
-    let tapTimeout = null;
-    const doubleTapDelay = 300; // ms
+    let lastTap = 0, tapTimeout = null;
+    const doubleTapDelay = 300;
 
     async function initializeGame() {
         highscoreElement.classList.remove('pulsate');
@@ -78,10 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.documentElement.style.setProperty('--figure-block-size', `${Math.max(10, cellSize / 2.5)}px`);
     }
 
-    // ===================================================================================
-    // EVENT LISTENERS
-    // ===================================================================================
-
     function assignEventListeners() {
         figureSlots.forEach(slot => {
             slot.addEventListener('mousedown', (e) => handleTapOrDragStart(e));
@@ -89,26 +82,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ===================================================================================
-    // TOUCH- / MAUS-STEUERUNG (ÜBERARBEITET)
-    // ===================================================================================
-
     function handleTapOrDragStart(e) {
         e.preventDefault();
         const targetSlot = e.currentTarget;
         const now = new Date().getTime();
         const timesince = now - lastTap;
 
-        // --- Logik für Doppel-Tipp ---
         if (timesince < doubleTapDelay && timesince > 0) {
             clearTimeout(tapTimeout);
             rotateFigureInSlot(parseInt(targetSlot.dataset.slotId, 10));
-            return; // Doppel-Tipp ausgeführt, nichts weiter tun
+            return;
         }
         
         lastTap = new Date().getTime();
         
-        // --- Logik für Drag ---
         const event = e.touches ? e.touches[0] : e;
         handleDragStart(event, targetSlot);
     }
@@ -186,10 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
         isDragging = false;
         drawGameBoard();
     }
-    
-    // ===================================================================================
-    // SPIEL-LOGIK
-    // ===================================================================================
     
     function rotateFigure90Degrees(matrix) {
         return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])).reverse();
@@ -312,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function drawGameBoard() {
         gameBoard.forEach((row, y) => row.forEach((content, x) => {
             const cell = gameBoardElement.children[y * GRID_SIZE + x];
-            cell.className = 'cell';
+            cell.className = 'cell'; // Setzt Klassen zurück
             if (content !== 0) {
                 cell.classList.add('occupied');
                 cell.style.backgroundColor = content;
@@ -322,29 +305,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }));
     }
 
- function drawPreview(figure, centerX, centerY) {
-    drawGameBoard();
-    const placeX = centerX - Math.floor(figure.form[0].length / 2);
-    const placeY = centerY - Math.floor(figure.form.length / 2);
-    const canBePlaced = canPlace(figure, placeX, placeY);
-
-    figure.form.forEach((row, y) => row.forEach((block, x) => {
-        if (block === 1) {
-            const boardY = placeY + y, boardX = placeX + x;
-            if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
-                const cell = gameBoardElement.children[boardY * GRID_SIZE + boardX];
-                cell.classList.add('preview');
-                if (canBePlaced && gameBoard[boardY][boardX] === 0) {
-                    cell.style.backgroundColor = figure.color;
-                    cell.classList.remove('invalid');
-                } else {
-                    cell.style.backgroundColor = 'rgba(255, 77, 77, 0.7)';
-                    cell.classList.add('invalid');
+    function drawPreview(figure, centerX, centerY) {
+        drawGameBoard(); // Säubert das Brett von alten Previews
+        const placeX = centerX - Math.floor(figure.form[0].length / 2);
+        const placeY = centerY - Math.floor(figure.form.length / 2);
+        const canBePlaced = canPlace(figure, placeX, placeY);
+        
+        figure.form.forEach((row, y) => row.forEach((block, x) => {
+            if (block === 1) {
+                const boardY = placeY + y;
+                const boardX = placeX + x;
+                if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
+                    const cell = gameBoardElement.children[boardY * GRID_SIZE + boardX];
+                    cell.classList.add('preview');
+                    if (canBePlaced) {
+                        cell.style.backgroundColor = figure.color;
+                    } else {
+                        cell.classList.add('invalid');
+                    }
                 }
             }
-        }
-    }));
-}
+        }));
+    }
 
     function drawFigureInSlot(index) {
         const slot = figureSlots[index];

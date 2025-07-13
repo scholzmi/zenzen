@@ -1,21 +1,9 @@
 {
-    "version": "V0.24e",
+    "version": "V0.24f",
     "lastModification": "redesign",
     "gameVersion": "0.04",
     "zonkProbability": 0.05,
     "jokerProbability": 0.25,
-    "linePreview": "rgba(253, 94, 83, 0.5)",
-    "activeSlotBorder": "#fd5e53",
-    "title": {
-    "z_colors": ["#ffb347", "#ff6f61", "#c44569"],
-    "e_color": "#ffe5d9",
-    "n_color": "#f8c291"
-  },
-    "figurePalettes": {
-    "normal":  { "placed": "#ff9800", "preview": "rgba(255, 152, 0, 0.6)" },
-    "joker":   { "placed": "#ff1744", "preview": "rgba(255, 23, 68, 0.6)" },
-    "zonk":    { "placed": "#8e24aa", "preview": "rgba(142, 36, 170, 0.6)" }
- },
     "figures": {
         "normal": [
             { "name": "I-4", "shape": [1, 2, 3, 4] },
