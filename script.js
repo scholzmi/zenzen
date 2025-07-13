@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const gameBoardElement = document.getElementById('game-board');
-    const previewLayerElement = document.getElementById('preview-layer'); // NEU
     const scoreElement = document.getElementById('score');
     const highscoreElement = document.getElementById('highscore');
     const versionInfoElement = document.getElementById('version-info');
@@ -17,9 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let gameConfig = {};
     const GRID_SIZE = 9;
     let isDragging = false;
+
+    // --- NEU: Logik für Doppel-Tipp ---
     let lastTap = 0;
     let tapTimeout = null;
-    const doubleTapDelay = 300;
+    const doubleTapDelay = 300; // ms
 
     async function initializeGame() {
         highscoreElement.classList.remove('pulsate');
@@ -62,18 +63,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function createGameBoard() {
         gameBoardElement.innerHTML = '';
-        previewLayerElement.innerHTML = ''; // Auch die Vorschau-Ebene leeren
         gameBoard = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
         const cellSize = gameBoardElement.clientWidth / GRID_SIZE;
         for (let y = 0; y < GRID_SIZE; y++) {
             for (let x = 0; x < GRID_SIZE; x++) {
                 const cell = document.createElement('div');
                 cell.classList.add('cell');
+                cell.dataset.x = x;
+                cell.dataset.y = y;
+                cell.style.setProperty('--delay', Math.random());
                 gameBoardElement.appendChild(cell);
             }
         }
         document.documentElement.style.setProperty('--figure-block-size', `${Math.max(10, cellSize / 2.5)}px`);
     }
+
+    // ===================================================================================
+    // EVENT LISTENERS
+    // ===================================================================================
 
     function assignEventListeners() {
         figureSlots.forEach(slot => {
@@ -82,32 +89,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // ===================================================================================
+    // TOUCH- / MAUS-STEUERUNG (ÜBERARBEITET)
+    // ===================================================================================
+
     function handleTapOrDragStart(e) {
         e.preventDefault();
         const targetSlot = e.currentTarget;
         const now = new Date().getTime();
         const timesince = now - lastTap;
 
+        // --- Logik für Doppel-Tipp ---
         if (timesince < doubleTapDelay && timesince > 0) {
             clearTimeout(tapTimeout);
             rotateFigureInSlot(parseInt(targetSlot.dataset.slotId, 10));
-            return;
+            return; // Doppel-Tipp ausgeführt, nichts weiter tun
         }
         
         lastTap = new Date().getTime();
         
-        tapTimeout = setTimeout(() => {
-            const event = e.touches ? e.touches[0] : e;
-            handleDragStart(event, targetSlot);
-        }, 200);
-
-        const cancelDrag = () => {
-            clearTimeout(tapTimeout);
-            targetSlot.removeEventListener('mouseup', cancelDrag);
-            targetSlot.removeEventListener('touchend', cancelDrag);
-        };
-        targetSlot.addEventListener('mouseup', cancelDrag);
-        targetSlot.addEventListener('touchend', cancelDrag);
+        // --- Logik für Drag ---
+        const event = e.touches ? e.touches[0] : e;
+        handleDragStart(event, targetSlot);
     }
 
     function rotateFigureInSlot(slotIndex) {
@@ -125,11 +128,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!figuresInSlots[slotIndex]) return;
 
         isDragging = true;
+
         selectedSlotIndex = slotIndex;
         selectedFigure = JSON.parse(JSON.stringify(figuresInSlots[selectedSlotIndex]));
         targetSlot.classList.add('dragging');
         
-        const moveHandler = (moveEvent) => handleInteractionMove(moveEvent.touches ? moveEvent.touches[0] : moveEvent);
+        const moveHandler = (moveEvent) => {
+            handleInteractionMove(moveEvent.touches ? moveEvent.touches[0] : moveEvent);
+        };
+
         const endHandler = (endEvent) => {
             document.removeEventListener('touchmove', moveHandler);
             document.removeEventListener('touchend', endHandler);
@@ -148,17 +155,22 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function handleInteractionMove(event) {
         if (!isDragging) return;
+
         const boardRect = gameBoardElement.getBoundingClientRect();
         const cellSize = boardRect.width / GRID_SIZE;
+
         const xPos = event.clientX - boardRect.left;
         const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
+        
         const cellX = Math.round(xPos / cellSize);
         const cellY = Math.round(yPos / cellSize);
+        
         drawPreview(selectedFigure, cellX, cellY);
     }
 
     function handleInteractionEnd(event) {
         if (!isDragging) return;
+
         const boardRect = gameBoardElement.getBoundingClientRect();
         const cellSize = boardRect.width / GRID_SIZE;
         const xPos = event.clientX - boardRect.left;
@@ -172,8 +184,12 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedFigure = null;
         selectedSlotIndex = -1;
         isDragging = false;
-        previewLayerElement.innerHTML = ''; // Vorschau-Ebene leeren
+        drawGameBoard();
     }
+    
+    // ===================================================================================
+    // SPIEL-LOGIK
+    // ===================================================================================
     
     function rotateFigure90Degrees(matrix) {
         return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])).reverse();
@@ -188,7 +204,6 @@ document.addEventListener('DOMContentLoaded', () => {
         figure.form.forEach((row, y) => row.forEach((block, x) => {
             if (block === 1) gameBoard[placeY + y][placeX + x] = figure.color;
         }));
-        drawGameBoard(); // Brett neu zeichnen mit der platzierten Figur
 
         const points = clearFullLines() + figure.form.flat().reduce((a, b) => a + b, 0);
         score += points;
@@ -219,6 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let figure = { ...pool[Math.floor(Math.random() * pool.length)] };
             figure.category = category;
             figure.color = gameConfig.figurePalettes[category].placed;
+
             const rotations = Math.floor(Math.random() * 4);
             for (let r = 0; r < rotations; r++) {
                 figure.form = rotateFigure90Degrees(figure.form);
@@ -226,6 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
             figuresInSlots[i] = figure;
             drawFigureInSlot(i);
         }
+        drawGameBoard();
         if (isGameOver()) {
             handleGameOver();
         }
@@ -274,11 +291,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleGameOver() {
         gameBoardElement.classList.add('crumble');
+        
         let isNewHighscore = score > highscore;
         if (isNewHighscore) {
             highscore = score;
             setCookie('highscore', highscore, 365);
         }
+
         setTimeout(() => {
             if (isNewHighscore) {
                 highscoreElement.textContent = highscore;
@@ -303,9 +322,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }));
     }
 
-    // --- HIER IST DIE ÄNDERUNG ---
     function drawPreview(figure, centerX, centerY) {
-        previewLayerElement.innerHTML = ''; // Alte Vorschau löschen
+        drawGameBoard();
         const placeX = centerX - Math.floor(figure.form[0].length / 2);
         const placeY = centerY - Math.floor(figure.form.length / 2);
         const canBePlaced = canPlace(figure, placeX, placeY);
@@ -313,18 +331,15 @@ document.addEventListener('DOMContentLoaded', () => {
         
         figure.form.forEach((row, y) => row.forEach((block, x) => {
             if (block === 1) {
-                const boardY = placeY + y;
-                const boardX = placeX + x;
-                const previewBlock = document.createElement('div');
-                previewBlock.className = 'preview-block';
-                previewBlock.style.gridRowStart = boardY + 1;
-                previewBlock.style.gridColumnStart = boardX + 1;
-                previewBlock.style.backgroundColor = color;
-                previewLayerElement.appendChild(previewBlock);
+                const boardY = placeY + y, boardX = placeX + x;
+                if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
+                    if(gameBoard[boardY][boardX] === 0) {
+                        gameBoardElement.children[boardY * GRID_SIZE + boardX].style.backgroundColor = color;
+                    }
+                }
             }
         }));
     }
-    // --- ENDE DER ÄNDERUNG ---
 
     function drawFigureInSlot(index) {
         const slot = figureSlots[index];

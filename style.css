@@ -20,7 +20,8 @@ body {
     padding: 20px 20px 100px 20px; 
     box-sizing: border-box;
     display: flex;
-    justify-content: center;
+    /* --- HIER IST DIE ÄNDERUNG --- */
+    justify-content: center; /* Zentriert den Inhalt vertikal */
     align-items: center;
     flex-direction: column;
     min-height: 100vh;
@@ -156,30 +157,14 @@ body {
     width: 100%;
 }
 
-.grid-container {
+#game-board {
     display: grid;
     grid-template-columns: repeat(9, 1fr);
     width: 100%;
     aspect-ratio: 1 / 1;
+    border: 2px solid var(--border-color-light);
     border-radius: 8px;
 }
-
-#game-board {
-    border: 2px solid var(--border-color-light);
-    position: relative;
-    z-index: 1;
-}
-
-/* --- HIER IST DIE ÄNDERUNG --- */
-#preview-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    pointer-events: none; /* Klicks gehen durch diese Ebene hindurch */
-    z-index: 2; /* Liegt über dem Spielfeld */
-}
-/* --- ENDE DER ÄNDERUNG --- */
-
 
 @media (prefers-color-scheme: dark) {
     #game-board { border-color: var(--border-color-dark); }
@@ -208,16 +193,6 @@ body {
     border: 1px solid rgba(255,255,255,0.7);
     box-shadow: inset 0 0 8px rgba(255,255,255,0.5), 0 0 10px var(--accent-color);
 }
-
-/* --- HIER IST DIE ÄNDERUNG --- */
-.preview-block {
-    width: 100%;
-    height: 100%;
-    border-radius: 20%;
-    transform: scale(0.95);
-}
-/* --- ENDE DER ÄNDERUNG --- */
-
 
 #figure-selection {
     display: grid;
@@ -258,6 +233,35 @@ body {
     border-right: 1px solid rgba(0, 0, 0, 0.3);
     box-shadow: inset 0 0 3px rgba(255,255,255,0.5);
 }
+
+.donation-box {
+    text-align: center;
+    padding: 10px 0;
+    margin-top: -15px;
+    z-index: -1;
+}
+
+.donation-content {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    background-color: var(--component-bg-light);
+    padding: 10px 20px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px var(--shadow-color-light);
+}
+
+@media (prefers-color-scheme: dark) {
+    .donation-content {
+        background-color: var(--component-bg-dark);
+    }
+}
+
+.coffee-cup { font-size: 2.5rem; }
+.qr-code-wrapper { display: flex; flex-direction: column; align-items: center; }
+.qr-code { width: 70px; height: 70px; }
+.paypal-link { font-size: 12px; margin-top: 5px; color: var(--accent-color); text-decoration: none; font-weight: 500; }
 
 footer {
     position: fixed;
