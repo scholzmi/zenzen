@@ -20,9 +20,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let tapTimeout = null;
     const doubleTapDelay = 300;
 
+    let themes = [];
+    let currentThemeIndex = 0;
+
     async function initializeGame() {
         highscoreElement.classList.remove('pulsate');
         gameBoardElement.classList.remove('crumble');
+        
+        if (themes.length === 0) {
+            await loadThemes();
+        }
         
         const configLoaded = await loadConfiguration();
         if (!configLoaded) return;
@@ -41,6 +48,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
         createGameBoard();
         generateNewFigures();
+    }
+
+    async function loadThemes() {
+        try {
+            // --- HIER IST DIE ÄNDERUNG ---
+            const response = await fetch('themes/themes.json?v=' + new Date().getTime());
+            themes = await response.json();
+            const savedThemeIndex = parseInt(getCookie('themeIndex') || '0', 10);
+            currentThemeIndex = savedThemeIndex < themes.length ? savedThemeIndex : 0;
+            applyTheme();
+        } catch (error) {
+            console.error("Could not load themes.json:", error);
+            themes = [{ name: 'frozen', backgroundImage: 'bg.png' }];
+            applyTheme();
+        }
+    }
+
+    function applyTheme() {
+        if (themes.length === 0) return;
+        const theme = themes[currentThemeIndex];
+        document.body.dataset.theme = theme.name;
+        // --- HIER IST DIE ÄNDERUNG ---
+        document.body.style.backgroundImage = `url('themes/${theme.backgroundImage}')`;
+    }
+
+    function switchToNextTheme() {
+        currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+        setCookie('themeIndex', currentThemeIndex, 365);
+        applyTheme();
+    }
+
+    function setupShakeDetection() {
+        let lastShakeTime = 0;
+        const shakeThreshold = 15;
+        const shakeCooldown = 3000;
+
+        const motionHandler = (event) => {
+            const now = new Date().getTime();
+            if ((now - lastShakeTime) < shakeCooldown) return;
+
+            const acc = event.accelerationIncludingGravity;
+            const motion = Math.sqrt(acc.x**2 + acc.y**2 + acc.z**2);
+
+            if (motion > shakeThreshold) {
+                lastShakeTime = now;
+                switchToNextTheme();
+            }
+        };
+
+        if (typeof DeviceMotionEvent.requestPermission === 'function') {
+            document.body.addEventListener('click', () => {
+                 DeviceMotionEvent.requestPermission().then(permissionState => {
+                    if (permissionState === 'granted') {
+                        window.addEventListener('devicemotion', motionHandler);
+                    }
+                });
+            }, { once: true });
+        } else {
+            window.addEventListener('devicemotion', motionHandler);
+        }
     }
 
     async function loadConfiguration() {
@@ -81,8 +148,16 @@ document.addEventListener('DOMContentLoaded', () => {
             slot.addEventListener('mousedown', (e) => handleTapOrDragStart(e));
             slot.addEventListener('touchstart', (e) => handleTapOrDragStart(e), { passive: false });
         });
+        
+        window.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'd') {
+                switchToNextTheme();
+            }
+        });
+        
+        setupShakeDetection();
     }
-
+    
     function handleTapOrDragStart(e) {
         e.preventDefault();
         const targetSlot = e.currentTarget;
@@ -97,8 +172,18 @@ document.addEventListener('DOMContentLoaded', () => {
         
         lastTap = new Date().getTime();
         
-        const event = e.touches ? e.touches[0] : e;
-        handleDragStart(event, targetSlot);
+        tapTimeout = setTimeout(() => {
+            const event = e.touches ? e.touches[0] : e;
+            handleDragStart(event, targetSlot);
+        }, 200);
+
+        const cancelDrag = () => {
+            clearTimeout(tapTimeout);
+            targetSlot.removeEventListener('mouseup', cancelDrag);
+            targetSlot.removeEventListener('touchend', cancelDrag);
+        };
+        targetSlot.addEventListener('mouseup', cancelDrag);
+        targetSlot.addEventListener('touchend', cancelDrag);
     }
 
     function rotateFigureInSlot(slotIndex) {
@@ -116,15 +201,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!figuresInSlots[slotIndex]) return;
 
         isDragging = true;
-
         selectedSlotIndex = slotIndex;
         selectedFigure = JSON.parse(JSON.stringify(figuresInSlots[selectedSlotIndex]));
         targetSlot.classList.add('dragging');
         
-        const moveHandler = (moveEvent) => {
-            handleInteractionMove(moveEvent.touches ? moveEvent.touches[0] : moveEvent);
-        };
-
+        const moveHandler = (moveEvent) => handleInteractionMove(moveEvent.touches ? moveEvent.touches[0] : moveEvent);
         const endHandler = (endEvent) => {
             document.removeEventListener('touchmove', moveHandler);
             document.removeEventListener('touchend', endHandler);
@@ -143,29 +224,24 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function handleInteractionMove(event) {
         if (!isDragging) return;
-
         const boardRect = gameBoardElement.getBoundingClientRect();
         const cellSize = boardRect.width / GRID_SIZE;
         const xPos = event.clientX - boardRect.left;
         const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
         const cellX = Math.round(xPos / cellSize);
         const cellY = Math.round(yPos / cellSize);
-        
         drawPreview(selectedFigure, cellX, cellY);
     }
 
     function handleInteractionEnd(event) {
         if (!isDragging) return;
-
         const boardRect = gameBoardElement.getBoundingClientRect();
         const cellSize = boardRect.width / GRID_SIZE;
         const xPos = event.clientX - boardRect.left;
         const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
         const cellX = Math.round(xPos / cellSize);
         const cellY = Math.round(yPos / cellSize);
-
         placeFigure(selectedFigure, cellX, cellY);
-        
         document.querySelector('.figure-slot.dragging')?.classList.remove('dragging');
         selectedFigure = null;
         selectedSlotIndex = -1;
@@ -180,25 +256,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function placeFigure(figure, centerX, centerY) {
         const placeX = centerX - Math.floor(figure.form[0].length / 2);
         const placeY = centerY - Math.floor(figure.form.length / 2);
-
         if (!canPlace(figure, placeX, placeY)) return;
-
         figure.form.forEach((row, y) => row.forEach((block, x) => {
             if (block === 1) gameBoard[placeY + y][placeX + x] = figure.color;
         }));
-
         const points = clearFullLines() + figure.form.flat().reduce((a, b) => a + b, 0);
         score += points;
         scoreElement.textContent = score;
         showScoreAnimation(points);
-
         figuresInSlots[selectedSlotIndex] = null;
         drawFigureInSlot(selectedSlotIndex);
-        
         if (figuresInSlots.every(f => f === null)) {
             generateNewFigures();
         }
-
         if (isGameOver()) {
             handleGameOver();
         }
@@ -289,8 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function drawGameBoard() {
         gameBoard.forEach((row, y) => row.forEach((content, x) => {
             const cell = gameBoardElement.children[y * GRID_SIZE + x];
-            // --- HIER IST DIE ÄNDERUNG ---
-            cell.className = 'cell'; // Setzt Klassen zurück, entfernt 'preview' und 'invalid'
+            cell.className = 'cell';
             if (content !== 0) {
                 cell.classList.add('occupied');
                 cell.style.backgroundColor = content;
@@ -301,23 +370,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function drawPreview(figure, centerX, centerY) {
-        drawGameBoard(); // Säubert das Brett von alten Previews
+        drawGameBoard();
         const placeX = centerX - Math.floor(figure.form[0].length / 2);
         const placeY = centerY - Math.floor(figure.form.length / 2);
         const canBePlaced = canPlace(figure, placeX, placeY);
-        
+        const color = canBePlaced ? figure.color + '80' : 'rgba(255, 77, 77, 0.5)';
         figure.form.forEach((row, y) => row.forEach((block, x) => {
             if (block === 1) {
-                const boardY = placeY + y;
-                const boardX = placeX + x;
+                const boardY = placeY + y, boardX = placeX + x;
                 if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
-                    const cell = gameBoardElement.children[boardY * GRID_SIZE + boardX];
-                    // --- HIER IST DIE ÄNDERUNG ---
-                    cell.classList.add('preview');
-                    if (!canBePlaced || gameBoard[boardY][boardX] !== 0) {
-                        cell.classList.add('invalid');
-                    } else {
-                        cell.style.backgroundColor = figure.color + '80'; // Transparente Farbe für gültige Vorschau
+                    if(gameBoard[boardY][boardX] === 0) {
+                        gameBoardElement.children[boardY * GRID_SIZE + boardX].style.backgroundColor = color;
                     }
                 }
             }
