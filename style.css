@@ -1,9 +1,8 @@
 :root {
     --text-color-light: #1a202c;
     --text-color-dark: #eaf2f8;
-    /* --- HIER IST DIE ÄNDERUNG: Dunklere Blautöne für die Linien --- */
-    --border-color-light: #85c1e9; /* Ein mittleres, klares Blau */
-    --border-color-dark: #5499c7;  /* Ein kräftigeres Blau für den Dark Mode */
+    --border-color-light: #85c1e9;
+    --border-color-dark: #5499c7;
     --component-bg-light: rgba(235, 245, 251, 0.6);
     --component-bg-dark: rgba(21, 67, 96, 0.6);
     --shadow-color-light: rgba(0, 0, 0, 0.1);
@@ -189,7 +188,8 @@ body {
 .figure-container {
     display: grid;
     pointer-events: none;
-    transform: scale(1.5);
+    /* --- HIER IST DIE ÄNDERUNG --- */
+    transform: scale(1.4); /* Skalierung leicht reduziert, um Überlaufen zu verhindern */
 }
 
 .figure-block {
