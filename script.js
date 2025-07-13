@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let gameBoard = [], score = 0, highscore = 0;
     let figuresInSlots = [null, null, null];
     let selectedFigure = null, selectedSlotIndex = -1;
-    const TOUCH_Y_OFFSET = -120;
+    const TOUCH_Y_OFFSET = -40; // Adjust for touch interaction offset
     let gameConfig = {};
     const GRID_SIZE = 9;
     let isDragging = false;
