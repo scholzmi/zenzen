@@ -19,12 +19,22 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastTap = 0, tapTimeout = null;
     const doubleTapDelay = 300;
 
+    // --- NEU: Farb-Mapping direkt im Skript, da es aus der config.json entfernt wurde ---
+    const figureColors = {
+        normal: "#ff9800", // Orange
+        joker:  "#ff1744", // Rot
+        zonk:   "#8e24aa"  // Violett
+    };
+
     async function initializeGame() {
         highscoreElement.classList.remove('pulsate');
         gameBoardElement.classList.remove('crumble');
         
         const configLoaded = await loadConfiguration();
-        if (!configLoaded) return;
+        if (!configLoaded) {
+            document.body.innerHTML = "Fehler: config.json konnte nicht geladen werden oder ist fehlerhaft.";
+            return;
+        }
 
         const serverVersion = gameConfig.gameVersion || "1.0";
         const localVersion = getCookie('gameVersion');
@@ -50,10 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (versionInfoElement) versionInfoElement.textContent = gameConfig.version || "?.??";
             if (lastModificationElement) lastModificationElement.textContent = gameConfig.lastModification || "N/A";
             
-            const parseAndStore = (pool) => Array.isArray(pool) ? pool.map(f => ({ ...f, form: parseShape(f.shape) })) : [];
-            gameConfig.figures.normalPool = parseAndStore(gameConfig.figures.normal);
-            gameConfig.figures.zonkPool = parseAndStore(gameConfig.figures.zonk);
-            gameConfig.figures.jokerPool = parseAndStore(gameConfig.figures.joker);
+            if (!gameConfig.figures || !gameConfig.figures.normal || !gameConfig.figures.zonk || !gameConfig.figures.joker) {
+                throw new Error("Figurenpools in config.json sind nicht korrekt definiert.");
+            }
+
             return true;
         } catch (error) { console.error('Error loading config:', error); return false; }
     }
@@ -210,13 +220,16 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < 3; i++) {
             let pool, category;
             const rand = Math.random();
-            if (rand < zonkProbability) { pool = gameConfig.figures.zonkPool; category = 'zonk'; }
-            else if (rand < jokerProbability + zonkProbability) { pool = gameConfig.figures.jokerPool; category = 'joker'; }
-            else { pool = gameConfig.figures.normalPool; category = 'normal'; }
+            if (rand < zonkProbability) { pool = gameConfig.figures.zonk; category = 'zonk'; }
+            else if (rand < jokerProbability + zonkProbability) { pool = gameConfig.figures.joker; category = 'joker'; }
+            else { pool = gameConfig.figures.normal; category = 'normal'; }
             
-            let figure = { ...pool[Math.floor(Math.random() * pool.length)] };
+            let figureData = { ...pool[Math.floor(Math.random() * pool.length)] };
+            let figure = { ...figureData, form: parseShape(figureData.shape) };
+            
             figure.category = category;
-            figure.color = gameConfig.figurePalettes[category].placed;
+            // **KORREKTUR**: Verwendet das Farb-Mapping vom Anfang des Skripts
+            figure.color = figureColors[category];
 
             const rotations = Math.floor(Math.random() * 4);
             for (let r = 0; r < rotations; r++) {
@@ -295,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function drawGameBoard() {
         gameBoard.forEach((row, y) => row.forEach((content, x) => {
             const cell = gameBoardElement.children[y * GRID_SIZE + x];
-            cell.className = 'cell'; // Setzt Klassen zurück
+            cell.className = 'cell';
             if (content !== 0) {
                 cell.classList.add('occupied');
                 cell.style.backgroundColor = content;
@@ -306,26 +319,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function drawPreview(figure, centerX, centerY) {
-        drawGameBoard(); // Säubert das Brett von alten Previews
+        drawGameBoard();
         const placeX = centerX - Math.floor(figure.form[0].length / 2);
         const placeY = centerY - Math.floor(figure.form.length / 2);
         const canBePlaced = canPlace(figure, placeX, placeY);
         
-        figure.form.forEach((row, y) => row.forEach((block, x) => {
-            if (block === 1) {
-                const boardY = placeY + y;
-                const boardX = placeX + x;
-                if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
-                    const cell = gameBoardElement.children[boardY * GRID_SIZE + boardX];
-                    cell.classList.add('preview');
-                    if (canBePlaced) {
-                        cell.style.backgroundColor = figure.color;
-                    } else {
-                        cell.classList.add('invalid');
+        figure.form.forEach((row, y) => {
+            row.forEach((block, x) => {
+                if (block === 1) {
+                    const boardY = placeY + y;
+                    const boardX = placeX + x;
+                    if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
+                        const cell = gameBoardElement.children[boardY * GRID_SIZE + boardX];
+                        cell.classList.add('preview');
+                        if (canBePlaced) {
+                            cell.style.backgroundColor = figure.color;
+                        } else {
+                            cell.classList.add('invalid');
+                        }
                     }
                 }
-            }
-        }));
+            });
+        });
     }
 
     function drawFigureInSlot(index) {

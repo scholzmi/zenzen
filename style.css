@@ -27,7 +27,7 @@ body {
     align-items: center;
     flex-direction: column;
     min-height: 100vh;
-    background: url('bg.jpg') center/cover;
+    background: url('bg.png') center/cover;
     color: var(--text-color-light);
     -webkit-tap-highlight-color: transparent;
     overflow: hidden;
