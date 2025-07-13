@@ -12,19 +12,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let gameBoard = [], score = 0, highscore = 0;
     let figuresInSlots = [null, null, null];
     let selectedFigure = null, selectedSlotIndex = -1;
-    const TOUCH_Y_OFFSET = -40; // Adjust for touch interaction offset
+    const TOUCH_Y_OFFSET = -60;
     let gameConfig = {};
     const GRID_SIZE = 9;
     let isDragging = false;
     let lastTap = 0, tapTimeout = null;
     const doubleTapDelay = 300;
-
-    // --- NEU: Farb-Mapping direkt im Skript, da es aus der config.json entfernt wurde ---
-    const figureColors = {
-        normal: "#ff9800", // Orange
-        joker:  "#ff1744", // Rot
-        zonk:   "#8e24aa"  // Violett
-    };
 
     async function initializeGame() {
         highscoreElement.classList.remove('pulsate');
@@ -32,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const configLoaded = await loadConfiguration();
         if (!configLoaded) {
-            document.body.innerHTML = "Fehler: config.json konnte nicht geladen werden oder ist fehlerhaft.";
+            document.body.innerHTML = "<h1>Fehler</h1><p>config.json konnte nicht geladen werden oder ist fehlerhaft. Bitte stellen Sie sicher, dass die Datei existiert und valide ist.</p>";
             return;
         }
 
@@ -63,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!gameConfig.figures || !gameConfig.figures.normal || !gameConfig.figures.zonk || !gameConfig.figures.joker) {
                 throw new Error("Figurenpools in config.json sind nicht korrekt definiert.");
             }
-
             return true;
         } catch (error) { console.error('Error loading config:', error); return false; }
     }
@@ -195,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!canPlace(figure, placeX, placeY)) return;
 
         figure.form.forEach((row, y) => row.forEach((block, x) => {
-            if (block === 1) gameBoard[placeY + y][placeX + x] = figure.color;
+            if (block === 1) gameBoard[placeY + y][placeX + x] = figure.category;
         }));
 
         const points = clearFullLines() + figure.form.flat().reduce((a, b) => a + b, 0);
@@ -225,11 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
             else { pool = gameConfig.figures.normal; category = 'normal'; }
             
             let figureData = { ...pool[Math.floor(Math.random() * pool.length)] };
-            let figure = { ...figureData, form: parseShape(figureData.shape) };
-            
-            figure.category = category;
-            // **KORREKTUR**: Verwendet das Farb-Mapping vom Anfang des Skripts
-            figure.color = figureColors[category];
+            let figure = { ...figureData, form: parseShape(figureData.shape), category: category };
 
             const rotations = Math.floor(Math.random() * 4);
             for (let r = 0; r < rotations; r++) {
@@ -310,10 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const cell = gameBoardElement.children[y * GRID_SIZE + x];
             cell.className = 'cell';
             if (content !== 0) {
-                cell.classList.add('occupied');
-                cell.style.backgroundColor = content;
-            } else {
-                cell.style.backgroundColor = '';
+                cell.classList.add('occupied', `color-${content}`);
             }
         }));
     }
@@ -331,10 +316,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const boardX = placeX + x;
                     if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
                         const cell = gameBoardElement.children[boardY * GRID_SIZE + boardX];
-                        cell.classList.add('preview');
-                        if (canBePlaced) {
-                            cell.style.backgroundColor = figure.color;
-                        } else {
+                        cell.classList.add('preview', `color-${figure.category}`);
+                        if (!canBePlaced) {
                             cell.classList.add('invalid');
                         }
                     }
@@ -356,8 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
             figure.form.forEach(row => row.forEach(block => {
                 const blockDiv = document.createElement('div');
                 if (block === 1) {
-                    blockDiv.classList.add('figure-block');
-                    blockDiv.style.backgroundColor = figure.color;
+                    blockDiv.classList.add('figure-block', `color-${figure.category}`);
                 }
                 container.appendChild(blockDiv);
             }));
