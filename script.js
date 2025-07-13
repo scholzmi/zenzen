@@ -322,24 +322,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }));
     }
 
-    function drawPreview(figure, centerX, centerY) {
-        drawGameBoard();
-        const placeX = centerX - Math.floor(figure.form[0].length / 2);
-        const placeY = centerY - Math.floor(figure.form.length / 2);
-        const canBePlaced = canPlace(figure, placeX, placeY);
-        const color = canBePlaced ? figure.color + '80' : 'rgba(255, 77, 77, 0.5)';
-        
-        figure.form.forEach((row, y) => row.forEach((block, x) => {
-            if (block === 1) {
-                const boardY = placeY + y, boardX = placeX + x;
-                if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
-                    if(gameBoard[boardY][boardX] === 0) {
-                        gameBoardElement.children[boardY * GRID_SIZE + boardX].style.backgroundColor = color;
-                    }
+ function drawPreview(figure, centerX, centerY) {
+    drawGameBoard();
+    const placeX = centerX - Math.floor(figure.form[0].length / 2);
+    const placeY = centerY - Math.floor(figure.form.length / 2);
+    const canBePlaced = canPlace(figure, placeX, placeY);
+
+    figure.form.forEach((row, y) => row.forEach((block, x) => {
+        if (block === 1) {
+            const boardY = placeY + y, boardX = placeX + x;
+            if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
+                const cell = gameBoardElement.children[boardY * GRID_SIZE + boardX];
+                cell.classList.add('preview');
+                if (canBePlaced && gameBoard[boardY][boardX] === 0) {
+                    cell.style.backgroundColor = figure.color;
+                    cell.classList.remove('invalid');
+                } else {
+                    cell.style.backgroundColor = 'rgba(255, 77, 77, 0.7)';
+                    cell.classList.add('invalid');
                 }
             }
-        }));
-    }
+        }
+    }));
+}
 
     function drawFigureInSlot(index) {
         const slot = figureSlots[index];
