@@ -1,4 +1,9 @@
 /* --- THEME DEFINITIONEN --- */
+:root {
+    --shadow-color-light: rgba(0, 0, 0, 0.1);
+    --shadow-color-dark: rgba(0, 0, 0, 0.5);
+}
+
 /* Theme 1: Frozen (Standard) */
 [data-theme="frozen"] {
     --text-color: #1a202c;
@@ -71,9 +76,15 @@ body {
     border-radius: 24px;
     padding: 20px;
     box-sizing: border-box;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 30px var(--shadow-color-light);
     backdrop-filter: blur(8px);
     touch-action: none;
+}
+
+@media (prefers-color-scheme: dark) {
+    .game-wrapper {
+        box-shadow: 0 10px 30px var(--shadow-color-dark);
+    }
 }
 
 .header {
