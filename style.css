@@ -131,7 +131,7 @@ body {
     grid-template-columns: repeat(9, 1fr);
     width: 100%;
     aspect-ratio: 1 / 1;
-    border: 1px solid var(--border-color-light);
+    border: 2px solid var(--border-color-light); /* Hauptrahmen des Bretts auch dicker gemacht */
     border-radius: 8px;
 }
 
@@ -140,8 +140,9 @@ body {
 }
 
 .cell {
-    border-right: 1px solid var(--border-color-light);
-    border-bottom: 1px solid var(--border-color-light);
+    /* --- HIER IST DIE ÄNDERUNG --- */
+    border-right: 2px solid var(--border-color-light); /* Dickere vertikale Linien */
+    border-bottom: 2px solid var(--border-color-light); /* Dickere horizontale Linien */
     box-sizing: border-box;
     transition: background-color 0.1s ease;
 }
@@ -156,14 +157,12 @@ body {
     }
 }
 
-/* --- KORRIGIERTER BEREICH --- */
 .cell.occupied {
     border-radius: 20%;
     transform: scale(0.95);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.5), 0 0 10px var(--accent-color);
+    border: 1px solid rgba(255,255,255,0.7);
+    box-shadow: inset 0 0 8px rgba(255,255,255,0.5), 0 0 10px var(--accent-color);
 }
-/* --- ENDE KORRIGIERTER BEREICH --- */
 
 #figure-selection {
     display: grid;
@@ -193,19 +192,17 @@ body {
     transform: scale(1.5);
 }
 
-/* --- KORRIGIERTER BEREICH --- */
 .figure-block {
     width: var(--figure-block-size, 8px);
     height: var(--figure-block-size, 8px);
     box-sizing: border-box;
-    border-radius: 20%; /* Runder, wie auf dem Brett */
+    border-radius: 20%;
     border-top: 1px solid rgba(255, 255, 255, 0.7);
     border-left: 1px solid rgba(255, 255, 255, 0.6);
     border-bottom: 1px solid rgba(0, 0, 0, 0.3);
     border-right: 1px solid rgba(0, 0, 0, 0.3);
     box-shadow: inset 0 0 3px rgba(255,255,255,0.5);
 }
-/* --- ENDE KORRIGIERTER BEREICH --- */
 
 .donation-box {
     text-align: center;
