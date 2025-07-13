@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const gameBoardElement = document.getElementById('game-board');
-    const previewLayerElement = document.getElementById('preview-layer');
     const scoreElement = document.getElementById('score');
     const highscoreElement = document.getElementById('highscore');
     const versionInfoElement = document.getElementById('version-info');
@@ -17,8 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let gameConfig = {};
     const GRID_SIZE = 9;
     let isDragging = false;
-    let lastTap = 0, tapTimeout = null;
-    const doubleTapDelay = 300;
+
+    // --- NEU: Logik für Doppel-Tipp ---
+    let lastTap = 0;
+    let tapTimeout = null;
+    const doubleTapDelay = 300; // ms
 
     async function initializeGame() {
         highscoreElement.classList.remove('pulsate');
@@ -33,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setCookie('highscore', '0', 365);
             setCookie('gameVersion', serverVersion, 365);
         }
+
         highscore = parseInt(getCookie('highscore') || '0', 10);
         highscoreElement.textContent = highscore;
         score = 0;
@@ -60,18 +63,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function createGameBoard() {
         gameBoardElement.innerHTML = '';
-        previewLayerElement.innerHTML = '';
         gameBoard = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
         const cellSize = gameBoardElement.clientWidth / GRID_SIZE;
         for (let y = 0; y < GRID_SIZE; y++) {
             for (let x = 0; x < GRID_SIZE; x++) {
                 const cell = document.createElement('div');
                 cell.classList.add('cell');
+                cell.dataset.x = x;
+                cell.dataset.y = y;
+                cell.style.setProperty('--delay', Math.random());
                 gameBoardElement.appendChild(cell);
             }
         }
         document.documentElement.style.setProperty('--figure-block-size', `${Math.max(10, cellSize / 2.5)}px`);
     }
+
+    // ===================================================================================
+    // EVENT LISTENERS
+    // ===================================================================================
 
     function assignEventListeners() {
         figureSlots.forEach(slot => {
@@ -80,24 +89,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // ===================================================================================
+    // TOUCH- / MAUS-STEUERUNG (ÜBERARBEITET)
+    // ===================================================================================
+
     function handleTapOrDragStart(e) {
         e.preventDefault();
         const targetSlot = e.currentTarget;
         const now = new Date().getTime();
-        if ((now - lastTap) < doubleTapDelay) {
+        const timesince = now - lastTap;
+
+        // --- Logik für Doppel-Tipp ---
+        if (timesince < doubleTapDelay && timesince > 0) {
             clearTimeout(tapTimeout);
             rotateFigureInSlot(parseInt(targetSlot.dataset.slotId, 10));
-        } else {
-            lastTap = now;
-            handleDragStart(e.touches ? e.touches[0] : e, targetSlot);
+            return; // Doppel-Tipp ausgeführt, nichts weiter tun
         }
+        
+        lastTap = new Date().getTime();
+        
+        // --- Logik für Drag ---
+        const event = e.touches ? e.touches[0] : e;
+        handleDragStart(event, targetSlot);
     }
 
     function rotateFigureInSlot(slotIndex) {
         if (!figuresInSlots[slotIndex]) return;
         figuresInSlots[slotIndex].form = rotateFigure90Degrees(figuresInSlots[slotIndex].form);
         drawFigureInSlot(slotIndex);
-        if (isGameOver()) handleGameOver();
+        if (isGameOver()) {
+            handleGameOver();
+        }
     }
 
     function handleDragStart(event, targetSlot) {
@@ -106,51 +128,68 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!figuresInSlots[slotIndex]) return;
 
         isDragging = true;
+
         selectedSlotIndex = slotIndex;
         selectedFigure = JSON.parse(JSON.stringify(figuresInSlots[selectedSlotIndex]));
         targetSlot.classList.add('dragging');
         
-        const moveHandler = (e) => handleInteractionMove(e.touches ? e.touches[0] : e);
-        const endHandler = (e) => {
+        const moveHandler = (moveEvent) => {
+            handleInteractionMove(moveEvent.touches ? moveEvent.touches[0] : moveEvent);
+        };
+
+        const endHandler = (endEvent) => {
             document.removeEventListener('touchmove', moveHandler);
             document.removeEventListener('touchend', endHandler);
             document.removeEventListener('mousemove', moveHandler);
             document.removeEventListener('mouseup', endHandler);
-            handleInteractionEnd(e.changedTouches ? e.changedTouches[0] : e);
+            handleInteractionEnd(endEvent.changedTouches ? endEvent.changedTouches[0] : endEvent);
         };
+
         document.addEventListener('touchmove', moveHandler, { passive: false });
         document.addEventListener('touchend', endHandler);
         document.addEventListener('mousemove', moveHandler);
         document.addEventListener('mouseup', endHandler);
+
         handleInteractionMove(event);
     }
-
+    
     function handleInteractionMove(event) {
         if (!isDragging) return;
+
         const boardRect = gameBoardElement.getBoundingClientRect();
         const cellSize = boardRect.width / GRID_SIZE;
+
         const xPos = event.clientX - boardRect.left;
         const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
+        
         const cellX = Math.round(xPos / cellSize);
         const cellY = Math.round(yPos / cellSize);
+        
         drawPreview(selectedFigure, cellX, cellY);
     }
 
     function handleInteractionEnd(event) {
         if (!isDragging) return;
+
         const boardRect = gameBoardElement.getBoundingClientRect();
         const cellSize = boardRect.width / GRID_SIZE;
         const xPos = event.clientX - boardRect.left;
         const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
         const cellX = Math.round(xPos / cellSize);
         const cellY = Math.round(yPos / cellSize);
+
         placeFigure(selectedFigure, cellX, cellY);
+        
         document.querySelector('.figure-slot.dragging')?.classList.remove('dragging');
         selectedFigure = null;
         selectedSlotIndex = -1;
         isDragging = false;
-        previewLayerElement.innerHTML = '';
+        drawGameBoard();
     }
+    
+    // ===================================================================================
+    // SPIEL-LOGIK
+    // ===================================================================================
     
     function rotateFigure90Degrees(matrix) {
         return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])).reverse();
@@ -159,19 +198,28 @@ document.addEventListener('DOMContentLoaded', () => {
     function placeFigure(figure, centerX, centerY) {
         const placeX = centerX - Math.floor(figure.form[0].length / 2);
         const placeY = centerY - Math.floor(figure.form.length / 2);
+
         if (!canPlace(figure, placeX, placeY)) return;
+
         figure.form.forEach((row, y) => row.forEach((block, x) => {
             if (block === 1) gameBoard[placeY + y][placeX + x] = figure.color;
         }));
-        drawGameBoard();
+
         const points = clearFullLines() + figure.form.flat().reduce((a, b) => a + b, 0);
         score += points;
         scoreElement.textContent = score;
         showScoreAnimation(points);
+
         figuresInSlots[selectedSlotIndex] = null;
         drawFigureInSlot(selectedSlotIndex);
-        if (figuresInSlots.every(f => f === null)) generateNewFigures();
-        if (isGameOver()) handleGameOver();
+        
+        if (figuresInSlots.every(f => f === null)) {
+            generateNewFigures();
+        }
+
+        if (isGameOver()) {
+            handleGameOver();
+        }
     }
 
     function generateNewFigures() {
@@ -182,15 +230,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (rand < zonkProbability) { pool = gameConfig.figures.zonkPool; category = 'zonk'; }
             else if (rand < jokerProbability + zonkProbability) { pool = gameConfig.figures.jokerPool; category = 'joker'; }
             else { pool = gameConfig.figures.normalPool; category = 'normal'; }
+            
             let figure = { ...pool[Math.floor(Math.random() * pool.length)] };
             figure.category = category;
             figure.color = gameConfig.figurePalettes[category].placed;
+
             const rotations = Math.floor(Math.random() * 4);
-            for (let r = 0; r < rotations; r++) { figure.form = rotateFigure90Degrees(figure.form); }
+            for (let r = 0; r < rotations; r++) {
+                figure.form = rotateFigure90Degrees(figure.form);
+            }
             figuresInSlots[i] = figure;
             drawFigureInSlot(i);
         }
-        if (isGameOver()) handleGameOver();
+        drawGameBoard();
+        if (isGameOver()) {
+            handleGameOver();
+        }
     }
 
     function canPlace(figure, startX, startY) {
@@ -228,6 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let rows = [], cols = [];
         for (let y = 0; y < GRID_SIZE; y++) if (gameBoard[y].every(cell => cell !== 0)) rows.push(y);
         for (let x = 0; x < GRID_SIZE; x++) if (gameBoard.every(row => row[x] !== 0)) cols.push(x);
+        
         rows.forEach(y => gameBoard[y].fill(0));
         cols.forEach(x => gameBoard.forEach(row => row[x] = 0));
         return Math.pow(rows.length + cols.length, 2) * 10;
@@ -235,11 +291,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleGameOver() {
         gameBoardElement.classList.add('crumble');
+        
         let isNewHighscore = score > highscore;
         if (isNewHighscore) {
             highscore = score;
             setCookie('highscore', highscore, 365);
         }
+
         setTimeout(() => {
             if (isNewHighscore) {
                 highscoreElement.textContent = highscore;
@@ -265,20 +323,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function drawPreview(figure, centerX, centerY) {
-        previewLayerElement.innerHTML = '';
+        drawGameBoard();
         const placeX = centerX - Math.floor(figure.form[0].length / 2);
         const placeY = centerY - Math.floor(figure.form.length / 2);
         const canBePlaced = canPlace(figure, placeX, placeY);
-        const color = canBePlaced ? figure.color + '99' : 'rgba(255, 77, 77, 0.6)';
+        const color = canBePlaced ? figure.color + '80' : 'rgba(255, 77, 77, 0.5)';
+        
         figure.form.forEach((row, y) => row.forEach((block, x) => {
             if (block === 1) {
                 const boardY = placeY + y, boardX = placeX + x;
-                const previewBlock = document.createElement('div');
-                previewBlock.className = 'preview-block';
-                previewBlock.style.gridRowStart = boardY + 1;
-                previewBlock.style.gridColumnStart = boardX + 1;
-                previewBlock.style.backgroundColor = color;
-                previewLayerElement.appendChild(previewBlock);
+                if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
+                    if(gameBoard[boardY][boardX] === 0) {
+                        gameBoardElement.children[boardY * GRID_SIZE + boardX].style.backgroundColor = color;
+                    }
+                }
             }
         }));
     }
@@ -304,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
             slot.appendChild(container);
         }
     }
-    
+
     function parseShape(shapeCoords) {
         let tempMatrix = Array.from({ length: 5 }, () => Array(5).fill(0));
         let minRow = 5, maxRow = -1, minCol = 5, maxCol = -1;
