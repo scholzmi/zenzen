@@ -1,9 +1,9 @@
 {
-    "version": "V0.24h",
+    "version": "V0.24i",
     "lastModification": "redesign",
     "gameVersion": "0.04",
     "zonkProbability": 0.05,
-    "jokerProbability": 0.25,
+    "jokerProbability": 0.30,
     "figures": {
         "normal": [
             { "name": "I-4", "shape": [1, 2, 3, 4] },

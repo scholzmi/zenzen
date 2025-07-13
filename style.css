@@ -1,9 +1,9 @@
 :root {
     --text-color-light: #5D4037;
-    --border-color-light: #eb645b;
+    --border-color-light: #f77b72;
     --component-bg-light: rgba(255, 224, 178, 0.6);
     --shadow-color-light: rgba(216, 67, 21, 0.1);
-    --accent-color: #fd5e53;
+    --accent-color: #2980b9;
     --footer-bg-light: rgba(255, 224, 178, 0.85);
     --footer-text-light: #4E342E;
     --text-color-dark: #FBEAEB;
@@ -12,9 +12,10 @@
     --shadow-color-dark: rgba(0, 0, 0, 0.3);
     --footer-bg-dark: rgba(49, 27, 146, 0.85);
     --footer-text-dark: #E0E0E0;
-    --figure-color-normal: #20d1c8;
-    --figure-color-joker: #28e96b;
-    --figure-color-zonk: #d13820;
+
+    --figure-color-normal: #2980b9;
+    --figure-color-joker: #85c1e9;
+    --figure-color-zonk: #c0392b;
 }
 
 body {
@@ -117,11 +118,11 @@ body {
     box-shadow: inset 0 1px 3px rgba(255,255,255,0.6), 0 2px 4px rgba(0,0,0,0.3);
 }
 
-.c-z1 { background-color: #faf453; }
-.c-z2 { background-color: #f5ef34; }
-.c-z3 { background-color: #d2ce50; }
-.c-e  { background-color: #e9e341; color: #e42a5f; }
-.c-n  { background-color: #f6f38f; }
+.c-z1 { background-color: #85c1e9; } /* Helleres Himmelblau */
+.c-z2 { background-color: #5499c7; } /* Mittleres Himmelblau */
+.c-z3 { background-color: #2980b9; } /* Tieferes Blau der Dämmerung */
+.c-e  { background-color: #c6ebeb; color: #5499c7; } /* Fast weiß, wie die letzte Helligkeit */
+.c-n  { background-color: #f77b72; } /* N */
 
 .score-container {
     display: flex;
