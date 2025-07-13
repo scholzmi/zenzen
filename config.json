@@ -5,17 +5,17 @@
     "zonkProbability": 0.05,
     "jokerProbability": 0.25,
     "mobileBackgroundColor": "#d4e6f1",
-    "linePreview": "rgba(174, 214, 241, 0.5)",
-    "activeSlotBorder": "#aed6f1",
+    "linePreview": "rgba(253, 94, 83, 0.5)",
+    "activeSlotBorder": "#fd5e53",
     "title": {
-        "z_colors": ["#5499c7", "#a9cce3", "#85c1e9"],
-        "e_color": "#ebf5fb",
-        "n_color": "#aed6f1"
+        "z_colors": ["#ff7f50", "#ffb347", "#ff6f61"],
+        "e_color": "#fff5e6",
+        "n_color": "#fd5e53"
     },
     "figurePalettes": {
-        "normal":  { "placed": "#5dade2", "preview": "rgba(93, 173, 226, 0.5)" },
-        "joker":   { "placed": "#76d7c4", "preview": "rgba(118, 215, 196, 0.5)" },
-        "zonk":    { "placed": "#af7ac5", "preview": "rgba(175, 122, 197, 0.5)" }
+        "normal":  { "placed": "#ff7f50", "preview": "rgba(255, 127, 80, 0.5)" },
+        "joker":   { "placed": "#f7b267", "preview": "rgba(247, 178, 103, 0.5)" },
+        "zonk":    { "placed": "#e07a5f", "preview": "rgba(224, 122, 95, 0.5)" }
     },
     "figures": {
         "normal": [
