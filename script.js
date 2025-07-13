@@ -12,11 +12,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let gameBoard = [], score = 0, highscore = 0;
     let figuresInSlots = [null, null, null];
     let selectedFigure = null, selectedSlotIndex = -1;
-    // --- HIER IST DIE ÄNDERUNG ---
-    const TOUCH_Y_OFFSET = -120; // Abstand weiter vergrößert
+    const TOUCH_Y_OFFSET = -120;
     let gameConfig = {};
     const GRID_SIZE = 9;
     let isDragging = false;
+
+    // --- NEU: Logik für Doppel-Tipp ---
+    let lastTap = 0;
+    let tapTimeout = null;
+    const doubleTapDelay = 300; // ms
 
     async function initializeGame() {
         highscoreElement.classList.remove('pulsate');
@@ -74,24 +78,75 @@ document.addEventListener('DOMContentLoaded', () => {
         document.documentElement.style.setProperty('--figure-block-size', `${Math.max(10, cellSize / 2.5)}px`);
     }
 
+    // ===================================================================================
+    // EVENT LISTENERS
+    // ===================================================================================
+
     function assignEventListeners() {
         figureSlots.forEach(slot => {
-            slot.addEventListener('touchstart', (e) => handleInteractionStart(e), { passive: false });
-            slot.addEventListener('mousedown', (e) => handleInteractionStart(e));
+            // Wir verwenden 'mousedown' und 'touchstart' um die Interaktion zu starten
+            slot.addEventListener('mousedown', (e) => handleTapOrDragStart(e));
+            slot.addEventListener('touchstart', (e) => handleTapOrDragStart(e), { passive: false });
         });
     }
-    
-    function handleInteractionStart(e) {
-        if (isDragging) return;
-        
-        const event = e.touches ? e.touches[0] : e;
-        const targetSlot = e.currentTarget;
 
+    // ===================================================================================
+    // TOUCH- / MAUS-STEUERUNG (ÜBERARBEITET)
+    // ===================================================================================
+
+    function handleTapOrDragStart(e) {
+        e.preventDefault();
+        const targetSlot = e.currentTarget;
+        const now = new Date().getTime();
+        const timesince = now - lastTap;
+
+        // --- Logik für Doppel-Tipp ---
+        if (timesince < doubleTapDelay && timesince > 0) {
+            clearTimeout(tapTimeout);
+            rotateFigureInSlot(parseInt(targetSlot.dataset.slotId, 10));
+            return; // Doppel-Tipp ausgeführt, nichts weiter tun
+        }
+        
+        // --- Logik für einzelnen Tipp (der ein Drag wird) ---
+        lastTap = new Date().getTime();
+        
+        // Timeout, um einen Drag zu starten, wenn der Finger/Mauszeiger gedrückt bleibt
+        tapTimeout = setTimeout(() => {
+            const event = e.touches ? e.touches[0] : e;
+            handleDragStart(event, targetSlot);
+        }, 200); // Kurze Verzögerung, um versehentliches Ziehen bei Tippen zu verhindern
+
+        // Listener, um das Timeout abzubrechen, wenn der Finger sofort losgelassen wird (ein echter Tap)
+        const cancelDrag = () => {
+            clearTimeout(tapTimeout);
+            targetSlot.removeEventListener('mouseup', cancelDrag);
+            targetSlot.removeEventListener('touchend', cancelDrag);
+        };
+        targetSlot.addEventListener('mouseup', cancelDrag);
+        targetSlot.addEventListener('touchend', cancelDrag);
+    }
+
+    function rotateFigureInSlot(slotIndex) {
+        if (!figuresInSlots[slotIndex]) return;
+        
+        // Figur rotieren und im Array speichern
+        figuresInSlots[slotIndex].form = rotateFigure90Degrees(figuresInSlots[slotIndex].form);
+        
+        // Slot neu zeichnen, um die Rotation anzuzeigen
+        drawFigureInSlot(slotIndex);
+
+        // Prüfen ob das Spiel jetzt vorbei ist
+        if (isGameOver()) {
+            handleGameOver();
+        }
+    }
+
+    function handleDragStart(event, targetSlot) {
+        if (isDragging) return;
         const slotIndex = parseInt(targetSlot.dataset.slotId, 10);
         if (!figuresInSlots[slotIndex]) return;
 
         isDragging = true;
-        e.preventDefault();
 
         selectedSlotIndex = slotIndex;
         selectedFigure = JSON.parse(JSON.stringify(figuresInSlots[selectedSlotIndex]));
@@ -151,6 +206,10 @@ document.addEventListener('DOMContentLoaded', () => {
         drawGameBoard();
     }
     
+    // ===================================================================================
+    // SPIEL-LOGIK
+    // ===================================================================================
+    
     function rotateFigure90Degrees(matrix) {
         return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])).reverse();
     }
@@ -188,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let pool, category;
             const rand = Math.random();
             if (rand < zonkProbability) { pool = gameConfig.figures.zonkPool; category = 'zonk'; }
-            else if (rand < zonkProbability + jokerProbability) { pool = gameConfig.figures.jokerPool; category = 'joker'; }
+            else if (rand < jokerProbability + zonkProbability) { pool = gameConfig.figures.jokerPool; category = 'joker'; }
             else { pool = gameConfig.figures.normalPool; category = 'normal'; }
             
             let figure = { ...pool[Math.floor(Math.random() * pool.length)] };
@@ -226,12 +285,17 @@ document.addEventListener('DOMContentLoaded', () => {
     function isGameOver() {
         return figuresInSlots.every(figure => {
             if (!figure) return true;
-            for (let y = 0; y <= GRID_SIZE - figure.form.length; y++) {
-                for (let x = 0; x <= GRID_SIZE - figure.form[0].length; x++) {
-                    if (canPlace(figure, x, y)) return false;
+            // WICHTIG: Prüfen, ob eine der 4 möglichen Rotationen passt
+            let currentForm = figure.form;
+            for(let i=0; i < 4; i++) {
+                for (let y = 0; y <= GRID_SIZE - currentForm.length; y++) {
+                    for (let x = 0; x <= GRID_SIZE - currentForm[0].length; x++) {
+                        if (canPlace({form: currentForm}, x, y)) return false; // Gefunden, Spiel geht weiter
+                    }
                 }
+                currentForm = rotateFigure90Degrees(currentForm);
             }
-            return true;
+            return true; // Keine Rotation dieser Figur passt
         });
     }
 
