@@ -3,8 +3,8 @@
     --text-color-dark: #eaf2f8;
     --border-color-light: #85c1e9;
     --border-color-dark: #5499c7;
-    --component-bg-light: rgba(235, 245, 251, 0.7);
-    --component-bg-dark: rgba(21, 67, 96, 0.7);
+    --component-bg-light: rgba(235, 245, 251, 0.6);
+    --component-bg-dark: rgba(21, 67, 96, 0.6);
     --shadow-color-light: rgba(0, 0, 0, 0.1);
     --shadow-color-dark: rgba(0, 0, 0, 0.5);
     --accent-color: #5dade2;
@@ -27,7 +27,7 @@ body {
     background: url('bg.png') center/cover;
     color: var(--text-color-light);
     -webkit-tap-highlight-color: transparent;
-    overflow-y: auto; /* Scrollen wieder erlaubt */
+    overflow: hidden;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -64,7 +64,6 @@ body {
     }
 }
 
-/* --- HIER IST DIE ÄNDERUNG --- */
 .header {
     display: flex;
     justify-content: space-between;
@@ -74,7 +73,7 @@ body {
 
 .block-title {
     display: flex;
-    justify-content: flex-start; /* Linksbündig */
+    justify-content: flex-start;
     gap: 5px;
     font-size: 28px;
     font-weight: 800;
@@ -102,8 +101,6 @@ body {
 .header-donation-link span {
     text-decoration: underline;
 }
-/* --- ENDE DER ÄNDERUNG --- */
-
 
 .block-title span {
     width: 35px;
@@ -236,7 +233,18 @@ body {
     box-shadow: inset 0 0 3px rgba(255,255,255,0.5);
 }
 
-/* Alte Donation-Box Regeln wurden entfernt */
+/* Animations */
+@keyframes crumble { from { transform: scale(1); opacity: 1; } to { transform: scale(0); opacity: 0; } }
+
+/* --- HIER IST DIE ÄNDERUNG --- */
+#game-board.crumble .cell.occupied {
+    animation: crumble 1.5s ease-in forwards; /* Längere Animationsdauer */
+    animation-delay: calc(var(--delay, 0) * 1s); /* Größere Verzögerung für einen längeren Gesamteffekt */
+}
+
+.score-animation { position: absolute; font-size: 2.5em; font-family: 'Arial Black', Gadget, sans-serif; font-weight: bold; color: var(--accent-color); text-shadow: 0 0 10px #fff; opacity: 0; pointer-events: none; z-index: 100; }
+.score-animation.animate { animation: scoreExplosion 1.2s ease-out forwards; }
+@keyframes scoreExplosion { 0% { transform: translateY(0) scale(0.5); opacity: 1; } 100% { transform: translateY(-80px) scale(1.5); opacity: 0; } }
 
 footer {
     position: fixed;
@@ -270,10 +278,3 @@ footer a {
         color: var(--footer-text-dark);
     }
 }
-
-/* Animations */
-@keyframes crumble { from { transform: scale(1); opacity: 1; } to { transform: scale(0); opacity: 0; } }
-#game-board.crumble .cell.occupied { animation: crumble 0.8s ease-in forwards; animation-delay: calc(var(--delay, 0) * 0.5s); }
-.score-animation { position: absolute; font-size: 2.5em; font-family: 'Arial Black', Gadget, sans-serif; font-weight: bold; color: var(--accent-color); text-shadow: 0 0 10px #fff; opacity: 0; pointer-events: none; z-index: 100; }
-.score-animation.animate { animation: scoreExplosion 1.2s ease-out forwards; }
-@keyframes scoreExplosion { 0% { transform: translateY(0) scale(0.5); opacity: 1; } 100% { transform: translateY(-80px) scale(1.5); opacity: 0; } }

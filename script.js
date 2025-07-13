@@ -17,11 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const GRID_SIZE = 9;
     let isDragging = false;
 
-    // --- NEU: Logik für Doppel-Tipp ---
-    let lastTap = 0;
-    let tapTimeout = null;
-    const doubleTapDelay = 300; // ms
-
     async function initializeGame() {
         highscoreElement.classList.remove('pulsate');
         gameBoardElement.classList.remove('crumble');
@@ -78,21 +73,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.documentElement.style.setProperty('--figure-block-size', `${Math.max(10, cellSize / 2.5)}px`);
     }
 
-    // ===================================================================================
-    // EVENT LISTENERS
-    // ===================================================================================
-
     function assignEventListeners() {
         figureSlots.forEach(slot => {
-            // Wir verwenden 'mousedown' und 'touchstart' um die Interaktion zu starten
             slot.addEventListener('mousedown', (e) => handleTapOrDragStart(e));
             slot.addEventListener('touchstart', (e) => handleTapOrDragStart(e), { passive: false });
         });
     }
-
-    // ===================================================================================
-    // TOUCH- / MAUS-STEUERUNG (ÜBERARBEITET)
-    // ===================================================================================
 
     function handleTapOrDragStart(e) {
         e.preventDefault();
@@ -100,23 +86,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const now = new Date().getTime();
         const timesince = now - lastTap;
 
-        // --- Logik für Doppel-Tipp ---
         if (timesince < doubleTapDelay && timesince > 0) {
             clearTimeout(tapTimeout);
             rotateFigureInSlot(parseInt(targetSlot.dataset.slotId, 10));
-            return; // Doppel-Tipp ausgeführt, nichts weiter tun
+            return;
         }
         
-        // --- Logik für einzelnen Tipp (der ein Drag wird) ---
         lastTap = new Date().getTime();
         
-        // Timeout, um einen Drag zu starten, wenn der Finger/Mauszeiger gedrückt bleibt
         tapTimeout = setTimeout(() => {
             const event = e.touches ? e.touches[0] : e;
             handleDragStart(event, targetSlot);
-        }, 200); // Kurze Verzögerung, um versehentliches Ziehen bei Tippen zu verhindern
+        }, 200);
 
-        // Listener, um das Timeout abzubrechen, wenn der Finger sofort losgelassen wird (ein echter Tap)
         const cancelDrag = () => {
             clearTimeout(tapTimeout);
             targetSlot.removeEventListener('mouseup', cancelDrag);
@@ -128,14 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function rotateFigureInSlot(slotIndex) {
         if (!figuresInSlots[slotIndex]) return;
-        
-        // Figur rotieren und im Array speichern
         figuresInSlots[slotIndex].form = rotateFigure90Degrees(figuresInSlots[slotIndex].form);
-        
-        // Slot neu zeichnen, um die Rotation anzuzeigen
         drawFigureInSlot(slotIndex);
-
-        // Prüfen ob das Spiel jetzt vorbei ist
         if (isGameOver()) {
             handleGameOver();
         }
@@ -205,10 +181,6 @@ document.addEventListener('DOMContentLoaded', () => {
         isDragging = false;
         drawGameBoard();
     }
-    
-    // ===================================================================================
-    // SPIEL-LOGIK
-    // ===================================================================================
     
     function rotateFigure90Degrees(matrix) {
         return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])).reverse();
@@ -285,17 +257,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function isGameOver() {
         return figuresInSlots.every(figure => {
             if (!figure) return true;
-            // WICHTIG: Prüfen, ob eine der 4 möglichen Rotationen passt
             let currentForm = figure.form;
             for(let i=0; i < 4; i++) {
                 for (let y = 0; y <= GRID_SIZE - currentForm.length; y++) {
                     for (let x = 0; x <= GRID_SIZE - currentForm[0].length; x++) {
-                        if (canPlace({form: currentForm}, x, y)) return false; // Gefunden, Spiel geht weiter
+                        if (canPlace({form: currentForm}, x, y)) return false;
                     }
                 }
                 currentForm = rotateFigure90Degrees(currentForm);
             }
-            return true; // Keine Rotation dieser Figur passt
+            return true;
         });
     }
 
@@ -318,6 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setCookie('highscore', highscore, 365);
         }
 
+        // --- HIER IST DIE ÄNDERUNG ---
         setTimeout(() => {
             if (isNewHighscore) {
                 highscoreElement.textContent = highscore;
@@ -326,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 initializeGame();
             }
-        }, 1000);
+        }, 2500); // Erhöhter Timeout für die längere Animation
     }
 
     function drawGameBoard() {
