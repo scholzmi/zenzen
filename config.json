@@ -7,9 +7,9 @@
     "linePreview": "rgba(253, 94, 83, 0.5)",
     "activeSlotBorder": "#fd5e53",
     "title": {
-    "z_colors": ["#ffb347", "#ff6f61", "#c44569"],   // Sonnenuntergang: Gold, Koralle, Violettrot
-    "e_color": "#ffe5d9",                            // Sanftes Pastellrosa
-    "n_color": "#f8c291"                             // Helles Apricot
+    "z_colors": ["#ffb347", "#ff6f61", "#c44569"],
+    "e_color": "#ffe5d9",
+    "n_color": "#f8c291"
   },
     "figurePalettes": {
         "normal":  { "placed": "#ff7f50", "preview": "rgba(255, 127, 80, 0.5)" },
