@@ -245,23 +245,7 @@ body {
     box-shadow: 0 0 10px #ff4d4d, 0 0 20px #fff;
 }
 
-.donation-box {
-    text-align: center;
-    padding: 10px 0;
-    margin-top: -15px;
-    z-index: -1;
-}
 
-.donation-content {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-    background-color: var(--component-bg-light);
-    padding: 10px 20px;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px var(--shadow-color-light);
-}
 
 @media (prefers-color-scheme: dark) {
     .donation-content {
@@ -270,8 +254,6 @@ body {
 }
 
 .coffee-cup { font-size: 2.5rem; }
-.qr-code-wrapper { display: flex; flex-direction: column; align-items: center; }
-.qr-code { width: 70px; height: 70px; }
 .paypal-link { font-size: 12px; margin-top: 5px; color: var(--accent-color); text-decoration: none; font-weight: 500; }
 
 footer {
