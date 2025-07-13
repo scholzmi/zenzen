@@ -3,8 +3,8 @@
     --text-color-dark: #eaf2f8;
     --border-color-light: #85c1e9;
     --border-color-dark: #5499c7;
-    --component-bg-light: rgba(235, 245, 251, 0.6);
-    --component-bg-dark: rgba(21, 67, 96, 0.6);
+    --component-bg-light: rgba(235, 245, 251, 0.7);
+    --component-bg-dark: rgba(21, 67, 96, 0.7);
     --shadow-color-light: rgba(0, 0, 0, 0.1);
     --shadow-color-dark: rgba(0, 0, 0, 0.5);
     --accent-color: #5dade2;
@@ -27,8 +27,7 @@ body {
     background: url('bg.png') center/cover;
     color: var(--text-color-light);
     -webkit-tap-highlight-color: transparent;
-    /* --- HIER IST DIE ÄNDERUNG --- */
-    overflow: hidden; /* Verhindert das Scrollen auf der gesamten Seite */
+    overflow-y: auto; /* Scrollen wieder erlaubt */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -65,14 +64,46 @@ body {
     }
 }
 
+/* --- HIER IST DIE ÄNDERUNG --- */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
 .block-title {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start; /* Linksbündig */
     gap: 5px;
     font-size: 28px;
     font-weight: 800;
-    margin: 0 0 20px 0;
+    margin: 0;
 }
+
+.header-donation-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent-color);
+    padding: 8px 12px;
+    border-radius: 12px;
+    background-color: rgba(255,255,255,0.2);
+    transition: background-color 0.2s;
+}
+
+.header-donation-link:hover {
+    background-color: rgba(255,255,255,0.4);
+}
+
+.header-donation-link span {
+    text-decoration: underline;
+}
+/* --- ENDE DER ÄNDERUNG --- */
+
 
 .block-title span {
     width: 35px;
@@ -205,35 +236,7 @@ body {
     box-shadow: inset 0 0 3px rgba(255,255,255,0.5);
 }
 
-.donation-box {
-    text-align: center;
-    padding: 10px 0;
-    /* --- HIER IST DIE ÄNDERUNG --- */
-    margin-top: -15px; /* Schiebt die Box näher an die Spiel-Karte */
-    z-index: -1; /* Stellt sicher, dass es hinter dem Spiel-Wrapper bleibt, falls es überlappt */
-}
-
-.donation-content {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-    background-color: var(--component-bg-light);
-    padding: 10px 20px;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px var(--shadow-color-light);
-}
-
-@media (prefers-color-scheme: dark) {
-    .donation-content {
-        background-color: var(--component-bg-dark);
-    }
-}
-
-.coffee-cup { font-size: 2.5rem; }
-.qr-code-wrapper { display: flex; flex-direction: column; align-items: center; }
-.qr-code { width: 70px; height: 70px; }
-.paypal-link { font-size: 12px; margin-top: 5px; color: var(--accent-color); text-decoration: none; font-weight: 500; }
+/* Alte Donation-Box Regeln wurden entfernt */
 
 footer {
     position: fixed;
