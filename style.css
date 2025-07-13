@@ -3,19 +3,20 @@
     --border-color-light: #f77b72;
     --component-bg-light: rgba(255, 224, 178, 0.6);
     --shadow-color-light: rgba(216, 67, 21, 0.1);
-    --accent-color: #2980b9;
+    --accent-color: #66a5d0;
     --footer-bg-light: rgba(255, 224, 178, 0.85);
     --footer-text-light: #4E342E;
-    --text-color-dark: #FBEAEB;
-    --border-color-dark: #a35507;
-    --component-bg-dark: rgba(69, 39, 160, 0.6);
-    --shadow-color-dark: rgba(0, 0, 0, 0.3);
-    --footer-bg-dark: rgba(49, 27, 146, 0.85);
-    --footer-text-dark: #E0E0E0;
 
-    --figure-color-normal: #2980b9;
-    --figure-color-joker: #85c1e9;
-    --figure-color-zonk: #c0392b;
+    --text-color-dark: #f5eadd;      /* Ein sehr helles, warmes Creme für den Text */
+    --border-color-dark: #2b2f6e83;      /* Eine etwas sattere Version des Korallrots */
+    --component-bg-dark: rgba(67, 65, 136, 0.6);  /* Ein tiefes, dunkles Violett */
+    --shadow-color-dark: rgba(0, 0, 0, 0.3);
+    --footer-bg-dark: rgba(46, 41, 78, 0.85); /* Etwas opaker als der Rest */
+    --footer-text-dark: #d7ccc8;
+
+    --figure-color-normal: #2e87c2;
+    --figure-color-joker: #94caee;
+    --figure-color-zonk: #cf3e2d;
 }
 
 body {
@@ -151,8 +152,8 @@ body {
 }
 
 @keyframes pulsate {
-    0%, 100% { transform: scale(1); color: #f1c40f; }
-    50% { transform: scale(1.25); color: #f8c92d; }
+    0%, 100% { transform: scale(1); color: #0ff15a; }
+    50% { transform: scale(1.25); color: #0cb043; }
 }
 
 #game-board-wrapper {
@@ -193,8 +194,8 @@ body {
 .cell.occupied {
     border-radius: 20%;
     transform: scale(0.95);
-    border: 1px solid rgba(255,255,255,0.7);
-    box-shadow: inset 0 0 8px rgba(255,255,255,0.5), 0 0 10px var(--accent-color);
+    border: 1px solid rgba(255,255,255,0.4); /* Rand weniger prominent */
+    box-shadow: inset 0 0 5px rgba(255,255,255,0.3), 0 0 5px var(--accent-color); /* Leuchteffekt reduziert */
 }
 
 #figure-selection {
@@ -238,9 +239,9 @@ body {
 }
 
 /* --- HIER IST DIE ÄNDERUNG: Neue Klassen für die Farben der Figurenblöcke --- */
-.color-normal { background-color: var(--figure-color-normal); }
-.color-joker { background-color: var(--figure-color-joker); }
-.color-zonk { background-color: var(--figure-color-zonk); }
+.color-normal, .occupied.normal { background-color: var(--figure-color-normal); }
+.color-joker,  .occupied.joker  { background-color: var(--figure-color-joker); }
+.color-zonk,   .occupied.zonk   { background-color: var(--figure-color-zonk); }
 
 .donation-box {
     text-align: center;
@@ -304,15 +305,21 @@ footer a {
     }
 }
 
+    
+    
+
+
 .cell.preview {
     z-index: 10;
-    box-shadow: 0 0 10px var(--accent-color), 0 0 20px #fff;
-    border: 2px solid var(--accent-color);
+    box-shadow: inset 0 0 5px rgba(255,255,255,0.3), 0 0 5px var(--accent-color); /* Leuchteffekt reduziert */
+    border: 1px solid rgba(255,255,255,0.4); /* Rand weniger prominent */
+    border-radius: 20%;
 }
 .cell.preview.invalid {
     background-color: rgba(255, 77, 77, 0.7) !important;
-    border: 2px solid #ff4d4d;
-    box-shadow: 0 0 10px #ff4d4d, 0 0 20px #fff;
+    border: 1px solid rgba(255,255,255,0.4); /* Rand weniger prominent */
+    box-shadow: inset 0 0 5px rgba(214, 47, 47, 0.885), 0 0 5px var(--accent-color); /* Leuchteffekt reduziert */
+    border-radius: 20%;
 }
 
 /* Animations */

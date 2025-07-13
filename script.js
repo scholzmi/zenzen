@@ -217,8 +217,8 @@ document.addEventListener('DOMContentLoaded', () => {
             else { pool = gameConfig.figures.normal; category = 'normal'; }
             
             let figureData = { ...pool[Math.floor(Math.random() * pool.length)] };
-            let figure = { ...figureData, form: parseShape(figureData.shape), category: category };
-
+            let figure = { ...figureData, form: parseShape(figureData.shape), category: category }; // Speichert die Kategorie
+            
             const rotations = Math.floor(Math.random() * 4);
             for (let r = 0; r < rotations; r++) {
                 figure.form = rotateFigure90Degrees(figure.form);
@@ -304,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function drawPreview(figure, centerX, centerY) {
-        drawGameBoard();
+        drawGameBoard(); // Entfernt alle alten 'preview' Klassen
         const placeX = centerX - Math.floor(figure.form[0].length / 2);
         const placeY = centerY - Math.floor(figure.form.length / 2);
         const canBePlaced = canPlace(figure, placeX, placeY);
@@ -316,8 +316,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     const boardX = placeX + x;
                     if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
                         const cell = gameBoardElement.children[boardY * GRID_SIZE + boardX];
-                        cell.classList.add('preview', `color-${figure.category}`);
-                        if (!canBePlaced) {
+                        
+                        // --- HIER IST DIE KORREKTUR ---
+                        // Fügt die CSS-Klassen hinzu, anstatt die Farbe direkt zu setzen
+                        cell.classList.add('preview');
+                        if (canBePlaced) {
+                            cell.style.backgroundColor = figure.color; // Setzt die Grundfarbe für den Schein-Effekt
+                        } else {
                             cell.classList.add('invalid');
                         }
                     }
