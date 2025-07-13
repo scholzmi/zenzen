@@ -1,8 +1,9 @@
 :root {
     --text-color-light: #1a202c;
     --text-color-dark: #eaf2f8;
-    --border-color-light: #aed6f1;
-    --border-color-dark: #5499c7;
+    /* --- HIER IST DIE ÄNDERUNG: Dunklere Blautöne für die Linien --- */
+    --border-color-light: #85c1e9; /* Ein mittleres, klares Blau */
+    --border-color-dark: #5499c7;  /* Ein kräftigeres Blau für den Dark Mode */
     --component-bg-light: rgba(235, 245, 251, 0.6);
     --component-bg-dark: rgba(21, 67, 96, 0.6);
     --shadow-color-light: rgba(0, 0, 0, 0.1);
@@ -131,7 +132,7 @@ body {
     grid-template-columns: repeat(9, 1fr);
     width: 100%;
     aspect-ratio: 1 / 1;
-    border: 2px solid var(--border-color-light); /* Hauptrahmen des Bretts auch dicker gemacht */
+    border: 2px solid var(--border-color-light);
     border-radius: 8px;
 }
 
@@ -140,9 +141,8 @@ body {
 }
 
 .cell {
-    /* --- HIER IST DIE ÄNDERUNG --- */
-    border-right: 2px solid var(--border-color-light); /* Dickere vertikale Linien */
-    border-bottom: 2px solid var(--border-color-light); /* Dickere horizontale Linien */
+    border-right: 2px solid var(--border-color-light);
+    border-bottom: 2px solid var(--border-color-light);
     box-sizing: border-box;
     transition: background-color 0.1s ease;
 }
