@@ -181,37 +181,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function placeFigure(figure, centerX, centerY) {
-        const placeX = centerX - Math.floor(figure.form[0].length / 2);
-        const placeY = centerY - Math.floor(figure.form.length / 2);
+    const placeX = centerX - Math.floor(figure.form[0].length / 2);
+    const placeY = centerY - Math.floor(figure.form.length / 2);
 
-        if (!canPlace(figure, placeX, placeY)) return;
+    if (!canPlace(figure, placeX, placeY)) return;
 
-        figure.form.forEach((row, y) => row.forEach((block, x) => {
-            if (block === 1) gameBoard[placeY + y][placeX + x] = figure.category;
-        }));
+    figure.form.forEach((row, y) => row.forEach((block, x) => {
+        if (block === 1) gameBoard[placeY + y][placeX + x] = figure.category;
+    }));
 
-        const points = clearFullLines() + figure.form.flat().reduce((a, b) => a + b, 0);
-        score += points;
-        scoreElement.textContent = score;
-        showScoreAnimation(points);
+    // *** KORREKTUR: Nutzt jetzt den 'points'-Wert der Figur ***
+    // Die alte Berechnung wurde entfernt.
+    const points = clearFullLines() + (figure.points || 0);
+    score += points;
+    scoreElement.textContent = score;
+    showScoreAnimation(points);
 
-        if (score > highscore) {
-          highscore = score;
-          highscoreElement.textContent = highscore;
-          setCookie('highscore', highscore, 365);
-        }
-
-        figuresInSlots[selectedSlotIndex] = null;
-        drawFigureInSlot(selectedSlotIndex);
-        
-        if (figuresInSlots.every(f => f === null)) {
-            generateNewFigures();
-        }
-
-        if (isGameOver()) {
-            handleGameOver();
-        }
+    if (score > highscore) {
+        highscore = score;
+        highscoreElement.textContent = highscore;
+        setCookie('highscore', highscore, 365);
     }
+
+    figuresInSlots[selectedSlotIndex] = null;
+    drawFigureInSlot(selectedSlotIndex);
+    
+    if (figuresInSlots.every(f => f === null)) {
+        generateNewFigures();
+    }
+
+    if (isGameOver()) {
+        handleGameOver();
+    }
+}
 
    function generateNewFigures() {
     const { zonkProbability, jokerProbability } = gameConfig;
