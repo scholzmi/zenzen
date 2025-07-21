@@ -147,6 +147,7 @@ body::before {
 #game-board-wrapper {
     position: relative;
     width: 100%;
+    perspective: 800px; /* NEU: Aktiviert eine 3D-Ansicht für Kind-Elemente */
 }
 
 #game-board {
