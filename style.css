@@ -83,8 +83,9 @@ body::before {
 
 .header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column; /* Stellt die Elemente untereinander dar */
+    align-items: center;   /* Zentriert die Elemente horizontal */
+    gap: 15px;             /* Fügt einen Abstand zwischen Titel und Link hinzu */
     margin-bottom: 20px;
 }
 
