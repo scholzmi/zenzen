@@ -203,14 +203,13 @@ body::before {
     }
 }
 
-/* --- ÄNDERUNG 1: .cell.occupied angepasst --- */
 .cell.occupied {
     border-radius: 20%;
     transform: scale(0.95);
     border: 1px solid rgba(255,255,255,0.4);
     box-shadow: inset 0 0 5px rgba(255,255,255,0.3), 0 0 5px var(--accent-color);
-    position: relative; /* Wichtig für das Pseudo-Element */
-    background: transparent !important; /* Macht die Zelle selbst durchsichtig */
+    position: relative; 
+    background: transparent !important; 
 }
 
 #figure-selection {
@@ -253,7 +252,7 @@ body::before {
     box-shadow: inset 0 0 3px rgba(255,255,255,0.5);
 }
 
-/* --- ÄNDERUNG 2: Farben aufgeteilt für Auswahl und Spielfeld --- */
+/* --- KORREKTUR: Farben für Spielfeld und Auswahl --- */
 .cell.occupied::before {
     content: '';
     position: absolute;
@@ -261,18 +260,18 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    border-radius: inherit; /* Übernimmt den Radius von .cell.occupied */
+    border-radius: inherit; 
 }
 
 /* Farben für Blöcke in der Auswahl */
-.color-normal { background-color: var(--figure-color-normal); }
-.color-joker  { background-color: var(--figure-color-joker); }
-.color-zonk   { background-color: var(--figure-color-zonk); }
+.figure-block.color-normal { background-color: var(--figure-color-normal); }
+.figure-block.color-joker  { background-color: var(--figure-color-joker); }
+.figure-block.color-zonk   { background-color: var(--figure-color-zonk); }
 
 /* Farben für Blöcke auf dem Spielfeld (via Pseudo-Element) */
-.occupied.normal::before { background-color: var(--figure-color-normal); }
-.occupied.joker::before  { background-color: var(--figure-color-joker); }
-.occupied.zonk::before   { background-color: var(--figure-color-zonk); }
+.cell.occupied.color-normal::before { background-color: var(--figure-color-normal); }
+.cell.occupied.color-joker::before  { background-color: var(--figure-color-joker); }
+.cell.occupied.color-zonk::before   { background-color: var(--figure-color-zonk); }
 
 
 .donation-box {
@@ -354,7 +353,6 @@ footer a {
 /* Animations */
 @keyframes crumble { from { transform: scale(1); opacity: 1; } to { transform: scale(0); opacity: 0; } }
 
-/* --- ÄNDERUNG 3: Animation auf Pseudo-Element angewendet --- */
 #game-board.crumble .cell.occupied::before { 
     animation: crumble 1.5s ease-in forwards; 
     animation-delay: calc(var(--delay, 0) * 1s); 
