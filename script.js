@@ -280,37 +280,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 function handleGameOver() {
-    // 1. Startet die Zerbröseln-Animation
+    // 1. Startet die "Zerbröseln"-Animation für die Blöcke.
     gameBoardElement.classList.add('crumble');
-
-    // 2. NEU: Macht das Spielbrett unsichtbar, kurz NACHDEM die Animation (1.5s) beendet ist.
-    //    Dies verhindert das Aufblitzen.
-    setTimeout(() => {
-        gameBoardElement.style.visibility = 'hidden';
-    }, 1600); // 1.6 Sekunden, also 100ms nach Ende der Animation
-
+    
     let isNewHighscore = score > highscore;
     if (isNewHighscore) {
         highscore = score;
+        // Den Highscore speichern wir hier, aber die Cookie-Logik aus placeFigure ist der Hauptspeicherpunkt.
         setCookie('highscore', highscore, 365);
     }
 
-    // 3. Dieser Timer wartet wie bisher, bevor das Spiel zurückgesetzt wird.
+    // 2. Ein Timer wartet die komplette Dauer ab, bevor das Spiel zurückgesetzt wird.
     setTimeout(() => {
         if (isNewHighscore) {
             highscoreElement.textContent = highscore;
             highscoreElement.classList.add('pulsate');
-            setTimeout(() => {
-                // NEU: Spielbrett wieder sichtbar machen, direkt bevor das neue Spiel startet.
-                gameBoardElement.style.visibility = 'visible';
-                initializeGame();
-            }, 1800);
+            // Wir warten auf das Ende der Puls-Animation, bevor wir neu starten.
+            setTimeout(initializeGame, 1800);
         } else {
-            // NEU: Spielbrett auch hier wieder sichtbar machen.
-            gameBoardElement.style.visibility = 'visible';
             initializeGame();
         }
-    }, 2500);
+    }, 2500); // Gesamt-Verzögerung von 2,5 Sekunden.
 }
 
     function drawGameBoard() {
