@@ -9,12 +9,12 @@
     --footer-bg-light: #F2EBDC;
     --footer-text-light: #4E342E;
 
-    --text-color-dark: #4E342E;
-    --border-color-dark: #6A8B8B;
-    --component-bg-dark: #D9D1C1;
-    --shadow-color-dark: #0F3A3A;
-    --footer-bg-dark: #D9D1C1;
-    --footer-text-dark: #3E2723;
+    --text-color-dark: #EAE0D1;  /* Ein heller, warmer Pergament-Ton für den Text */
+    --border-color-dark: #4A6464; /* Ein dunkles, entsättigtes Grün-Grau für die Ränder */
+    --component-bg-dark: #2A2422; /* Ein sehr dunkles, warmes Braun als Hintergrund */
+    --shadow-color-dark: rgba(0, 0, 0, 0.3); /* Ein neutraler, dunkler Schatten */
+    --footer-bg-dark: #25201e;   /* Ein fast schwarzer Hintergrund für den Footer */
+    --footer-text-dark: #B8AF9E;   /* Ein etwas gedämpfterer Text-Ton für den Footer */
 
     --figure-color-normal: #225459;
     --figure-color-joker: #6D8C8C;
