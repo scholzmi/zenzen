@@ -217,7 +217,7 @@ body::before {
 .figure-container {
     display: grid;
     pointer-events: none;
-    transform: scale(1.4);
+    transform: scale(1.2);
 }
 
 .figure-block {
