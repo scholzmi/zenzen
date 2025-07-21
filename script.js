@@ -20,6 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const doubleTapDelay = 300;
     let isMoveScheduled = false;
     let lastEvent = null;
+    let currentPreviewCells = [];
+    
+    // NEU: Variable für haptisches Feedback
+    let lastVibratedCell = { x: -1, y: -1 };
 
     async function initializeGame() {
         highscoreElement.classList.remove('pulsate');
@@ -145,32 +149,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updatePreviewOnFrame() {
-    if (!lastEvent || !isDragging) {
+        if (!lastEvent || !isDragging) {
+            isMoveScheduled = false;
+            return;
+        }
+
+        const boardRect = gameBoardElement.getBoundingClientRect();
+        const event = lastEvent.touches ? lastEvent.touches[0] : lastEvent;
+
+        const xPos = event.clientX - boardRect.left;
+        const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
+
+        const cellX = Math.round(xPos / boardRect.width * GRID_SIZE);
+        const cellY = Math.round(yPos / boardRect.height * GRID_SIZE);
+
+        // HAPTISCHES FEEDBACK: Beim Einrasten
+        if ((cellX !== lastVibratedCell.x || cellY !== lastVibratedCell.y) && navigator.vibrate) {
+            navigator.vibrate(5); // Ultra-kurze Vibration
+            lastVibratedCell.x = cellX;
+            lastVibratedCell.y = cellY;
+        }
+
+        drawPreview(selectedFigure, cellX, cellY);
+
         isMoveScheduled = false;
-        return;
     }
-
-    const boardRect = gameBoardElement.getBoundingClientRect();
-    const event = lastEvent.touches ? lastEvent.touches[0] : lastEvent;
-
-    const xPos = event.clientX - boardRect.left;
-    const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
-
-    const cellX = Math.round(xPos / boardRect.width * GRID_SIZE);
-    const cellY = Math.round(yPos / boardRect.height * GRID_SIZE);
-
-    drawPreview(selectedFigure, cellX, cellY);
-
-    isMoveScheduled = false;
-}
     
-function handleInteractionMove(event) {
-    lastEvent = event; // Nur die letzte bekannte Position speichern
-    if (!isMoveScheduled) {
-        isMoveScheduled = true;
-        window.requestAnimationFrame(updatePreviewOnFrame);
+    function handleInteractionMove(event) {
+        lastEvent = event;
+        if (!isMoveScheduled) {
+            isMoveScheduled = true;
+            window.requestAnimationFrame(updatePreviewOnFrame);
+        }
     }
-}
 
     function handleInteractionEnd(event) {
         if (!isDragging) return;
@@ -196,88 +207,89 @@ function handleInteractionMove(event) {
     }
 
     function placeFigure(figure, centerX, centerY) {
-    const placeX = centerX - Math.floor(figure.form[0].length / 2);
-    const placeY = centerY - Math.floor(figure.form.length / 2);
+        const placeX = centerX - Math.floor(figure.form[0].length / 2);
+        const placeY = centerY - Math.floor(figure.form.length / 2);
 
-    if (!canPlace(figure, placeX, placeY)) return;
+        if (!canPlace(figure, placeX, placeY)) return;
 
-    figure.form.forEach((row, y) => row.forEach((block, x) => {
-        if (block === 1) gameBoard[placeY + y][placeX + x] = figure.category;
-    }));
+        // HAPTISCHES FEEDBACK: Beim Platzieren
+        if (navigator.vibrate) {
+            navigator.vibrate(40);
+        }
 
-    // *** KORREKTUR: Nutzt jetzt den 'points'-Wert der Figur ***
-    // Die alte Berechnung wurde entfernt.
-    const points = clearFullLines() + (figure.points || 0);
-    score += points;
-    scoreElement.textContent = score;
-    showScoreAnimation(points);
+        figure.form.forEach((row, y) => row.forEach((block, x) => {
+            if (block === 1) gameBoard[placeY + y][placeX + x] = figure.category;
+        }));
 
-    if (score > highscore) {
-        highscore = score;
-        highscoreElement.textContent = highscore;
-        setCookie('highscore', highscore, 365);
+        const points = clearFullLines() + (figure.points || 0);
+        score += points;
+        scoreElement.textContent = score;
+        showScoreAnimation(points);
+
+        if (score > highscore) {
+            highscore = score;
+            highscoreElement.textContent = highscore;
+            setCookie('highscore', highscore, 365);
+        }
+
+        figuresInSlots[selectedSlotIndex] = null;
+        drawFigureInSlot(selectedSlotIndex);
+        
+        if (figuresInSlots.every(f => f === null)) {
+            generateNewFigures();
+        }
+
+        if (isGameOver()) {
+            handleGameOver();
+        }
     }
 
-    figuresInSlots[selectedSlotIndex] = null;
-    drawFigureInSlot(selectedSlotIndex);
-    
-    if (figuresInSlots.every(f => f === null)) {
-        generateNewFigures();
-    }
+    function generateNewFigures() {
+        const { zonkProbability, jokerProbability } = gameConfig;
 
-    if (isGameOver()) {
-        handleGameOver();
-    }
-}
+        function getWeightedRandomFigure(pool) {
+            const totalWeight = pool.reduce((sum, figure) => sum + (figure.probability || 1), 0);
+            let random = Math.random() * totalWeight;
 
-   function generateNewFigures() {
-    const { zonkProbability, jokerProbability } = gameConfig;
-
-    // Hilfsfunktion für die gewichtete Auslosung
-    function getWeightedRandomFigure(pool) {
-        const totalWeight = pool.reduce((sum, figure) => sum + (figure.probability || 1), 0);
-        let random = Math.random() * totalWeight;
-
-        for (const figure of pool) {
-            random -= (figure.probability || 1);
-            if (random <= 0) {
-                return figure;
+            for (const figure of pool) {
+                random -= (figure.probability || 1);
+                if (random <= 0) {
+                    return figure;
+                }
             }
+            return pool[pool.length - 1];
         }
-        return pool[pool.length - 1]; // Fallback
-    }
 
-    for (let i = 0; i < 3; i++) {
-        let pool, category;
-        const rand = Math.random();
+        for (let i = 0; i < 3; i++) {
+            let pool, category;
+            const rand = Math.random();
 
-        if (rand < zonkProbability) { 
-            pool = gameConfig.figures.zonk; 
-            category = 'zonk';
-        } else if (rand < jokerProbability + zonkProbability) { 
-            pool = gameConfig.figures.joker; 
-            category = 'joker';
-        } else { 
-            pool = gameConfig.figures.normal; 
-            category = 'normal';
+            if (rand < zonkProbability) { 
+                pool = gameConfig.figures.zonk; 
+                category = 'zonk';
+            } else if (rand < jokerProbability + zonkProbability) { 
+                pool = gameConfig.figures.joker; 
+                category = 'joker';
+            } else { 
+                pool = gameConfig.figures.normal; 
+                category = 'normal';
+            }
+            
+            let figureData = { ...getWeightedRandomFigure(pool) };
+            let figure = { ...figureData, form: parseShape(figureData.shape), category: category };
+            
+            const rotations = Math.floor(Math.random() * 4);
+            for (let r = 0; r < rotations; r++) {
+                figure.form = rotateFigure90Degrees(figure.form);
+            }
+            figuresInSlots[i] = figure;
+            drawFigureInSlot(i);
         }
-        
-        // *** KORREKTUR: Nutzt die neue gewichtete Auslosung ***
-        let figureData = { ...getWeightedRandomFigure(pool) };
-        let figure = { ...figureData, form: parseShape(figureData.shape), category: category };
-        
-        const rotations = Math.floor(Math.random() * 4);
-        for (let r = 0; r < rotations; r++) {
-            figure.form = rotateFigure90Degrees(figure.form);
+        drawGameBoard();
+        if (isGameOver()) {
+            handleGameOver();
         }
-        figuresInSlots[i] = figure;
-        drawFigureInSlot(i);
     }
-    drawGameBoard();
-    if (isGameOver()) {
-        handleGameOver();
-    }
-}
 
     function canPlace(figure, startX, startY) {
         for (let y = 0; y < figure.form.length; y++) {
@@ -315,47 +327,43 @@ function handleInteractionMove(event) {
         for (let y = 0; y < GRID_SIZE; y++) if (gameBoard[y].every(cell => cell !== 0)) rows.push(y);
         for (let x = 0; x < GRID_SIZE; x++) if (gameBoard.every(row => row[x] !== 0)) cols.push(x);
         
+        // HAPTISCHES FEEDBACK: Beim Abräumen von Reihen
+        if ((rows.length > 0 || cols.length > 0) && navigator.vibrate) {
+            navigator.vibrate([100, 50, 100]); // Pulsierende Vibration
+        }
+        
         rows.forEach(y => gameBoard[y].fill(0));
         cols.forEach(x => gameBoard.forEach(row => row[x] = 0));
         return Math.pow(rows.length + cols.length, 2) * 100;
     }
 
-function handleGameOver() {
-    // 1. Die "Zerbröseln"-Animation wird wie bisher gestartet.
-    gameBoardElement.classList.add('crumble');
-    
-    // Logik für den Highscore
-    let isNewHighscore = score > highscore;
-    if (isNewHighscore) {
-        highscore = score;
-        setCookie('highscore', highscore, 365);
-    }
-
-    // 2. Wir warten, bis die Animation (1.5s) sicher abgeschlossen ist.
-    setTimeout(() => {
+    function handleGameOver() {
+        gameBoardElement.classList.add('crumble');
         
-        // 3. WICHTIG: Wir räumen das Spielfeld manuell auf, BEVOR etwas anderes passiert.
-        //    Wir entfernen die Klassen von den Zellen, die sie als "besetzt" markieren.
-        //    Das Spielfeld ist danach visuell leer, aber das Gitter bleibt erhalten.
-        const allCells = gameBoardElement.querySelectorAll('.cell.occupied');
-        allCells.forEach(cell => {
-            cell.className = 'cell'; // Setzt die Zelle auf ihren Ursprungszustand zurück.
-        });
-
-        // 4. JETZT ERST entfernen wir die Klasse, die die Animation ausgelöst hat.
-        gameBoardElement.classList.remove('crumble');
-
-        // 5. Nun kann die restliche Logik auf einem sauberen Brett ohne Konflikte ablaufen.
+        let isNewHighscore = score > highscore;
         if (isNewHighscore) {
-            highscoreElement.textContent = highscore;
-            highscoreElement.classList.add('pulsate');
-            setTimeout(initializeGame, 1800); // Warten auf die Puls-Animation
-        } else {
-            initializeGame();
+            highscore = score;
+            setCookie('highscore', highscore, 365);
         }
 
-    }, 1600); // Wir warten 1,6 Sekunden, um sicherzugehen, dass die 1,5s Animation fertig ist.
-}
+        setTimeout(() => {
+            const allCells = gameBoardElement.querySelectorAll('.cell.occupied');
+            allCells.forEach(cell => {
+                cell.className = 'cell';
+            });
+
+            gameBoardElement.classList.remove('crumble');
+
+            if (isNewHighscore) {
+                highscoreElement.textContent = highscore;
+                highscoreElement.classList.add('pulsate');
+                setTimeout(initializeGame, 1800);
+            } else {
+                initializeGame();
+            }
+
+        }, 1600);
+    }
 
     function drawGameBoard() {
         gameBoard.forEach((row, y) => row.forEach((content, x) => {
@@ -367,54 +375,41 @@ function handleGameOver() {
         }));
     }
 
-let currentPreviewCells = [];
-
-function drawPreview(figure, centerX, centerY) {
-    
-    // 1. ALTE VORSCHAU AUFRÄUMEN
-    // Wir gehen durch die Zellen, die im letzten Frame zur Vorschau gehörten.
-    currentPreviewCells.forEach(cell => {
-        // Zuerst die reinen Vorschau-Marker entfernen.
-        cell.classList.remove('preview', 'invalid');
-
-        // JETZT DER ENTSCHEIDENDE PUNKT:
-        // Entferne die temporäre Farbe nur dann, wenn die Zelle NICHT
-        // bereits als 'occupied' (platziert) markiert ist.
-        if (!cell.classList.contains('occupied')) {
-            cell.classList.remove('color-normal', 'color-joker', 'color-zonk');
-        }
-    });
-    currentPreviewCells = []; // Liste für den nächsten Frame leeren.
-
-    // 2. NEUE VORSCHAU ZEICHNEN
-    // Dieser Teil bleibt wie gehabt und funktioniert korrekt.
-    const placeX = centerX - Math.floor(figure.form[0].length / 2);
-    const placeY = centerY - Math.floor(figure.form.length / 2);
-    const canBePlaced = canPlace(figure, placeX, placeY);
-    
-    figure.form.forEach((row, y) => {
-        row.forEach((block, x) => {
-            if (block === 1) {
-                const boardY = placeY + y;
-                const boardX = placeX + x;
-                if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
-                    const cell = gameBoardElement.children[boardY * GRID_SIZE + boardX];
-                    
-                    cell.classList.add('preview');
-
-                    if (canBePlaced) {
-                        cell.classList.add(`color-${figure.category}`); 
-                    } else {
-                        cell.classList.add('invalid');
-                    }
-                    
-                    // Die Zelle zur Liste hinzufügen, damit wir sie im nächsten Frame finden.
-                    currentPreviewCells.push(cell);
-                }
+    function drawPreview(figure, centerX, centerY) {
+        currentPreviewCells.forEach(cell => {
+            cell.classList.remove('preview', 'invalid');
+            if (!cell.classList.contains('occupied')) {
+                cell.classList.remove('color-normal', 'color-joker', 'color-zonk');
             }
         });
-    });
-}
+        currentPreviewCells = [];
+
+        const placeX = centerX - Math.floor(figure.form[0].length / 2);
+        const placeY = centerY - Math.floor(figure.form.length / 2);
+        const canBePlaced = canPlace(figure, placeX, placeY);
+        
+        figure.form.forEach((row, y) => {
+            row.forEach((block, x) => {
+                if (block === 1) {
+                    const boardY = placeY + y;
+                    const boardX = placeX + x;
+                    if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
+                        const cell = gameBoardElement.children[boardY * GRID_SIZE + boardX];
+                        
+                        cell.classList.add('preview');
+
+                        if (canBePlaced) {
+                            cell.classList.add(`color-${figure.category}`); 
+                        } else {
+                            cell.classList.add('invalid');
+                        }
+                        
+                        currentPreviewCells.push(cell);
+                    }
+                }
+            });
+        });
+    }
 
     function drawFigureInSlot(index) {
         const slot = figureSlots[index];
