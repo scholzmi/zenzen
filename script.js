@@ -326,8 +326,15 @@ function handleGameOver() {
         }));
     }
 
-    function drawPreview(figure, centerX, centerY) {
-    drawGameBoard(); // Entfernt alle alten 'preview' Klassen
+function drawPreview(figure, centerX, centerY) {
+    // ENTFERNT: Die problematische Zeile 'drawGameBoard();'
+    
+    // NEU: Nur die alten Vorschau-Klassen von den Zellen entfernen.
+    const previewCells = gameBoardElement.querySelectorAll('.preview');
+    previewCells.forEach(cell => {
+        cell.className = cell.className.replace(/preview|color-normal|color-joker|color-zonk|invalid/g, '').trim();
+    });
+
     const placeX = centerX - Math.floor(figure.form[0].length / 2);
     const placeY = centerY - Math.floor(figure.form.length / 2);
     const canBePlaced = canPlace(figure, placeX, placeY);
@@ -342,7 +349,6 @@ function handleGameOver() {
                     
                     cell.classList.add('preview');
 
-                    // KORREKTUR: Weise die richtige Klasse für die Farbe zu, anstatt die Farbe direkt zu setzen.
                     if (canBePlaced) {
                         cell.classList.add(`color-${figure.category}`); 
                     } else {
