@@ -259,51 +259,65 @@ function rotateFigure90Degrees(matrix) {
     }
 
     function generateNewFigures() {
-    // JA, mit F12 und dann auf den Tab "Konsole" klicken!
     console.log("Aktuelle Zonk-Wahrscheinlichkeit:", currentZonkProbability.toFixed(4));
 
     const { jokerProbability } = gameConfig;
+    let isPlaceableSet = false;
+    let newFigures = [];
 
-    function getWeightedRandomFigure(pool) {
-        const totalWeight = pool.reduce((sum, figure) => sum + (figure.probability || 1), 0);
-        let random = Math.random() * totalWeight;
-        for (const figure of pool) {
-            random -= (figure.probability || 1);
-            if (random <= 0) {
-                return figure;
+    // Diese Schleife läuft so lange, bis ein platzierbares Set gefunden wurde
+    do {
+        newFigures = []; // Set für jeden Versuch zurücksetzen
+        
+        function getWeightedRandomFigure(pool) {
+            const totalWeight = pool.reduce((sum, figure) => sum + (figure.probability || 1), 0);
+            let random = Math.random() * totalWeight;
+            for (const figure of pool) {
+                random -= (figure.probability || 1);
+                if (random <= 0) return figure;
             }
+            return pool[pool.length - 1];
         }
-        return pool[pool.length - 1];
-    }
 
+        for (let i = 0; i < 3; i++) {
+            let pool, category;
+            const rand = Math.random();
+
+            if (rand < currentZonkProbability) { 
+                pool = gameConfig.figures.zonk; 
+                category = 'zonk';
+            } else if (rand < jokerProbability + currentZonkProbability) { 
+                pool = gameConfig.figures.joker; 
+                category = 'joker';
+            } else { 
+                pool = gameConfig.figures.normal; 
+                category = 'normal';
+            }
+            
+            let figureData = { ...getWeightedRandomFigure(pool) };
+            let figure = { ...figureData, form: parseShape(figureData.shape), category: category };
+            
+            const rotations = Math.floor(Math.random() * 4);
+            for (let r = 0; r < rotations; r++) {
+                figure.form = rotateFigure90Degrees(figure.form);
+            }
+            newFigures.push(figure);
+        }
+
+        // Prüfen, ob mindestens eine der drei neuen Figuren passt
+        if (newFigures.some(fig => canFigureBePlacedAnywhere(fig))) {
+            isPlaceableSet = true;
+        }
+
+    } while (!isPlaceableSet);
+
+    // Das gültige Set in die Haupt-Slots übernehmen
     for (let i = 0; i < 3; i++) {
-        let pool, category;
-        const rand = Math.random();
-
-        // Verwendet jetzt die ansteigende Wahrscheinlichkeit
-        if (rand < currentZonkProbability) { 
-            pool = gameConfig.figures.zonk; 
-            category = 'zonk';
-        } else if (rand < jokerProbability + currentZonkProbability) { 
-            pool = gameConfig.figures.joker; 
-            category = 'joker';
-        } else { 
-            pool = gameConfig.figures.normal; 
-            category = 'normal';
-        }
-        
-        let figureData = { ...getWeightedRandomFigure(pool) };
-        let figure = { ...figureData, form: parseShape(figureData.shape), category: category };
-        
-        const rotations = Math.floor(Math.random() * 4);
-        for (let r = 0; r < rotations; r++) {
-            figure.form = rotateFigure90Degrees(figure.form);
-        }
-        figuresInSlots[i] = figure;
+        figuresInSlots[i] = newFigures[i];
         drawFigureInSlot(i);
     }
-
-    // Erhöhe die Zonk-Wahrscheinlichkeit für die nächste Runde
+    
+    // Zonk-Wahrscheinlichkeit für die nächste Runde erhöhen
     const increment = gameConfig.zonkProbabilityIncrementPerRound || 0;
     const max = gameConfig.zonkProbabilityMax || 1;
     currentZonkProbability = Math.min(currentZonkProbability + increment, max);
@@ -344,6 +358,22 @@ function rotateFigure90Degrees(matrix) {
             return true;
         });
     }
+
+    function canFigureBePlacedAnywhere(figure) {
+    if (!figure) return false;
+    let currentForm = figure.form;
+    for (let i = 0; i < 4; i++) { // Alle 4 Rotationen prüfen
+        for (let y = 0; y <= GRID_SIZE - currentForm.length; y++) {
+            for (let x = 0; x <= GRID_SIZE - currentForm[0].length; x++) {
+                if (canPlace({ form: currentForm }, x, y)) {
+                    return true; // Sobald ein Platz gefunden wird, abbrechen und 'true' zurückgeben
+                }
+            }
+        }
+        currentForm = rotateFigure90Degrees(currentForm);
+    }
+    return false; // Kein Platz in keiner Rotation gefunden
+}
 
     function clearFullLines() {
         let rows = [], cols = [];
