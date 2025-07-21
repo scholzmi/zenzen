@@ -326,23 +326,21 @@ function handleGameOver() {
         }));
     }
 
+// NEU: Eine globale Variable, um die Zellen der aktuellen Vorschau zu speichern.
+// Dies ist viel schneller, als das DOM jedes Mal neu abzufragen.
+let currentPreviewCells = [];
+
 function drawPreview(figure, centerX, centerY) {
-    // 1. Alle Zellen finden, die aktuell Teil der Vorschau sind.
-    const previewCells = gameBoardElement.querySelectorAll('.preview');
     
-    // 2. Die alte Vorschau sauber entfernen.
-    previewCells.forEach(cell => {
-        // Immer die reinen Vorschau-Klassen entfernen.
-        cell.classList.remove('preview', 'invalid');
-
-        // WICHTIG: Die Farbklasse nur dann entfernen, wenn die Zelle darunter NICHT besetzt ist.
-        // Das verhindert, dass wir die Farbe eines platzierten Steins löschen.
-        if (!cell.classList.contains('occupied')) {
-            cell.classList.remove('color-normal', 'color-joker', 'color-zonk');
-        }
+    // 1. Die alte Vorschau sauber und effizient entfernen.
+    currentPreviewCells.forEach(cell => {
+        // Entfernt NUR die Vorschau-Klassen. Die "occupied"-Klasse der darunterliegenden
+        // Steine wird nicht angefasst, wodurch deren Farbe erhalten bleibt.
+        cell.classList.remove('preview', 'invalid', 'color-normal', 'color-joker', 'color-zonk');
     });
+    currentPreviewCells = []; // Die Liste für die nächste Runde leeren.
 
-    // 3. Die neue Vorschau wie gewohnt zeichnen.
+    // 2. Die neue Vorschau berechnen und zeichnen.
     const placeX = centerX - Math.floor(figure.form[0].length / 2);
     const placeY = centerY - Math.floor(figure.form.length / 2);
     const canBePlaced = canPlace(figure, placeX, placeY);
@@ -355,6 +353,8 @@ function drawPreview(figure, centerX, centerY) {
                 if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
                     const cell = gameBoardElement.children[boardY * GRID_SIZE + boardX];
                     
+                    // Fügt die Vorschau-Klassen hinzu. Die CSS sorgt mit z-index: 10
+                    // dafür, dass diese Zelle immer im Vordergrund ist.
                     cell.classList.add('preview');
 
                     if (canBePlaced) {
@@ -362,6 +362,9 @@ function drawPreview(figure, centerX, centerY) {
                     } else {
                         cell.classList.add('invalid');
                     }
+                    
+                    // Die Zelle zur Liste hinzufügen, damit wir sie beim nächsten Mal schnell wiederfinden.
+                    currentPreviewCells.push(cell);
                 }
             }
         });
