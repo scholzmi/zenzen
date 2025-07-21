@@ -83,9 +83,8 @@ body::before {
 
 .header {
     display: flex;
-    flex-direction: column; /* Stellt die Elemente untereinander dar */
-    align-items: center;   /* Zentriert die Elemente horizontal */
-    gap: 15px;             /* Fügt einen Abstand zwischen Titel und Link hinzu */
+    justify-content: center; /* Zentriert den Titel horizontal */
+    align-items: center;
     margin-bottom: 20px;
 }
 
@@ -96,14 +95,6 @@ body::before {
     font-size: 28px;
     font-weight: 800;
     margin: 0;
-}
-
-/* === ÄNDERUNG 1: Link-Container angepasst === */
-.header-donation-link {
-    display: flex;
-    align-items: center;
-    gap: 5px; /* Etwas kleinerer Abstand für die Blöcke */
-    text-decoration: none;
 }
 
 .block-title span {
@@ -123,35 +114,6 @@ body::before {
 .c-z3 { background-color: #2980b9; }
 .c-e  { background-color: #c6ebeb; color: #5499c7; }
 .c-n  { background-color: #f77b72; }
-
-/* === ÄNDERUNG 2: Neue Stile für den Spenden-Link === */
-.styled-link span {
-    width: 35px;
-    height: 35px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    color: white;
-    font-weight: 800; /* Gleiche Schriftstärke wie Logo */
-    font-size: 24px;  /* Etwas kleiner als Logo-Buchstaben */
-    text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px var(--accent-color), 0 0 20px var(--accent-color);
-    box-shadow: inset 0 1px 3px rgba(255,255,255,0.6), 0 2px 4px rgba(0,0,0,0.3);
-    transition: transform 0.2s ease;
-}
-
-.styled-link:hover span {
-    transform: scale(1.05); /* Leichter Schwebe-Effekt */
-}
-
-/* Individuelle Farben für die Buchstaben (Kaffee-/Gold-Töne) */
-.c-s      { background-color: #A1887F; } /* Helles Braun */
-.c-p      { background-color: #795548; } /* Kaffee-Braun */
-.c-e2     { background-color: #8D6E63; } /* Mittel-Braun */
-.c-n2     { background-color: #795548; }
-.c-d      { background-color: #A1887F; }
-.c-e3     { background-color: #8D6E63; }
-.c-coffee { background-color: #FFC107; color: #795548; font-size: 20px; } /* Gold für die Tasse */
 
 .score-container {
     display: flex;
@@ -194,7 +156,7 @@ body::before {
 }
 
 .cell {
-    position: relative; /* WICHTIG: Erlaubt z-index für alle Zellen */
+    position: relative; 
     border-right: 2px solid var(--border-color-light);
     border-bottom: 2px solid var(--border-color-light);
     box-sizing: border-box;
@@ -212,7 +174,7 @@ body::before {
 }
 
 .cell.occupied {
-    z-index: 1; /* Basis-Ebene für platzierte Steine */
+    z-index: 1; 
     border-radius: 20%;
     transform: scale(0.95);
     border: 1px solid rgba(255,255,255,0.4);
@@ -294,29 +256,22 @@ footer {
     z-index: 1000;
 }
 
-/* === FINALE KORREKTUR FÜR DIE VORSCHAU === */
-
 .cell.preview {
-    z-index: 10; /* Höher als die besetzten Zellen (z-index: 1) */
-    opacity: 0.8; /* 80% Deckkraft, wie gewünscht */
-    
-    /* Übernimmt exakt den Stil der platzierten Figuren */
+    z-index: 10;
+    opacity: 0.8;
     border-radius: 20%;
     transform: scale(0.95);
     border: 1px solid rgba(255,255,255,0.4);
     box-shadow: inset 0 0 5px rgba(255,255,255,0.3), 0 0 5px var(--accent-color);
 }
 
-/* Farben für die GÜLTIGE Vorschau */
 .cell.preview.color-normal { background-color: var(--figure-color-normal); }
 .cell.preview.color-joker { background-color: var(--figure-color-joker); }
 .cell.preview.color-zonk { background-color: var(--figure-color-zonk); }
 
-/* Farbe für die UNGÜLTIGE Vorschau (überschreibt die normalen Farben) */
 .cell.preview.invalid {
     background-color: rgba(255, 77, 77, 0.9) !important;
 }
-
 
 /* Animations */
 @keyframes crumble { 
