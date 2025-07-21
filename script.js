@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         rows.forEach(y => gameBoard[y].fill(0));
         cols.forEach(x => gameBoard.forEach(row => row[x] = 0));
-        return Math.pow(rows.length + cols.length, 2) * 10;
+        return Math.pow(rows.length + cols.length, 2) * 100;
     }
 
 function handleGameOver() {
