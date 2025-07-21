@@ -117,36 +117,42 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function handleDragStart(event, targetSlot) {
-        if (isDragging) return;
-        const slotIndex = parseInt(targetSlot.dataset.slotId, 10);
-        if (!figuresInSlots[slotIndex]) return;
+function handleDragStart(event, targetSlot) {
+    if (isDragging) return;
+    const slotIndex = parseInt(targetSlot.dataset.slotId, 10);
+    if (!figuresInSlots[slotIndex]) return;
 
-        isDragging = true;
-
-        selectedSlotIndex = slotIndex;
-        selectedFigure = JSON.parse(JSON.stringify(figuresInSlots[selectedSlotIndex]));
-        targetSlot.classList.add('dragging');
-        
-        const moveHandler = (moveEvent) => {
-            handleInteractionMove(moveEvent.touches ? moveEvent.touches[0] : moveEvent);
-        };
-
-        const endHandler = (endEvent) => {
-            document.removeEventListener('touchmove', moveHandler);
-            document.removeEventListener('touchend', endHandler);
-            document.removeEventListener('mousemove', moveHandler);
-            document.removeEventListener('mouseup', endHandler);
-            handleInteractionEnd(endEvent.changedTouches ? endEvent.changedTouches[0] : endEvent);
-        };
-
-        document.addEventListener('touchmove', moveHandler, { passive: false });
-        document.addEventListener('touchend', endHandler);
-        document.addEventListener('mousemove', moveHandler);
-        document.addEventListener('mouseup', endHandler);
-
-        handleInteractionMove(event);
+    // === TEST-VIBRATION: Ein kräftiger Impuls beim Anheben ===
+    if (navigator.vibrate) {
+        navigator.vibrate(200); // Ein langer, spürbarer Impuls zum Testen
     }
+    // ======================================================
+
+    isDragging = true;
+
+    selectedSlotIndex = slotIndex;
+    selectedFigure = JSON.parse(JSON.stringify(figuresInSlots[selectedSlotIndex]));
+    targetSlot.classList.add('dragging');
+    
+    const moveHandler = (moveEvent) => {
+        handleInteractionMove(moveEvent.touches ? moveEvent.touches[0] : moveEvent);
+    };
+
+    const endHandler = (endEvent) => {
+        document.removeEventListener('touchmove', moveHandler);
+        document.removeEventListener('touchend', endHandler);
+        document.removeEventListener('mousemove', moveHandler);
+        document.removeEventListener('mouseup', endHandler);
+        handleInteractionEnd(endEvent.changedTouches ? endEvent.changedTouches[0] : endEvent);
+    };
+
+    document.addEventListener('touchmove', moveHandler, { passive: false });
+    document.addEventListener('touchend', endHandler);
+    document.addEventListener('mousemove', moveHandler);
+    document.addEventListener('mouseup', endHandler);
+
+    handleInteractionMove(event);
+}
 
     function updatePreviewOnFrame() {
         if (!lastEvent || !isDragging) {
