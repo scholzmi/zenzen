@@ -208,9 +208,10 @@ function handleDragStart(event, targetSlot) {
         drawGameBoard();
     }
     
-    function rotateFigure90Degrees(matrix) {
-        return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])).reverse();
-    }
+function rotateFigure90Degrees(matrix) {
+    // Transponiert die Matrix und kehrt dann die Spalten um, was zu einer Drehung im Uhrzeigersinn führt.
+    return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])).map(row => row.reverse());
+}
 
     function placeFigure(figure, centerX, centerY) {
         const placeX = centerX - Math.floor(figure.form[0].length / 2);
