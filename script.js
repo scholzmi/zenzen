@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let gameBoard = [], score = 0, highscore = 0;
     let figuresInSlots = [null, null, null];
     let selectedFigure = null, selectedSlotIndex = -1;
-    const TOUCH_Y_OFFSET = -50;
+    const TOUCH_Y_OFFSET = -30;
     let gameConfig = {};
     const GRID_SIZE = 9;
     let isDragging = false;
