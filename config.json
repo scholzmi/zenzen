@@ -1,9 +1,9 @@
 {
     "version": "V0.27m",
     "lastModification": "haptic feedback",
-    "gameVersion": "0.15",
-    "zonkProbability": 0.15,
-    "zonkProbabilityMax": 0.30,
+    "gameVersion": "0.16",
+    "zonkProbability": 0.10,
+    "zonkProbabilityMax": 0.20,
     "zonkProbabilityIncrementPerRound": 0.002,
     "jokerProbability": 0.35,
     "figures": {
