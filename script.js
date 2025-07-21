@@ -280,27 +280,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 function handleGameOver() {
-    // 1. Startet die "Zerbröseln"-Animation für die Blöcke.
+    // 1. Die "Zerbröseln"-Animation wird wie bisher gestartet.
     gameBoardElement.classList.add('crumble');
     
+    // Logik für den Highscore
     let isNewHighscore = score > highscore;
     if (isNewHighscore) {
         highscore = score;
-        // Den Highscore speichern wir hier, aber die Cookie-Logik aus placeFigure ist der Hauptspeicherpunkt.
         setCookie('highscore', highscore, 365);
     }
 
-    // 2. Ein Timer wartet die komplette Dauer ab, bevor das Spiel zurückgesetzt wird.
+    // 2. Wir warten, bis die Animation (1.5s) sicher abgeschlossen ist.
     setTimeout(() => {
+        
+        // 3. WICHTIG: Wir räumen das Spielfeld manuell auf, BEVOR etwas anderes passiert.
+        //    Wir entfernen die Klassen von den Zellen, die sie als "besetzt" markieren.
+        //    Das Spielfeld ist danach visuell leer, aber das Gitter bleibt erhalten.
+        const allCells = gameBoardElement.querySelectorAll('.cell.occupied');
+        allCells.forEach(cell => {
+            cell.className = 'cell'; // Setzt die Zelle auf ihren Ursprungszustand zurück.
+        });
+
+        // 4. JETZT ERST entfernen wir die Klasse, die die Animation ausgelöst hat.
+        gameBoardElement.classList.remove('crumble');
+
+        // 5. Nun kann die restliche Logik auf einem sauberen Brett ohne Konflikte ablaufen.
         if (isNewHighscore) {
             highscoreElement.textContent = highscore;
             highscoreElement.classList.add('pulsate');
-            // Wir warten auf das Ende der Puls-Animation, bevor wir neu starten.
-            setTimeout(initializeGame, 1800);
+            setTimeout(initializeGame, 1800); // Warten auf die Puls-Animation
         } else {
             initializeGame();
         }
-    }, 2500); // Gesamt-Verzögerung von 2,5 Sekunden.
+
+    }, 1600); // Wir warten 1,6 Sekunden, um sicherzugehen, dass die 1,5s Animation fertig ist.
 }
 
     function drawGameBoard() {
