@@ -7,11 +7,11 @@
     --footer-bg-light: rgba(255, 224, 178, 0.85);
     --footer-text-light: #4E342E;
 
-    --text-color-dark: #f5eadd;      /* Ein sehr helles, warmes Creme für den Text */
-    --border-color-dark: #2b2f6e83;      /* Eine etwas sattere Version des Korallrots */
-    --component-bg-dark: rgba(67, 65, 136, 0.6);  /* Ein tiefes, dunkles Violett */
+    --text-color-dark: #f5eadd;
+    --border-color-dark: #2b2f6e83;
+    --component-bg-dark: rgba(67, 65, 136, 0.6);
     --shadow-color-dark: rgba(0, 0, 0, 0.3);
-    --footer-bg-dark: rgba(46, 41, 78, 0.85); /* Etwas opaker als der Rest */
+    --footer-bg-dark: rgba(46, 41, 78, 0.85);
     --footer-text-dark: #d7ccc8;
 
     --figure-color-normal: #2e87c2;
@@ -44,7 +44,7 @@ body::before {
     height: 100%;
     background: url('bg.png') center/cover;
     opacity: 0.8;
-    z-index: -1; /* Legt das Bild hinter alles andere */
+    z-index: -1;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -97,28 +97,6 @@ body::before {
     margin: 0;
 }
 
-.header-donation-link {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--accent-color);
-    padding: 8px 12px;
-    border-radius: 12px;
-    background-color: rgba(255,255,255,0.2);
-    transition: background-color 0.2s;
-}
-
-.header-donation-link:hover {
-    background-color: rgba(255,255,255,0.4);
-}
-
-.header-donation-link span {
-    text-decoration: underline;
-}
-
 .block-title span {
     width: 35px;
     height: 35px;
@@ -131,11 +109,11 @@ body::before {
     box-shadow: inset 0 1px 3px rgba(255,255,255,0.6), 0 2px 4px rgba(0,0,0,0.3);
 }
 
-.c-z1 { background-color: #85c1e9; } /* Helleres Himmelblau */
-.c-z2 { background-color: #5499c7; } /* Mittleres Himmelblau */
-.c-z3 { background-color: #2980b9; } /* Tieferes Blau der Dämmerung */
-.c-e  { background-color: #c6ebeb; color: #5499c7; } /* Fast weiß, wie die letzte Helligkeit */
-.c-n  { background-color: #f77b72; } /* N */
+.c-z1 { background-color: #85c1e9; }
+.c-z2 { background-color: #5499c7; }
+.c-z3 { background-color: #2980b9; }
+.c-e  { background-color: #c6ebeb; color: #5499c7; }
+.c-n  { background-color: #f77b72; }
 
 .score-container {
     display: flex;
@@ -145,10 +123,6 @@ body::before {
     padding: 10px;
     background-color: rgba(255,255,255,0.1);
     border-radius: 12px;
-}
-
-.score-box {
-    text-align: center;
 }
 
 .score-display {
@@ -204,12 +178,23 @@ body::before {
 }
 
 .cell.occupied {
+    position: relative;
+    z-index: 1; /* Stellt sicher, dass besetzte Zellen eine Basisebene haben */
     border-radius: 20%;
     transform: scale(0.95);
     border: 1px solid rgba(255,255,255,0.4);
     box-shadow: inset 0 0 5px rgba(255,255,255,0.3), 0 0 5px var(--accent-color);
-    position: relative; 
-    background: transparent !important; 
+    background: transparent !important;
+}
+
+.cell.occupied::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
 }
 
 #figure-selection {
@@ -252,56 +237,13 @@ body::before {
     box-shadow: inset 0 0 3px rgba(255,255,255,0.5);
 }
 
-/* --- KORREKTUR: Farben für Spielfeld und Auswahl --- */
-.cell.occupied::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: inherit; 
-}
-
-/* Farben für Blöcke in der Auswahl */
 .figure-block.color-normal { background-color: var(--figure-color-normal); }
 .figure-block.color-joker  { background-color: var(--figure-color-joker); }
 .figure-block.color-zonk   { background-color: var(--figure-color-zonk); }
 
-/* Farben für Blöcke auf dem Spielfeld (via Pseudo-Element) */
 .cell.occupied.color-normal::before { background-color: var(--figure-color-normal); }
 .cell.occupied.color-joker::before  { background-color: var(--figure-color-joker); }
 .cell.occupied.color-zonk::before   { background-color: var(--figure-color-zonk); }
-
-
-.donation-box {
-    text-align: center;
-    padding: 10px 0;
-    margin-top: -15px;
-    z-index: -1;
-}
-
-.donation-content {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-    background-color: var(--component-bg-light);
-    padding: 10px 20px;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px var(--shadow-color-light);
-}
-
-@media (prefers-color-scheme: dark) {
-    .donation-content {
-        background-color: var(--component-bg-dark);
-    }
-}
-
-.coffee-cup { font-size: 2.5rem; }
-.qr-code-wrapper { display: flex; flex-direction: column; align-items: center; }
-.qr-code { width: 70px; height: 70px; }
-.paypal-link { font-size: 12px; margin-top: 5px; color: var(--accent-color); text-decoration: none; font-weight: 500; }
 
 footer {
     position: fixed;
@@ -317,44 +259,28 @@ footer {
     font-size: 10px;
     color: var(--footer-text-light);
     z-index: 1000;
-    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
 }
 
-footer a {
-    color: var(--footer-text-light);
-    text-decoration: underline;
-}
-
-@media (prefers-color-scheme: dark) {
-    footer {
-        background-color: var(--footer-bg-dark);
-        border-top: 1px solid var(--border-color-dark);
-        color: var(--footer-text-dark);
-    }
-    footer a {
-        color: var(--footer-text-dark);
-    }
-}
+/* === KORREKTUR FÜR DIE VORSCHAU === */
 
 .cell.preview {
-    position: relative; /* NEU: Erlaubt z-index zu wirken */
-    z-index: 10;
-    box-shadow: inset 0 0 5px rgba(255,255,255,0.3), 0 0 5px var(--accent-color);
-    border: 1px solid rgba(255,255,255,0.4);
+    position: relative;
+    z-index: 10; /* Höher als die besetzten Zellen (z-index: 1) */
+    opacity: 0.9;
     border-radius: 20%;
-    opacity: 0.8; /* NEU: Macht die Vorschau leicht durchsichtig */
+    border: none; /* Überschreibt den Standard-Rand für einen sauberen Look */
 }
 
-.cell.preview.color-normal { background-color: var(--figure-color-normal); }
-.cell.preview.color-joker { background-color: var(--figure-color-joker); }
-.cell.preview.color-zonk { background-color: var(--figure-color-zonk); }
+/* Farben für die GÜLTIGE Vorschau (überschreibt alles andere) */
+.cell.preview.color-normal { background-color: var(--figure-color-normal) !important; }
+.cell.preview.color-joker { background-color: var(--figure-color-joker) !important; }
+.cell.preview.color-zonk { background-color: var(--figure-color-zonk) !important; }
 
+/* Farbe für die UNGÜLTIGE Vorschau */
 .cell.preview.invalid {
-    background-color: rgba(255, 77, 77, 0.7) !important;
-    border: 1px solid rgba(255,255,255,0.4);
-    box-shadow: inset 0 0 5px rgba(214, 47, 47, 0.885), 0 0 5px var(--accent-color);
-    border-radius: 20%;
+    background-color: rgba(255, 77, 77, 0.8) !important;
 }
+
 
 /* Animations */
 @keyframes crumble { 
@@ -365,7 +291,7 @@ footer a {
     to { 
         transform: scale(0); 
         opacity: 0; 
-        visibility: hidden; /* NEU: Stellt sicher, dass das Element nach der Animation unsichtbar bleibt */
+        visibility: hidden;
     } 
 }
 
