@@ -1,8 +1,10 @@
 {
-    "version": "V0.27h",
+    "version": "V0.27i",
     "lastModification": "haptic feedback",
-    "gameVersion": "0.11",
+    "gameVersion": "0.13",
     "zonkProbability": 0.15,
+    "zonkProbabilityMax": 0.35,
+    "zonkProbabilityIncrementPerRound": 0.005,
     "jokerProbability": 0.35,
     "figures": {
         "normal": [
@@ -17,6 +19,7 @@
             { "name": "Z-Form", "shape": [1, 2, 7, 8], "points": 35, "probability": 10 }
         ],
         "zonk": [
+            { "name": "Block 3x3 O", "shape": [1, 2, 3, 6, 8, 11, 12, 13], "points": 100, "probability": 20 },
             { "name": "Block 4x4", "shape": [1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 16, 17, 18, 19], "points": 250, "probability": 5 },
             { "name": "Plus", "shape": [2, 6, 7, 8, 12], "points": 100, "probability": 15 },
             { "name": "U-Klein", "shape": [1, 3, 6, 7, 8], "points": 100, "probability": 40 }

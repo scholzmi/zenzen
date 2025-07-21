@@ -21,35 +21,42 @@ document.addEventListener('DOMContentLoaded', () => {
     let isMoveScheduled = false;
     let lastEvent = null;
     let currentPreviewCells = [];
+    let currentZonkProbability = 0; 
     
     // NEU: Variable für haptisches Feedback
     let lastVibratedCell = { x: -1, y: -1 };
 
     async function initializeGame() {
-        highscoreElement.classList.remove('pulsate');
-        gameBoardElement.classList.remove('crumble');
-        
+    highscoreElement.classList.remove('pulsate');
+    gameBoardElement.classList.remove('crumble');
+    
+    // Nur beim allerersten Start die Konfiguration laden
+    if (Object.keys(gameConfig).length === 0) {
         const configLoaded = await loadConfiguration();
         if (!configLoaded) {
             document.body.innerHTML = "<h1>Fehler</h1><p>config.json konnte nicht geladen werden oder ist fehlerhaft. Bitte stellen Sie sicher, dass die Datei existiert und valide ist.</p>";
             return;
         }
-
-        const serverVersion = gameConfig.gameVersion || "1.0";
-        const localVersion = getCookie('gameVersion');
-        if (serverVersion !== localVersion) {
-            setCookie('highscore', '0', 365);
-            setCookie('gameVersion', serverVersion, 365);
-        }
-
-        highscore = parseInt(getCookie('highscore') || '0', 10);
-        highscoreElement.textContent = highscore;
-        score = 0;
-        scoreElement.textContent = score;
-
-        createGameBoard();
-        generateNewFigures();
     }
+
+    // Setzt die Zonk-Wahrscheinlichkeit für ein neues Spiel zurück
+    currentZonkProbability = gameConfig.zonkProbability || 0;
+
+    const serverVersion = gameConfig.gameVersion || "1.0";
+    const localVersion = getCookie('gameVersion');
+    if (serverVersion !== localVersion) {
+        setCookie('highscore', '0', 365);
+        setCookie('gameVersion', serverVersion, 365);
+    }
+
+    highscore = parseInt(getCookie('highscore') || '0', 10);
+    highscoreElement.textContent = highscore;
+    score = 0;
+    scoreElement.textContent = score;
+
+    createGameBoard();
+    generateNewFigures();
+}
 
     async function loadConfiguration() {
         try {
@@ -252,51 +259,60 @@ function rotateFigure90Degrees(matrix) {
     }
 
     function generateNewFigures() {
-        const { zonkProbability, jokerProbability } = gameConfig;
+    // JA, mit F12 und dann auf den Tab "Konsole" klicken!
+    console.log("Aktuelle Zonk-Wahrscheinlichkeit:", currentZonkProbability.toFixed(4));
 
-        function getWeightedRandomFigure(pool) {
-            const totalWeight = pool.reduce((sum, figure) => sum + (figure.probability || 1), 0);
-            let random = Math.random() * totalWeight;
+    const { jokerProbability } = gameConfig;
 
-            for (const figure of pool) {
-                random -= (figure.probability || 1);
-                if (random <= 0) {
-                    return figure;
-                }
+    function getWeightedRandomFigure(pool) {
+        const totalWeight = pool.reduce((sum, figure) => sum + (figure.probability || 1), 0);
+        let random = Math.random() * totalWeight;
+        for (const figure of pool) {
+            random -= (figure.probability || 1);
+            if (random <= 0) {
+                return figure;
             }
-            return pool[pool.length - 1];
         }
-
-        for (let i = 0; i < 3; i++) {
-            let pool, category;
-            const rand = Math.random();
-
-            if (rand < zonkProbability) { 
-                pool = gameConfig.figures.zonk; 
-                category = 'zonk';
-            } else if (rand < jokerProbability + zonkProbability) { 
-                pool = gameConfig.figures.joker; 
-                category = 'joker';
-            } else { 
-                pool = gameConfig.figures.normal; 
-                category = 'normal';
-            }
-            
-            let figureData = { ...getWeightedRandomFigure(pool) };
-            let figure = { ...figureData, form: parseShape(figureData.shape), category: category };
-            
-            const rotations = Math.floor(Math.random() * 4);
-            for (let r = 0; r < rotations; r++) {
-                figure.form = rotateFigure90Degrees(figure.form);
-            }
-            figuresInSlots[i] = figure;
-            drawFigureInSlot(i);
-        }
-        drawGameBoard();
-        if (isGameOver()) {
-            handleGameOver();
-        }
+        return pool[pool.length - 1];
     }
+
+    for (let i = 0; i < 3; i++) {
+        let pool, category;
+        const rand = Math.random();
+
+        // Verwendet jetzt die ansteigende Wahrscheinlichkeit
+        if (rand < currentZonkProbability) { 
+            pool = gameConfig.figures.zonk; 
+            category = 'zonk';
+        } else if (rand < jokerProbability + currentZonkProbability) { 
+            pool = gameConfig.figures.joker; 
+            category = 'joker';
+        } else { 
+            pool = gameConfig.figures.normal; 
+            category = 'normal';
+        }
+        
+        let figureData = { ...getWeightedRandomFigure(pool) };
+        let figure = { ...figureData, form: parseShape(figureData.shape), category: category };
+        
+        const rotations = Math.floor(Math.random() * 4);
+        for (let r = 0; r < rotations; r++) {
+            figure.form = rotateFigure90Degrees(figure.form);
+        }
+        figuresInSlots[i] = figure;
+        drawFigureInSlot(i);
+    }
+
+    // Erhöhe die Zonk-Wahrscheinlichkeit für die nächste Runde
+    const increment = gameConfig.zonkProbabilityIncrementPerRound || 0;
+    const max = gameConfig.zonkProbabilityMax || 1;
+    currentZonkProbability = Math.min(currentZonkProbability + increment, max);
+
+    drawGameBoard();
+    if (isGameOver()) {
+        handleGameOver();
+    }
+}
 
     function canPlace(figure, startX, startY) {
         for (let y = 0; y < figure.form.length; y++) {
