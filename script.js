@@ -326,12 +326,6 @@ function handleGameOver() {
         }));
     }
 
-// NEU: Eine globale Variable, um die Zellen der aktuellen Vorschau zu speichern.
-// Dies ist viel schneller, als das DOM jedes Mal neu abzufragen.
-let currentPreviewCells = [];
-
-// HINWEIS: Stelle sicher, dass diese Zeile im Skript existiert, aber AUSSERHALB einer Funktion.
-// Falls sie schon da ist, ist alles gut. Falls nicht, füge sie hinzu.
 let currentPreviewCells = [];
 
 function drawPreview(figure, centerX, centerY) {
