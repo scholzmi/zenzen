@@ -137,11 +137,6 @@ body::before {
     animation: pulsate 0.6s 3;
 }
 
-@keyframes pulsate {
-    0%, 100% { transform: scale(1); color: #0ff15a; }
-    50% { transform: scale(1.25); color: #0cb043; }
-}
-
 #game-board-wrapper {
     position: relative;
     width: 100%;
@@ -161,6 +156,7 @@ body::before {
 }
 
 .cell {
+    position: relative; /* WICHTIG: Erlaubt z-index für alle Zellen */
     border-right: 2px solid var(--border-color-light);
     border-bottom: 2px solid var(--border-color-light);
     box-sizing: border-box;
@@ -178,8 +174,7 @@ body::before {
 }
 
 .cell.occupied {
-    position: relative;
-    z-index: 1; /* Stellt sicher, dass besetzte Zellen eine Basisebene haben */
+    z-index: 1; /* Basis-Ebene für platzierte Steine */
     border-radius: 20%;
     transform: scale(0.95);
     border: 1px solid rgba(255,255,255,0.4);
@@ -261,38 +256,39 @@ footer {
     z-index: 1000;
 }
 
-/* === KORREKTUR FÜR DIE VORSCHAU === */
+/* === FINALE KORREKTUR FÜR DIE VORSCHAU === */
 
 .cell.preview {
-    position: relative;
     z-index: 10; /* Höher als die besetzten Zellen (z-index: 1) */
-    opacity: 0.9;
+    opacity: 0.8; /* 80% Deckkraft, wie gewünscht */
+    
+    /* Übernimmt exakt den Stil der platzierten Figuren */
     border-radius: 20%;
-    border: none; /* Überschreibt den Standard-Rand für einen sauberen Look */
+    transform: scale(0.95);
+    border: 1px solid rgba(255,255,255,0.4);
+    box-shadow: inset 0 0 5px rgba(255,255,255,0.3), 0 0 5px var(--accent-color);
 }
 
-/* Farben für die GÜLTIGE Vorschau (überschreibt alles andere) */
-.cell.preview.color-normal { background-color: var(--figure-color-normal) !important; }
-.cell.preview.color-joker { background-color: var(--figure-color-joker) !important; }
-.cell.preview.color-zonk { background-color: var(--figure-color-zonk) !important; }
+/* Farben für die GÜLTIGE Vorschau */
+.cell.preview.color-normal { background-color: var(--figure-color-normal); }
+.cell.preview.color-joker { background-color: var(--figure-color-joker); }
+.cell.preview.color-zonk { background-color: var(--figure-color-zonk); }
 
-/* Farbe für die UNGÜLTIGE Vorschau */
+/* Farbe für die UNGÜLTIGE Vorschau (überschreibt die normalen Farben) */
 .cell.preview.invalid {
-    background-color: rgba(255, 77, 77, 0.8) !important;
+    background-color: rgba(255, 77, 77, 0.9) !important;
 }
 
 
 /* Animations */
 @keyframes crumble { 
-    from { 
-        transform: scale(1); 
-        opacity: 1; 
-    } 
-    to { 
-        transform: scale(0); 
-        opacity: 0; 
-        visibility: hidden;
-    } 
+    from { transform: scale(1); opacity: 1; } 
+    to { transform: scale(0); opacity: 0; visibility: hidden; } 
+}
+
+@keyframes pulsate {
+    0%, 100% { transform: scale(1); color: #0ff15a; }
+    50% { transform: scale(1.25); color: #0cb043; }
 }
 
 #game-board.crumble .cell.occupied::before { 
