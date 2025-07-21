@@ -330,17 +330,29 @@ function handleGameOver() {
 // Dies ist viel schneller, als das DOM jedes Mal neu abzufragen.
 let currentPreviewCells = [];
 
+// HINWEIS: Stelle sicher, dass diese Zeile im Skript existiert, aber AUSSERHALB einer Funktion.
+// Falls sie schon da ist, ist alles gut. Falls nicht, füge sie hinzu.
+let currentPreviewCells = [];
+
 function drawPreview(figure, centerX, centerY) {
     
-    // 1. Die alte Vorschau sauber und effizient entfernen.
+    // 1. ALTE VORSCHAU AUFRÄUMEN
+    // Wir gehen durch die Zellen, die im letzten Frame zur Vorschau gehörten.
     currentPreviewCells.forEach(cell => {
-        // Entfernt NUR die Vorschau-Klassen. Die "occupied"-Klasse der darunterliegenden
-        // Steine wird nicht angefasst, wodurch deren Farbe erhalten bleibt.
-        cell.classList.remove('preview', 'invalid', 'color-normal', 'color-joker', 'color-zonk');
-    });
-    currentPreviewCells = []; // Die Liste für die nächste Runde leeren.
+        // Zuerst die reinen Vorschau-Marker entfernen.
+        cell.classList.remove('preview', 'invalid');
 
-    // 2. Die neue Vorschau berechnen und zeichnen.
+        // JETZT DER ENTSCHEIDENDE PUNKT:
+        // Entferne die temporäre Farbe nur dann, wenn die Zelle NICHT
+        // bereits als 'occupied' (platziert) markiert ist.
+        if (!cell.classList.contains('occupied')) {
+            cell.classList.remove('color-normal', 'color-joker', 'color-zonk');
+        }
+    });
+    currentPreviewCells = []; // Liste für den nächsten Frame leeren.
+
+    // 2. NEUE VORSCHAU ZEICHNEN
+    // Dieser Teil bleibt wie gehabt und funktioniert korrekt.
     const placeX = centerX - Math.floor(figure.form[0].length / 2);
     const placeY = centerY - Math.floor(figure.form.length / 2);
     const canBePlaced = canPlace(figure, placeX, placeY);
@@ -353,8 +365,6 @@ function drawPreview(figure, centerX, centerY) {
                 if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
                     const cell = gameBoardElement.children[boardY * GRID_SIZE + boardX];
                     
-                    // Fügt die Vorschau-Klassen hinzu. Die CSS sorgt mit z-index: 10
-                    // dafür, dass diese Zelle immer im Vordergrund ist.
                     cell.classList.add('preview');
 
                     if (canBePlaced) {
@@ -363,7 +373,7 @@ function drawPreview(figure, centerX, centerY) {
                         cell.classList.add('invalid');
                     }
                     
-                    // Die Zelle zur Liste hinzufügen, damit wir sie beim nächsten Mal schnell wiederfinden.
+                    // Die Zelle zur Liste hinzufügen, damit wir sie im nächsten Frame finden.
                     currentPreviewCells.push(cell);
                 }
             }
