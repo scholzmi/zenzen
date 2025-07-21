@@ -26,6 +26,8 @@ body {
     margin: 0;
     box-sizing: border-box;
     display: flex;
+    justify-content: flex-start; /* GEÄNDERT: Richtet den Inhalt oben aus */
+    align-items: center;
     flex-direction: column;
     min-height: 100vh;
     color: var(--text-color-light);
@@ -62,7 +64,7 @@ body::before {
     display: flex;
     flex-direction: column;
     gap: 25px;
-    margin: auto 20px;
+    margin: 3vh 20px 0 20px; /* NEU: 5% Abstand oben, 20px seitlich, 0 unten */
 }
 
 .game-wrapper {
@@ -154,7 +156,7 @@ body::before {
     width: 100%;
     aspect-ratio: 1 / 1;
     border: 2px solid var(--border-color-light);
-    border-radius: 10%;
+    border-radius: 8px;
 }
 
 @media (prefers-color-scheme: dark) {
