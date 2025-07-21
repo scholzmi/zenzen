@@ -71,6 +71,7 @@ body::before {
     box-shadow: 0 10px 30px var(--shadow-color-light);
     backdrop-filter: blur(8px);
     touch-action: none;
+    contain: content;
 }
 
 @media (prefers-color-scheme: dark) {
