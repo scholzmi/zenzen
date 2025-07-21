@@ -213,30 +213,54 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function generateNewFigures() {
-        const { zonkProbability, jokerProbability } = gameConfig;
-        for (let i = 0; i < 3; i++) {
-            let pool, category;
-            const rand = Math.random();
-            if (rand < zonkProbability) { pool = gameConfig.figures.zonk; category = 'zonk'; }
-            else if (rand < jokerProbability + zonkProbability) { pool = gameConfig.figures.joker; category = 'joker'; }
-            else { pool = gameConfig.figures.normal; category = 'normal'; }
-            
-            let figureData = { ...pool[Math.floor(Math.random() * pool.length)] };
-            let figure = { ...figureData, form: parseShape(figureData.shape), category: category }; // Speichert die Kategorie
-            
-            const rotations = Math.floor(Math.random() * 4);
-            for (let r = 0; r < rotations; r++) {
-                figure.form = rotateFigure90Degrees(figure.form);
+   function generateNewFigures() {
+    const { zonkProbability, jokerProbability } = gameConfig;
+
+    // Hilfsfunktion für die gewichtete Auslosung
+    function getWeightedRandomFigure(pool) {
+        const totalWeight = pool.reduce((sum, figure) => sum + (figure.probability || 1), 0);
+        let random = Math.random() * totalWeight;
+
+        for (const figure of pool) {
+            random -= (figure.probability || 1);
+            if (random <= 0) {
+                return figure;
             }
-            figuresInSlots[i] = figure;
-            drawFigureInSlot(i);
         }
-        drawGameBoard();
-        if (isGameOver()) {
-            handleGameOver();
-        }
+        return pool[pool.length - 1]; // Fallback
     }
+
+    for (let i = 0; i < 3; i++) {
+        let pool, category;
+        const rand = Math.random();
+
+        if (rand < zonkProbability) { 
+            pool = gameConfig.figures.zonk; 
+            category = 'zonk';
+        } else if (rand < jokerProbability + zonkProbability) { 
+            pool = gameConfig.figures.joker; 
+            category = 'joker';
+        } else { 
+            pool = gameConfig.figures.normal; 
+            category = 'normal';
+        }
+        
+        // *** KORREKTUR: Nutzt die neue gewichtete Auslosung ***
+        let figureData = { ...getWeightedRandomFigure(pool) };
+        let figure = { ...figureData, form: parseShape(figureData.shape), category: category };
+        
+        const rotations = Math.floor(Math.random() * 4);
+        for (let r = 0; r < rotations; r++) {
+            figure.form = rotateFigure90Degrees(figure.form);
+        }
+        figuresInSlots[i] = figure;
+        drawFigureInSlot(i);
+    }
+    drawGameBoard();
+    if (isGameOver()) {
+        handleGameOver();
+    }
+}
 
     function canPlace(figure, startX, startY) {
         for (let y = 0; y < figure.form.length; y++) {
