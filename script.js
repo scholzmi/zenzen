@@ -327,32 +327,32 @@ function handleGameOver() {
     }
 
     function drawPreview(figure, centerX, centerY) {
-        drawGameBoard(); // Entfernt alle alten 'preview' Klassen
-        const placeX = centerX - Math.floor(figure.form[0].length / 2);
-        const placeY = centerY - Math.floor(figure.form.length / 2);
-        const canBePlaced = canPlace(figure, placeX, placeY);
-        
-        figure.form.forEach((row, y) => {
-            row.forEach((block, x) => {
-                if (block === 1) {
-                    const boardY = placeY + y;
-                    const boardX = placeX + x;
-                    if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
-                        const cell = gameBoardElement.children[boardY * GRID_SIZE + boardX];
-                        
-                        // --- HIER IST DIE KORREKTUR ---
-                        // Fügt die CSS-Klassen hinzu, anstatt die Farbe direkt zu setzen
-                        cell.classList.add('preview');
-                        if (canBePlaced) {
-                            cell.style.backgroundColor = figure.color; // Setzt die Grundfarbe für den Schein-Effekt
-                        } else {
-                            cell.classList.add('invalid');
-                        }
+    drawGameBoard(); // Entfernt alle alten 'preview' Klassen
+    const placeX = centerX - Math.floor(figure.form[0].length / 2);
+    const placeY = centerY - Math.floor(figure.form.length / 2);
+    const canBePlaced = canPlace(figure, placeX, placeY);
+    
+    figure.form.forEach((row, y) => {
+        row.forEach((block, x) => {
+            if (block === 1) {
+                const boardY = placeY + y;
+                const boardX = placeX + x;
+                if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
+                    const cell = gameBoardElement.children[boardY * GRID_SIZE + boardX];
+                    
+                    cell.classList.add('preview');
+
+                    // KORREKTUR: Weise die richtige Klasse für die Farbe zu, anstatt die Farbe direkt zu setzen.
+                    if (canBePlaced) {
+                        cell.classList.add(`color-${figure.category}`); 
+                    } else {
+                        cell.classList.add('invalid');
                     }
                 }
-            });
+            }
         });
-    }
+    });
+}
 
     function drawFigureInSlot(index) {
         const slot = figureSlots[index];
