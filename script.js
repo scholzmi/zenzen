@@ -279,25 +279,39 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.pow(rows.length + cols.length, 2) * 10;
     }
 
-    function handleGameOver() {
-        gameBoardElement.classList.add('crumble');
-        
-        let isNewHighscore = score > highscore;
-        if (isNewHighscore) {
-            highscore = score;
-            setCookie('highscore', highscore, 365);
-        }
+function handleGameOver() {
+    // 1. Startet die Zerbröseln-Animation
+    gameBoardElement.classList.add('crumble');
 
-        setTimeout(() => {
-            if (isNewHighscore) {
-                highscoreElement.textContent = highscore;
-                highscoreElement.classList.add('pulsate');
-                setTimeout(initializeGame, 1800);
-            } else {
-                initializeGame();
-            }
-        }, 2500);
+    // 2. NEU: Macht das Spielbrett unsichtbar, kurz NACHDEM die Animation (1.5s) beendet ist.
+    //    Dies verhindert das Aufblitzen.
+    setTimeout(() => {
+        gameBoardElement.style.visibility = 'hidden';
+    }, 1600); // 1.6 Sekunden, also 100ms nach Ende der Animation
+
+    let isNewHighscore = score > highscore;
+    if (isNewHighscore) {
+        highscore = score;
+        setCookie('highscore', highscore, 365);
     }
+
+    // 3. Dieser Timer wartet wie bisher, bevor das Spiel zurückgesetzt wird.
+    setTimeout(() => {
+        if (isNewHighscore) {
+            highscoreElement.textContent = highscore;
+            highscoreElement.classList.add('pulsate');
+            setTimeout(() => {
+                // NEU: Spielbrett wieder sichtbar machen, direkt bevor das neue Spiel startet.
+                gameBoardElement.style.visibility = 'visible';
+                initializeGame();
+            }, 1800);
+        } else {
+            // NEU: Spielbrett auch hier wieder sichtbar machen.
+            gameBoardElement.style.visibility = 'visible';
+            initializeGame();
+        }
+    }, 2500);
+}
 
     function drawGameBoard() {
         gameBoard.forEach((row, y) => row.forEach((content, x) => {
