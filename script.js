@@ -344,33 +344,28 @@ function rotateFigure90Degrees(matrix) {
         return Math.pow(rows.length + cols.length, 2) * 100;
     }
 
-    function handleGameOver() {
-        gameBoardElement.classList.add('crumble');
-        
-        let isNewHighscore = score > highscore;
-        if (isNewHighscore) {
-            highscore = score;
-            setCookie('highscore', highscore, 365);
-        }
-
-        setTimeout(() => {
-            const allCells = gameBoardElement.querySelectorAll('.cell.occupied');
-            allCells.forEach(cell => {
-                cell.className = 'cell';
-            });
-
-            gameBoardElement.classList.remove('crumble');
-
-            if (isNewHighscore) {
-                highscoreElement.textContent = highscore;
-                highscoreElement.classList.add('pulsate');
-                setTimeout(initializeGame, 1800);
-            } else {
-                initializeGame();
-            }
-
-        }, 1600);
+function handleGameOver() {
+    // 1. Startet die "Zerbröseln"-Animation
+    gameBoardElement.classList.add('crumble');
+    
+    let isNewHighscore = score > highscore;
+    if (isNewHighscore) {
+        highscore = score;
+        setCookie('highscore', highscore, 365);
     }
+
+    // 2. Wartet, bis die Animationen abgeschlossen sind, bevor das Spiel zurückgesetzt wird.
+    setTimeout(() => {
+        if (isNewHighscore) {
+            highscoreElement.textContent = highscore;
+            highscoreElement.classList.add('pulsate');
+            // Eine zusätzliche Verzögerung, um die "pulsate"-Animation ausklingen zu lassen
+            setTimeout(initializeGame, 1800); 
+        } else {
+            initializeGame();
+        }
+    }, 1600); // Wartet auf das Ende der 1,5s "crumble"-Animation
+}
 
     function drawGameBoard() {
         gameBoard.forEach((row, y) => row.forEach((content, x) => {
