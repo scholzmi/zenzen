@@ -1,6 +1,6 @@
 {
-    "version": "V0.26c",
-    "lastModification": "performance",
+    "version": "V0.26d",
+    "lastModification": "stable design",
     "gameVersion": "0.11",
     "zonkProbability": 0.15,
     "jokerProbability": 0.35,
