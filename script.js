@@ -345,41 +345,32 @@ function rotateFigure90Degrees(matrix) {
     }
 
 function handleGameOver() {
-    // 1. Die "Zerbröseln"-Animation wird wie bisher gestartet.
-    gameBoardElement.classList.add('crumble');
-    
-    // Logik für den Highscore
-    let isNewHighscore = score > highscore;
-    if (isNewHighscore) {
-        highscore = score;
-        setCookie('highscore', highscore, 365);
-    }
-
-    // 2. Wir warten, bis die Animation (1.5s) sicher abgeschlossen ist.
-    setTimeout(() => {
+        gameBoardElement.classList.add('crumble');
         
-        // 3. WICHTIG: Wir räumen das Spielfeld manuell auf, BEVOR etwas anderes passiert.
-        //    Wir entfernen die Klassen von den Zellen, die sie als "besetzt" markieren.
-        //    Das Spielfeld ist danach visuell leer, aber das Gitter bleibt erhalten.
-        const allCells = gameBoardElement.querySelectorAll('.cell.occupied');
-        allCells.forEach(cell => {
-            cell.className = 'cell'; // Setzt die Zelle auf ihren Ursprungszustand zurück.
-        });
-
-        // 4. JETZT ERST entfernen wir die Klasse, die die Animation ausgelöst hat.
-        gameBoardElement.classList.remove('crumble');
-
-        // 5. Nun kann die restliche Logik auf einem sauberen Brett ohne Konflikte ablaufen.
+        let isNewHighscore = score > highscore;
         if (isNewHighscore) {
-            highscoreElement.textContent = highscore;
-            highscoreElement.classList.add('pulsate');
-            setTimeout(initializeGame, 1800); // Warten auf die Puls-Animation
-        } else {
-            initializeGame();
+            highscore = score;
+            setCookie('highscore', highscore, 365);
         }
 
-    }, 1600); // Wir warten 1,6 Sekunden, um sicherzugehen, dass die 1,5s Animation fertig ist.
-}
+        setTimeout(() => {
+            const allCells = gameBoardElement.querySelectorAll('.cell.occupied');
+            allCells.forEach(cell => {
+                cell.className = 'cell';
+            });
+
+            gameBoardElement.classList.remove('crumble');
+
+            if (isNewHighscore) {
+                highscoreElement.textContent = highscore;
+                highscoreElement.classList.add('pulsate');
+                setTimeout(initializeGame, 1800);
+            } else {
+                initializeGame();
+            }
+
+        }, 1600);
+    }
 
     function drawGameBoard() {
         gameBoard.forEach((row, y) => row.forEach((content, x) => {
