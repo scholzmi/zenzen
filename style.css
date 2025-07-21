@@ -273,7 +273,7 @@ footer {
     z-index: 10;
     opacity: 0.8;
     border-radius: 10%;
-    transform: scale(0.90);
+    transform: scale(0.70);
     border: 1px solid rgba(255,255,255,0.4);
     box-shadow: inset 0 0 5px rgba(255,255,255,0.3); /* Äußeren Schatten entfernt */
 }
