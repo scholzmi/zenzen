@@ -195,6 +195,12 @@ document.addEventListener('DOMContentLoaded', () => {
         scoreElement.textContent = score;
         showScoreAnimation(points);
 
+        if (score > highscore) {
+          highscore = score;
+          highscoreElement.textContent = highscore;
+          setCookie('highscore', highscore, 365);
+        }
+
         figuresInSlots[selectedSlotIndex] = null;
         drawFigureInSlot(selectedSlotIndex);
         
