@@ -97,6 +97,14 @@ body::before {
     margin: 0;
 }
 
+/* === ÄNDERUNG 1: Link-Container angepasst === */
+.header-donation-link {
+    display: flex;
+    align-items: center;
+    gap: 5px; /* Etwas kleinerer Abstand für die Blöcke */
+    text-decoration: none;
+}
+
 .block-title span {
     width: 35px;
     height: 35px;
@@ -114,6 +122,35 @@ body::before {
 .c-z3 { background-color: #2980b9; }
 .c-e  { background-color: #c6ebeb; color: #5499c7; }
 .c-n  { background-color: #f77b72; }
+
+/* === ÄNDERUNG 2: Neue Stile für den Spenden-Link === */
+.styled-link span {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    color: white;
+    font-weight: 800; /* Gleiche Schriftstärke wie Logo */
+    font-size: 24px;  /* Etwas kleiner als Logo-Buchstaben */
+    text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px var(--accent-color), 0 0 20px var(--accent-color);
+    box-shadow: inset 0 1px 3px rgba(255,255,255,0.6), 0 2px 4px rgba(0,0,0,0.3);
+    transition: transform 0.2s ease;
+}
+
+.styled-link:hover span {
+    transform: scale(1.05); /* Leichter Schwebe-Effekt */
+}
+
+/* Individuelle Farben für die Buchstaben (Kaffee-/Gold-Töne) */
+.c-s      { background-color: #A1887F; } /* Helles Braun */
+.c-p      { background-color: #795548; } /* Kaffee-Braun */
+.c-e2     { background-color: #8D6E63; } /* Mittel-Braun */
+.c-n2     { background-color: #795548; }
+.c-d      { background-color: #A1887F; }
+.c-e3     { background-color: #8D6E63; }
+.c-coffee { background-color: #FFC107; color: #795548; font-size: 20px; } /* Gold für die Tasse */
 
 .score-container {
     display: flex;
