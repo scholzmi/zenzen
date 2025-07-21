@@ -327,14 +327,22 @@ function handleGameOver() {
     }
 
 function drawPreview(figure, centerX, centerY) {
-    // ENTFERNT: Die problematische Zeile 'drawGameBoard();'
-    
-    // NEU: Nur die alten Vorschau-Klassen von den Zellen entfernen.
+    // 1. Alle Zellen finden, die aktuell Teil der Vorschau sind.
     const previewCells = gameBoardElement.querySelectorAll('.preview');
+    
+    // 2. Die alte Vorschau sauber entfernen.
     previewCells.forEach(cell => {
-        cell.className = cell.className.replace(/preview|color-normal|color-joker|color-zonk|invalid/g, '').trim();
+        // Immer die reinen Vorschau-Klassen entfernen.
+        cell.classList.remove('preview', 'invalid');
+
+        // WICHTIG: Die Farbklasse nur dann entfernen, wenn die Zelle darunter NICHT besetzt ist.
+        // Das verhindert, dass wir die Farbe eines platzierten Steins löschen.
+        if (!cell.classList.contains('occupied')) {
+            cell.classList.remove('color-normal', 'color-joker', 'color-zonk');
+        }
     });
 
+    // 3. Die neue Vorschau wie gewohnt zeichnen.
     const placeX = centerX - Math.floor(figure.form[0].length / 2);
     const placeY = centerY - Math.floor(figure.form.length / 2);
     const canBePlaced = canPlace(figure, placeX, placeY);
