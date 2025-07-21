@@ -1,7 +1,7 @@
 {
-    "version": "V0.24i",
+    "version": "V0.24j",
     "lastModification": "redesign",
-    "gameVersion": "0.04",
+    "gameVersion": "0.05",
     "zonkProbability": 0.05,
     "jokerProbability": 0.30,
     "figures": {
