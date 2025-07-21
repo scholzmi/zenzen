@@ -9,12 +9,12 @@
     --footer-bg-light: #F2EBDC;
     --footer-text-light: #4E342E;
 
-    --text-color-dark: #EAE0D1;  /* Ein heller, warmer Pergament-Ton für den Text */
-    --border-color-dark: #4A6464; /* Ein dunkles, entsättigtes Grün-Grau für die Ränder */
-    --component-bg-dark: #2A2422; /* Ein sehr dunkles, warmes Braun als Hintergrund */
-    --shadow-color-dark: rgba(0, 0, 0, 0.3); /* Ein neutraler, dunkler Schatten */
-    --footer-bg-dark: #25201e;   /* Ein fast schwarzer Hintergrund für den Footer */
-    --footer-text-dark: #B8AF9E;   /* Ein etwas gedämpfterer Text-Ton für den Footer */
+    --text-color-dark: #EAE0D1;
+    --border-color-dark: #4A6464;
+    --component-bg-dark: #2A2422;
+    --shadow-color-dark: #0000004D;
+    --footer-bg-dark: #25201e;
+    --footer-text-dark: #B8AF9E;
 
     --figure-color-normal: #225459;
     --figure-color-joker: #6D8C8C;
@@ -24,11 +24,8 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     margin: 0;
-    padding: 20px 20px 100px 20px; 
     box-sizing: border-box;
     display: flex;
-    justify-content: center;
-    align-items: center;
     flex-direction: column;
     min-height: 100vh;
     color: var(--text-color-light);
@@ -65,13 +62,14 @@ body::before {
     display: flex;
     flex-direction: column;
     gap: 25px;
+    margin: auto 20px;
 }
 
 .game-wrapper {
     width: 100%;
     background-color: var(--component-bg-light);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 24px;
+    border: 1px solid #FFFFFF80; /* rgba(255, 255, 255, 0.5) */
+    border-radius: 10%;
     padding: 20px;
     box-sizing: border-box;
     box-shadow: 0 10px 30px var(--shadow-color-light);
@@ -83,7 +81,7 @@ body::before {
 @media (prefers-color-scheme: dark) {
     .game-wrapper {
         background-color: var(--component-bg-dark);
-        border-color: rgba(174, 214, 241, 0.3);
+        border-color: #AED6F14D; /* rgba(174, 214, 241, 0.3) */
         box-shadow: 0 10px 30px var(--shadow-color-dark);
     }
 }
@@ -110,10 +108,10 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 8px;
-    color: white;
+    border-radius: 10%;
+    color: #FFFFFF;
     text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px var(--accent-color), 0 0 20px var(--accent-color);
-    box-shadow: inset 0 1px 3px rgba(255,255,255,0.6), 0 2px 4px rgba(0,0,0,0.3);
+    box-shadow: inset 0 1px 3px #FFFFFF99, 0 2px 4px #0000004D; /* rgba(255,255,255,0.6), rgba(0,0,0,0.3) */
 }
 
 .c-z1 { background-color: #D0D7D0; }
@@ -128,16 +126,16 @@ body::before {
     align-items: center;
     margin-bottom: 20px;
     padding: 10px;
-    background-color: rgba(255,255,255,0.1);
-    border-radius: 12px;
+    background-color: #FFFFFF1A; /* rgba(255,255,255,0.1) */
+    border-radius: 10%;
 }
 
 .score-display {
     font-size: 24px;
     font-weight: 700;
     line-height: 1.1;
-    color: #fff;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    color: #FFFFFF;
+    text-shadow: 0 1px 3px #00000066; /* rgba(0,0,0,0.4) */
 }
 
 #highscore.pulsate {
@@ -147,7 +145,7 @@ body::before {
 #game-board-wrapper {
     position: relative;
     width: 100%;
-    perspective: 800px; /* NEU: Aktiviert eine 3D-Ansicht für Kind-Elemente */
+    perspective: 800px;
 }
 
 #game-board {
@@ -156,7 +154,7 @@ body::before {
     width: 100%;
     aspect-ratio: 1 / 1;
     border: 2px solid var(--border-color-light);
-    border-radius: 8px;
+    border-radius: 10%;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -194,8 +192,8 @@ body::before {
     width: 100%;
     height: 100%;
     border-radius: 10%;
-    border: 1px solid rgba(255,255,255,0.4);
-    box-shadow: inset 0 0 5px rgba(255,255,255,0.3);
+    border: 1px solid #FFFFFF66; /* rgba(255,255,255,0.4) */
+    box-shadow: inset 0 0 5px #FFFFFF4D; /* rgba(255,255,255,0.3) */
     transform: translate(-50%, -50%) scale(0.90);
 }
 
@@ -211,7 +209,7 @@ body::before {
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 12px;
+    border-radius: 10%;
     cursor: grab;
 }
 
@@ -229,10 +227,10 @@ body::before {
     width: var(--figure-block-size, 8px);
     height: var(--figure-block-size, 8px);
     box-sizing: border-box;
-    border-radius: 20%;
+    border-radius: 10%;
     transform: scale(0.95);
-    border-top: 1px solid rgba(255, 255, 255, 0.7);
-    border-left: 1px solid rgba(255, 255, 255, 0.6);
+    border-top: 1px solid #FFFFFFB3; /* rgba(255, 255, 255, 0.7) */
+    border-left: 1px solid #FFFFFF99; /* rgba(255, 255, 255, 0.6) */
 }
 
 .figure-block.color-normal { background-color: var(--figure-color-normal); }
@@ -270,8 +268,6 @@ footer {
     }
 }
 
-/* === FINALE KORREKTUR FÜR DIE VORSCHAU === */
-
 .cell.preview {
     z-index: 10;
 }
@@ -285,7 +281,7 @@ footer {
     height: 100%;
     border-radius: 10%;
     opacity: 0.8;
-    transform: translate(-50%, -50%) scale(0.90); /* Zentriert und verkleinert nur den Inhalt */
+    transform: translate(-50%, -50%) scale(0.90);
 }
 
 .cell.preview.color-normal::before { background-color: var(--figure-color-normal); }
@@ -293,18 +289,15 @@ footer {
 .cell.preview.color-zonk::before { background-color: var(--figure-color-zonk); }
 
 .cell.preview.invalid::before {
-    background-color: rgba(255, 77, 77, 0.9) !important;
+    background-color: #FF4D4DE6 !important; /* rgba(255, 77, 77, 0.9) */
 }
 
-
-/* Animations */
 @keyframes crumble { 
     from { 
         transform: scale(1) rotate(0deg);
         opacity: 1; 
     } 
     to { 
-        /* Fliegt auf den Betrachter zu, wird größer, dreht sich und blendet aus */
         transform: scale(8) rotate(180deg); 
         opacity: 0; 
         visibility: hidden;
@@ -312,8 +305,8 @@ footer {
 }
 
 @keyframes pulsate {
-    0%, 100% { transform: scale(1); color: #0ff15a; }
-    50% { transform: scale(1.25); color: #0cb043; }
+    0%, 100% { transform: scale(1); color: #0FF15A; }
+    50% { transform: scale(1.25); color: #0CB043; }
 }
 
 #game-board.crumble .cell.occupied::before { 
@@ -327,7 +320,7 @@ footer {
     font-family: 'Arial Black', Gadget, sans-serif; 
     font-weight: bold; 
     color: var(--accent-color); 
-    text-shadow: 0 0 10px #fff; 
+    text-shadow: 0 0 10px #FFFFFF; 
     opacity: 0; 
     pointer-events: none; 
     z-index: 100; 
