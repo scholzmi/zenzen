@@ -186,7 +186,7 @@ body::before {
     border-radius: 20%;
     transform: scale(0.95);
     border: 1px solid rgba(255,255,255,0.4);
-    box-shadow: inset 0 0 5px rgba(255,255,255,0.3), 0 0 5px var(--accent-color);
+    box-shadow: inset 0 0 5px rgba(255,255,255,0.3); /* Äußeren Schatten entfernt */
     background: transparent !important;
 }
 
@@ -279,7 +279,7 @@ footer {
     border-radius: 20%;
     transform: scale(0.95);
     border: 1px solid rgba(255,255,255,0.4);
-    box-shadow: inset 0 0 5px rgba(255,255,255,0.3), 0 0 5px var(--accent-color);
+    box-shadow: inset 0 0 5px rgba(255,255,255,0.3); /* Äußeren Schatten entfernt */
 }
 
 .cell.preview.color-normal { background-color: var(--figure-color-normal); }
