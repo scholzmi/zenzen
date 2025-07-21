@@ -112,11 +112,11 @@ body::before {
     box-shadow: inset 0 1px 3px rgba(255,255,255,0.6), 0 2px 4px rgba(0,0,0,0.3);
 }
 
-.c-z1 { background-color: #85c1e9; }
-.c-z2 { background-color: #5499c7; }
-.c-z3 { background-color: #2980b9; }
-.c-e  { background-color: #c6ebeb; color: #5499c7; }
-.c-n  { background-color: #f77b72; }
+.c-z1 { background-color: #D0D7D0; }
+.c-z2 { background-color: #8DA6A2; }
+.c-z3 { background-color: #C7D2CC; }
+.c-e  { background-color: #9CA79F; color: #5499c7; }
+.c-n  { background-color: #85999A; }
 
 .score-container {
     display: flex;
