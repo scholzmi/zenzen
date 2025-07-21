@@ -182,7 +182,8 @@ body::before {
 }
 
 .cell.occupied {
-    z-index: 1; 
+    z-index: 1;
+    border-radius: 20%;
     background: transparent !important;
 }
 
