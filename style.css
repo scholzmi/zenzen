@@ -183,8 +183,6 @@ body::before {
 
 .cell.occupied {
     z-index: 1;
-    border-radius: 20%;
-    transform: scale(0.85);
     background: transparent !important;
 }
 
@@ -274,7 +272,7 @@ footer {
 .cell.preview {
     z-index: 10;
     opacity: 0.8;
-    border-radius: 20%;
+    border-radius: 10%;
     transform: scale(0.90);
     border: 1px solid rgba(255,255,255,0.4);
     box-shadow: inset 0 0 5px rgba(255,255,255,0.3); /* Äußeren Schatten entfernt */
