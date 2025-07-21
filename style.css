@@ -351,7 +351,17 @@ footer a {
 }
 
 /* Animations */
-@keyframes crumble { from { transform: scale(1); opacity: 1; } to { transform: scale(0); opacity: 0; } }
+@keyframes crumble { 
+    from { 
+        transform: scale(1); 
+        opacity: 1; 
+    } 
+    to { 
+        transform: scale(0); 
+        opacity: 0; 
+        visibility: hidden; /* NEU: Stellt sicher, dass das Element nach der Animation unsichtbar bleibt */
+    } 
+}
 
 #game-board.crumble .cell.occupied::before { 
     animation: crumble 1.5s ease-in forwards; 
