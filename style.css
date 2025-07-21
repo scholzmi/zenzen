@@ -299,8 +299,16 @@ footer {
 
 /* Animations */
 @keyframes crumble { 
-    from { transform: scale(1); opacity: 1; } 
-    to { transform: scale(0); opacity: 0; visibility: hidden; } 
+    from { 
+        transform: scale(1) rotate(0deg);
+        opacity: 1; 
+    } 
+    to { 
+        /* Fliegt auf den Betrachter zu, wird größer, dreht sich und blendet aus */
+        transform: scale(8) rotate(180deg); 
+        opacity: 0; 
+        visibility: hidden;
+    } 
 }
 
 @keyframes pulsate {
