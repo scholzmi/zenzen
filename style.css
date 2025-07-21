@@ -184,6 +184,7 @@ body::before {
 .cell.occupied {
     z-index: 1;
     border-radius: 20%;
+    transform: scale(0.85);
     background: transparent !important;
 }
 
