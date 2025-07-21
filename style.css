@@ -196,7 +196,7 @@ body::before {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 15px;
-    margin-top: 50px;
+    margin-top: 25px;
 }
 
 .figure-slot {
