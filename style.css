@@ -53,6 +53,11 @@ body::before {
     body {
         color: var(--text-color-dark);
     }
+    
+    /* === NEU: Dunkelt das Hintergrundbild im Dark Mode ab === */
+    body::before {
+        filter: brightness(0.6);
+    }
 }
 
 .main-container {
@@ -259,7 +264,6 @@ footer {
     z-index: 1000;
 }
 
-/* === NEUE REGEL FÜR DEN FOOTER IM DARK MODE === */
 @media (prefers-color-scheme: dark) {
     footer {
         background-color: var(--footer-bg-dark);
