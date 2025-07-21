@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let isDragging = false;
     let lastTap = 0, tapTimeout = null;
     const doubleTapDelay = 300;
+    let isMoveScheduled = false;
+    let lastEvent = null;
 
     async function initializeGame() {
         highscoreElement.classList.remove('pulsate');
@@ -141,21 +143,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
         handleInteractionMove(event);
     }
-    
-    function handleInteractionMove(event) {
-        if (!isDragging) return;
 
-        const boardRect = gameBoardElement.getBoundingClientRect();
-        const cellSize = boardRect.width / GRID_SIZE;
-
-        const xPos = event.clientX - boardRect.left;
-        const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
-        
-        const cellX = Math.round(xPos / cellSize);
-        const cellY = Math.round(yPos / cellSize);
-        
-        drawPreview(selectedFigure, cellX, cellY);
+    function updatePreviewOnFrame() {
+    if (!lastEvent || !isDragging) {
+        isMoveScheduled = false;
+        return;
     }
+
+    const boardRect = gameBoardElement.getBoundingClientRect();
+    const event = lastEvent.touches ? lastEvent.touches[0] : lastEvent;
+
+    const xPos = event.clientX - boardRect.left;
+    const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
+
+    const cellX = Math.round(xPos / boardRect.width * GRID_SIZE);
+    const cellY = Math.round(yPos / boardRect.height * GRID_SIZE);
+
+    drawPreview(selectedFigure, cellX, cellY);
+
+    isMoveScheduled = false;
+}
+    
+function handleInteractionMove(event) {
+    lastEvent = event; // Nur die letzte bekannte Position speichern
+    if (!isMoveScheduled) {
+        isMoveScheduled = true;
+        window.requestAnimationFrame(updatePreviewOnFrame);
+    }
+}
 
     function handleInteractionEnd(event) {
         if (!isDragging) return;
