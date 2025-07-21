@@ -19,14 +19,12 @@
     --figure-color-zonk: #d7ccc8;
 }
 
+/* === ÄNDERUNG: Für vertikale Zentrierung angepasst === */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     margin: 0;
-    padding: 20px 20px 100px 20px; 
     box-sizing: border-box;
     display: flex;
-    justify-content: center;
-    align-items: center;
     flex-direction: column;
     min-height: 100vh;
     color: var(--text-color-light);
@@ -53,14 +51,17 @@ body::before {
     }
 }
 
+/* === ÄNDERUNG: Für vertikale Zentrierung angepasst === */
 .main-container {
     width: 100%;
     max-width: 400px;
     display: flex;
     flex-direction: column;
     gap: 25px;
+    margin: auto 20px; /* Zentriert den Container vertikal */
 }
 
+/* === ÄNDERUNG: Performance-Optimierung === */
 .game-wrapper {
     width: 100%;
     background-color: var(--component-bg-light);
@@ -71,7 +72,7 @@ body::before {
     box-shadow: 0 10px 30px var(--shadow-color-light);
     backdrop-filter: blur(8px);
     touch-action: none;
-    contain: content;
+    contain: content; /* Performance-Optimierung */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -84,7 +85,7 @@ body::before {
 
 .header {
     display: flex;
-    justify-content: center; /* Zentriert den Titel horizontal */
+    justify-content: center;
     align-items: center;
     margin-bottom: 20px;
 }
