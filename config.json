@@ -1,8 +1,8 @@
 {
-    "version": "V0.26b",
+    "version": "V0.26c",
     "lastModification": "performance",
-    "gameVersion": "0.09",
-    "zonkProbability": 0.05,
+    "gameVersion": "0.10",
+    "zonkProbability": 0.20,
     "jokerProbability": 0.40,
     "figures": {
         "normal": [
