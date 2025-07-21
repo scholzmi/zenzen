@@ -1,17 +1,17 @@
 :root {
     --text-color-light: #5D4037;
     --border-color-light: #86A6A6;
-    --component-bg-light: rgba(255, 224, 178, 0.6);
-    --shadow-color-light: rgba(216, 67, 21, 0.1);
+    --component-bg-light: #F2EBDC;
+    --shadow-color-light: #185959;
     --accent-color: #66a5d0;
-    --footer-bg-light: rgba(255, 224, 178, 0.85);
+    --footer-bg-light: #F2EBDC;
     --footer-text-light: #4E342E;
 
     --text-color-dark: #f5eadd;
     --border-color-dark: #86A6A6;
-    --component-bg-dark: rgba(67, 65, 136, 0.6);
+    --component-bg-dark: #F2EBDC;
     --shadow-color-dark: rgba(0, 0, 0, 0.3);
-    --footer-bg-dark: rgba(46, 41, 78, 0.85);
+    --footer-bg-dark: #F2EBDC;
     --footer-text-dark: #d7ccc8;
 
     --figure-color-normal: #185959;
