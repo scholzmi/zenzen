@@ -1,8 +1,11 @@
+/* =================================
+   1. Variablen & Grund-Setup
+   ================================= */
 :root {
     /* Akzentfarbe */
     --accent-color: #66a5d0;
 
-    /* HSL-Komponenten für alle Farben */
+    /* HSL-Komponenten für alle Farben (Basis ist das helle Design) */
     --text-h: 15; --text-s: 32%; --text-l: 30%;
     --border-h: 180; --border-s: 13%; --border-l: 59%;
     --component-bg-h: 40; --component-bg-s: 58%; --component-bg-l: 91%;
@@ -13,12 +16,12 @@
     --figure-joker-h: 180; --figure-joker-s: 13%; --figure-joker-l: 49%;
     --figure-zonk-h: 180; --figure-zonk-s: 61%; --figure-zonk-l: 15%;
 
-    /* Finale Farbvariablen aus HSL-Komponenten */
+    /* Finale Farbvariablen, die im Code verwendet werden */
     --text-color: hsl(var(--text-h), var(--text-s), var(--text-l));
     --border-color: hsl(var(--border-h), var(--border-s), var(--border-l));
     --component-bg: hsl(var(--component-bg-h), var(--component-bg-s), var(--component-bg-l));
     --shadow-color: hsl(var(--shadow-h), var(--shadow-s), var(--shadow-l));
-    --footer-bg: hsl(var(--component-bg-h), var(--component-bg-s), var(--component-bg-l)); /* Gleiche Farbe wie component-bg */
+    --footer-bg: hsl(var(--component-bg-h), var(--component-bg-s), var(--component-bg-l));
     --footer-text: hsl(var(--footer-text-h), var(--footer-text-s), var(--footer-l));
     
     --figure-color-normal: hsl(var(--figure-normal-h), var(--figure-normal-s), var(--figure-normal-l));
@@ -53,6 +56,9 @@ body::before {
     z-index: -1;
 }
 
+/* =================================
+   2. Layout-Container
+   ================================= */
 .main-container {
     width: 100%;
     max-width: 400px;
@@ -82,6 +88,40 @@ body::before {
     margin-bottom: 20px;
 }
 
+.score-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #FFFFFF1A;
+    border-radius: 12px;
+}
+
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 12px;
+    box-sizing: border-box;
+    background-color: var(--footer-bg);
+    backdrop-filter: blur(5px);
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+    font-size: 10px;
+    color: var(--footer-text);
+    z-index: 1000;
+}
+
+footer a {
+    color: var(--footer-text);
+}
+
+
+/* =================================
+   3. Spiel-Elemente & Zustände
+   ================================= */
 .block-title {
     display: flex;
     justify-content: flex-start;
@@ -101,22 +141,6 @@ body::before {
     color: #FFFFFF;
     text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px var(--accent-color), 0 0 20px var(--accent-color);
     box-shadow: inset 0 1px 3px #FFFFFF99, 0 2px 4px #0000004D;
-}
-
-.c-z1 { background-color: #D0D7D0; }
-.c-z2 { background-color: #8DA6A2; }
-.c-z3 { background-color: #C7D2CC; }
-.c-e  { background-color: #9CA79F; color: #5499c7; }
-.c-n  { background-color: #85999A; }
-
-.score-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding: 10px;
-    background-color: #FFFFFF1A;
-    border-radius: 12px;
 }
 
 .score-display {
@@ -139,7 +163,7 @@ body::before {
     width: 100%;
     aspect-ratio: 1 / 1;
     border: 2px solid var(--border-color);
-    border-radius: 10%;
+    border-radius: 8px;
 }
 
 .cell {
@@ -171,7 +195,23 @@ body::before {
     transform: translate(-50%, -50%) scale(0.90);
 }
 
-.figure-selection {
+.cell.preview {
+    z-index: 10;
+}
+
+.cell.preview::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    border-radius: 10%;
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(0.90);
+}
+
+#figure-selection {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 15px;
@@ -194,18 +234,27 @@ body::before {
 .figure-container {
     display: grid;
     pointer-events: none;
-    transform: scale(1.0);
+    transform: scale(1.3);
 }
 
 .figure-block {
     width: var(--figure-block-size, 8px);
     height: var(--figure-block-size, 8px);
     box-sizing: border-box;
-    border-radius: 10%;
+    border-radius: 20%;
     transform: scale(0.95);
     border-top: 1px solid #FFFFFFB3;
     border-left: 1px solid #FFFFFF99;
 }
+
+/* =================================
+   4. Farb- & Hilfsklassen
+   ================================= */
+.c-z1 { background-color: #D0D7D0; }
+.c-z2 { background-color: #8DA6A2; }
+.c-z3 { background-color: #C7D2CC; }
+.c-e  { background-color: #9CA79F; color: #5499c7; }
+.c-n  { background-color: #85999A; }
 
 .figure-block.color-normal { background-color: var(--figure-color-normal); }
 .figure-block.color-joker  { background-color: var(--figure-color-joker); }
@@ -215,42 +264,6 @@ body::before {
 .cell.occupied.color-joker::before  { background-color: var(--figure-color-joker); }
 .cell.occupied.color-zonk::before   { background-color: var(--figure-color-zonk); }
 
-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 12px;
-    box-sizing: border-box;
-    background-color: var(--footer-bg);
-    backdrop-filter: blur(5px);
-    border-top: 1px solid var(--border-color);
-    text-align: center;
-    font-size: 10px;
-    color: var(--footer-text);
-    z-index: 1000;
-}
-
-footer a {
-    color: var(--footer-text);
-}
-
-.cell.preview {
-    z-index: 10;
-}
-
-.cell.preview::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100%;
-    height: 100%;
-    border-radius: 10%;
-    opacity: 0.8;
-    transform: translate(-50%, -50%) scale(0.90);
-}
-
 .cell.preview.color-normal::before { background-color: var(--figure-color-normal); }
 .cell.preview.color-joker::before { background-color: var(--figure-color-joker); }
 .cell.preview.color-zonk::before { background-color: var(--figure-color-zonk); }
@@ -259,8 +272,9 @@ footer a {
     background-color: #FF4D4DE6 !important;
 }
 
+
 /* =================================
-   Dark Mode: Nur noch Helligkeit anpassen
+   5. Dark Mode per HSL
    ================================= */
 @media (prefers-color-scheme: dark) {
     body::before {
@@ -272,20 +286,36 @@ footer a {
         --text-l: 88%;
         --border-l: 35%;
         --component-bg-l: 15%;
-        --shadow-h: 0; --shadow-s: 0%; --shadow-l: 0%; /* Schatten wird einfach schwarz */
-        --footer-l: 13%;
+        --shadow-h: 0; --shadow-s: 0%; --shadow-l: 0%;
+        --footer-text-l: 68%;
         
         --figure-normal-l: 18%;
         --figure-joker-l: 40%;
         --figure-zonk-l: 12%;
+
+        /* Spezifische Anpassungen für Dark Mode */
+        --game-wrapper-border-color: #AED6F14D;
+        --game-wrapper-shadow-color: var(--shadow-color-dark);
+    }
+
+    /* Überschreibt die Border-Color, die nicht direkt an eine HSL-Variable gebunden ist */
+    .game-wrapper {
+        border-color: var(--game-wrapper-border-color);
+        box-shadow: 0 10px 30px var(--game-wrapper-shadow-color);
     }
 }
 
+
 /* =================================
-   Animationen & Effekte
+   6. Animationen & Effekte
    ================================= */
 #highscore.pulsate {
     animation: pulsate 0.6s 3;
+}
+
+#game-board.crumble .cell.occupied::before { 
+    animation: crumble 1.5s ease-in forwards; 
+    animation-delay: calc(var(--delay, 0) * 1s); 
 }
 
 .score-animation { 
@@ -302,11 +332,6 @@ footer a {
 
 .score-animation.animate { 
     animation: scoreExplosion 1.2s ease-out forwards; 
-}
-
-#game-board.crumble .cell.occupied::before { 
-    animation: crumble 1.5s ease-in forwards; 
-    animation-delay: calc(var(--delay, 0) * 1s); 
 }
 
 @keyframes crumble { 
