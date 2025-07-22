@@ -73,29 +73,38 @@ body::before {
 }
 
 @media (prefers-color-scheme: dark) {
+    body {
+        color: var(--text-color-dark);
+    }
     body::before {
         filter: brightness(0.6);
     }
-
-    :root {
-        /* Hier wird NUR NOCH die Helligkeit aller Farben angepasst */
-        --text-l: 88%;
-        --border-l: 35%;
-        --component-bg-l: 35%;
-        --shadow-h: 0; --shadow-s: 0%; --shadow-l: 10%;
-        --footer-text-l: 80%;
-        
-        --figure-normal-l: 50%;
-        --figure-joker-l: 50%;
-        --figure-zonk-l: 50%;
-
-        /* Helligkeit für Titel-Buchstaben anpassen */
-        --c-z1-l: 25%;
-        --c-z2-l: 30%;
-        --c-z3-l: 28%;
-        --c-e-l: 32%;
-        --c-n-l: 28%;
+    .game-wrapper {
+        background-color: var(--component-bg-dark);
+        border-color: #AED6F14D;
+        box-shadow: 0 10px 30px var(--shadow-color-dark);
     }
+    #game-board { 
+        border-color: var(--border-color-dark); 
+    }
+    .cell {
+        border-right-color: var(--border-color-dark);
+        border-bottom-color: var(--border-color-dark);
+    }
+    footer {
+        background-color: var(--footer-bg-dark);
+        border-top-color: var(--border-color-dark);
+        color: var(--footer-text-dark);
+    }
+    footer a {
+        color: var(--footer-text-dark);
+    }
+    /* Titel-Farben für Dark Mode (optional, falls du sie anpassen willst) */
+    .c-z1 { background-color: #404540; } /* Beispiel für abgedunkelte Titelfarben */
+    .c-z2 { background-color: #4C5957; }
+    .c-z3 { background-color: #424A46; }
+    .c-e  { background-color: #515753; }
+    .c-n  { background-color: #495252; }
 }
 
 
