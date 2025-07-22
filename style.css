@@ -306,11 +306,11 @@ footer a {
 /* =================================
    5. Farb- & Hilfsklassen
    ================================= */
-.c-z1 { background-color: var(--c-z1-bg); }
-.c-z2 { background-color: var(--c-z2-bg); }
-.c-z3 { background-color: var(--c-z3-bg); }
-.c-e  { background-color: var(--c-e-bg); color: #5499c7; }
-.c-n  { background-color: var(--c-n-bg); }
+.c-z1 { background-color: var(--figure-color-normal); }
+.c-z2 { background-color: var(--figure-color-normal); }
+.c-z3 { background-color: var(--figure-color-normal); }
+.c-e  { background-color: var(--figure-color-zonk); }
+.c-n  { background-color: var(--figure-color-joker); }
 
 .figure-block.color-normal { background-color: var(--figure-color-normal); }
 .figure-block.color-joker  { background-color: var(--figure-color-joker); }
@@ -369,4 +369,11 @@ footer a {
 @keyframes scoreExplosion { 
     0% { transform: translateY(0) scale(0.5); opacity: 1; } 
     100% { transform: translateY(-80px) scale(1.5); opacity: 0; } 
+}
+
+
+.boss-key-hidden {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
 }
