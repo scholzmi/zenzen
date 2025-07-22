@@ -12,10 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sound-Effekte laden
     const clickSound = new Audio('sounds/click.mp3');
     const putSound = new Audio('sounds/put.mp3');
+    putSound.volume = 0.6;
     const plopSound = new Audio('sounds/plop.mp3');
-    plopSound.volume = 0.7;
+    plopSound.volume = 0.4;
     const overSound = new Audio('sounds/over.mp3');
-    clickSound.volume = 0.4;
+    clickSound.volume = 0.2;
 
     // Game State
     let gameBoard = [], score = 0, highscore = 0;
