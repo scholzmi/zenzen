@@ -117,35 +117,44 @@ function updateThemeFromImage(imageUrl) {
 
     img.onload = function() {
         const colorThief = new ColorThief();
-        const palette = colorThief.getPalette(img, 8); // Extrahiert 8 dominante Farben
+        let palette = colorThief.getPalette(img, 8);
 
-        // Farben aus der Palette zuweisen (von dunkel nach hell sortiert)
-        const mainBgColor = palette[7];       // Hellste Farbe
+        // NEU: HILFSFUNKTION ZUM BERECHNEN DER HELLIGKEIT
+        function getColorBrightness(rgb) {
+            // Formel zur Berechnung der wahrgenommenen Helligkeit
+            return Math.sqrt(
+                0.299 * (rgb[0] * rgb[0]) +
+                0.587 * (rgb[1] * rgb[1]) +
+                0.114 * (rgb[2] * rgb[2])
+            );
+        }
+
+        // NEU: SORTIERE DIE PALETTE NACH HELLIGKEIT (von dunkel nach hell)
+        palette.sort((a, b) => getColorBrightness(a) - getColorBrightness(b));
+
+        // Zuweisung ist jetzt zuverlässig, da die Palette sortiert ist
         const textColor = palette[0];         // Dunkelste Farbe
-        const borderColor = palette[5];       // Eine mittlere Farbe
         const figureNormalColor = palette[1];
-        
-        // NEU: Farben für die Titel-Buchstaben
         const z1Color = palette[2];
         const z2Color = palette[3];
         const z3Color = palette[4];
+        const borderColor = palette[5];
         const eColor = palette[6];
-        const nColor = palette[1]; // Wiederverwendung einer dunklen Farbe für Kontrast
+        const mainBgColor = palette[7];       // Hellste Farbe
+        const nColor = palette[1];
 
-        // Alle Farben in HSL umwandeln
+        // Der Rest der Funktion (Umwandlung in HSL und Zuweisung) bleibt gleich...
         const [bgH, bgS, bgL] = rgbToHsl(mainBgColor[0], mainBgColor[1], mainBgColor[2]);
         const [textH, textS, textL] = rgbToHsl(textColor[0], textColor[1], textColor[2]);
         const [borderH, borderS, borderL] = rgbToHsl(borderColor[0], borderColor[1], borderColor[2]);
         const [figH, figS, figL] = rgbToHsl(figureNormalColor[0], figureNormalColor[1], figureNormalColor[2]);
         
-        // NEU: HSL für Titel
         const [z1H, z1S, z1L] = rgbToHsl(z1Color[0], z1Color[1], z1Color[2]);
         const [z2H, z2S, z2L] = rgbToHsl(z2Color[0], z2Color[1], z2Color[2]);
         const [z3H, z3S, z3L] = rgbToHsl(z3Color[0], z3Color[1], z3Color[2]);
         const [eH, eS, eL] = rgbToHsl(eColor[0], eColor[1], eColor[2]);
         const [nH, nS, nL] = rgbToHsl(nColor[0], nColor[1], nColor[2]);
 
-        // Die CSS-Variablen dynamisch überschreiben
         const root = document.documentElement;
         root.style.setProperty('--component-bg-h', bgH);
         root.style.setProperty('--component-bg-s', bgS + '%');
@@ -163,14 +172,13 @@ function updateThemeFromImage(imageUrl) {
         root.style.setProperty('--figure-normal-s', figS + '%');
         root.style.setProperty('--figure-normal-l', figL + '%');
         
-        // NEU: HSL-Variablen für den Titel setzen
         root.style.setProperty('--c-z1-h', z1H); root.style.setProperty('--c-z1-s', z1S + '%'); root.style.setProperty('--c-z1-l', z1L + '%');
         root.style.setProperty('--c-z2-h', z2H); root.style.setProperty('--c-z2-s', z2S + '%'); root.style.setProperty('--c-z2-l', z2L + '%');
         root.style.setProperty('--c-z3-h', z3H); root.style.setProperty('--c-z3-s', z3S + '%'); root.style.setProperty('--c-z3-l', z3L + '%');
         root.style.setProperty('--c-e-h', eH); root.style.setProperty('--c-e-s', eS + '%'); root.style.setProperty('--c-e-l', eL + '%');
         root.style.setProperty('--c-n-h', nH); root.style.setProperty('--c-n-s', nS + '%'); root.style.setProperty('--c-n-l', nL + '%');
         
-        console.log("Farb-Theme wurde dynamisch vom Bild abgeleitet!");
+        console.log("Farb-Theme wurde dynamisch vom Bild abgeleitet und nach Helligkeit sortiert!");
     };
 }
 
