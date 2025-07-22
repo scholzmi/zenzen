@@ -81,13 +81,13 @@ body::before {
         /* Hier wird NUR NOCH die Helligkeit aller Farben angepasst */
         --text-l: 88%;
         --border-l: 35%;
-        --component-bg-l: 15%;
+        --component-bg-l: 35%;
         --shadow-h: 0; --shadow-s: 0%; --shadow-l: 10%;
-        --footer-text-l: 68%;
+        --footer-text-l: 80%;
         
-        --figure-normal-l: 18%;
-        --figure-joker-l: 40%;
-        --figure-zonk-l: 12%;
+        --figure-normal-l: 50%;
+        --figure-joker-l: 50%;
+        --figure-zonk-l: 50%;
 
         /* Helligkeit für Titel-Buchstaben anpassen */
         --c-z1-l: 25%;
