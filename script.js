@@ -119,9 +119,7 @@ function updateThemeFromImage(imageUrl) {
         const colorThief = new ColorThief();
         let palette = colorThief.getPalette(img, 8);
 
-        // NEU: HILFSFUNKTION ZUM BERECHNEN DER HELLIGKEIT
         function getColorBrightness(rgb) {
-            // Formel zur Berechnung der wahrgenommenen Helligkeit
             return Math.sqrt(
                 0.299 * (rgb[0] * rgb[0]) +
                 0.587 * (rgb[1] * rgb[1]) +
@@ -129,25 +127,30 @@ function updateThemeFromImage(imageUrl) {
             );
         }
 
-        // NEU: SORTIERE DIE PALETTE NACH HELLIGKEIT (von dunkel nach hell)
         palette.sort((a, b) => getColorBrightness(a) - getColorBrightness(b));
 
         // Zuweisung ist jetzt zuverlässig, da die Palette sortiert ist
-        const textColor = palette[0];         // Dunkelste Farbe
-        const figureNormalColor = palette[1];
-        const z1Color = palette[2];
-        const z2Color = palette[3];
-        const z3Color = palette[4];
+        const textColor = palette[0];
+        const zonkColor = palette[1];         // NEU: Zonk bekommt eine sehr dunkle Farbe
+        const figureNormalColor = palette[2]; // Normal bekommt eine dunkle Farbe
+        const z1Color = palette[3];
+        const z2Color = palette[4];
         const borderColor = palette[5];
+        const jokerColor = palette[6];        // NEU: Joker bekommt eine helle Farbe
+        const mainBgColor = palette[7];
+        
+        // Farben für Titel (teilweise Wiederverwendung für Kontrast)
+        const z3Color = palette[4];
         const eColor = palette[6];
-        const mainBgColor = palette[7];       // Hellste Farbe
-        const nColor = palette[1];
+        const nColor = palette[2];
 
-        // Der Rest der Funktion (Umwandlung in HSL und Zuweisung) bleibt gleich...
+        // Alle Farben in HSL umwandeln
         const [bgH, bgS, bgL] = rgbToHsl(mainBgColor[0], mainBgColor[1], mainBgColor[2]);
         const [textH, textS, textL] = rgbToHsl(textColor[0], textColor[1], textColor[2]);
         const [borderH, borderS, borderL] = rgbToHsl(borderColor[0], borderColor[1], borderColor[2]);
         const [figH, figS, figL] = rgbToHsl(figureNormalColor[0], figureNormalColor[1], figureNormalColor[2]);
+        const [jokerH, jokerS, jokerL] = rgbToHsl(jokerColor[0], jokerColor[1], jokerColor[2]); // NEU
+        const [zonkH, zonkS, zonkL] = rgbToHsl(zonkColor[0], zonkColor[1], zonkColor[2]);     // NEU
         
         const [z1H, z1S, z1L] = rgbToHsl(z1Color[0], z1Color[1], z1Color[2]);
         const [z2H, z2S, z2L] = rgbToHsl(z2Color[0], z2Color[1], z2Color[2]);
@@ -155,6 +158,7 @@ function updateThemeFromImage(imageUrl) {
         const [eH, eS, eL] = rgbToHsl(eColor[0], eColor[1], eColor[2]);
         const [nH, nS, nL] = rgbToHsl(nColor[0], nColor[1], nColor[2]);
 
+        // Die CSS-Variablen dynamisch überschreiben
         const root = document.documentElement;
         root.style.setProperty('--component-bg-h', bgH);
         root.style.setProperty('--component-bg-s', bgS + '%');
@@ -168,10 +172,20 @@ function updateThemeFromImage(imageUrl) {
         root.style.setProperty('--border-s', borderS + '%');
         root.style.setProperty('--border-l', borderL + '%');
 
+        // HSL für alle Figurentypen setzen
         root.style.setProperty('--figure-normal-h', figH);
         root.style.setProperty('--figure-normal-s', figS + '%');
         root.style.setProperty('--figure-normal-l', figL + '%');
         
+        root.style.setProperty('--figure-joker-h', jokerH); // NEU
+        root.style.setProperty('--figure-joker-s', jokerS + '%'); // NEU
+        root.style.setProperty('--figure-joker-l', jokerL + '%'); // NEU
+
+        root.style.setProperty('--figure-zonk-h', zonkH);   // NEU
+        root.style.setProperty('--figure-zonk-s', zonkS + '%');   // NEU
+        root.style.setProperty('--figure-zonk-l', zonkL + '%');   // NEU
+        
+        // HSL-Variablen für den Titel setzen
         root.style.setProperty('--c-z1-h', z1H); root.style.setProperty('--c-z1-s', z1S + '%'); root.style.setProperty('--c-z1-l', z1L + '%');
         root.style.setProperty('--c-z2-h', z2H); root.style.setProperty('--c-z2-s', z2S + '%'); root.style.setProperty('--c-z2-l', z2L + '%');
         root.style.setProperty('--c-z3-h', z3H); root.style.setProperty('--c-z3-s', z3S + '%'); root.style.setProperty('--c-z3-l', z3L + '%');
