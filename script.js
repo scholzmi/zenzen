@@ -8,6 +8,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const figureSlots = document.querySelectorAll('.figure-slot');
     const scoreAnimationElement = document.getElementById('score-animation');
 
+    // NEU: Sound-Effekte laden
+    const clickSound = new Audio('sounds/click.mp3');
+    const putSound = new Audio('sounds/put.mp3');
+    const plopSound = new Audio('sounds/plop.mp3');
+    plopSound.volume = 0.7; // Lautstärke anpassen
+    const overSound = new Audio('sounds/over.mp3');
+    clickSound.volume = 0.4; // Lautstärke anpassen
+
     // Game State
     let gameBoard = [], score = 0, highscore = 0;
     let figuresInSlots = [null, null, null];
@@ -22,39 +30,32 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastEvent = null;
     let currentPreviewCells = [];
     let currentZonkProbability = 0;
-
-    // NEU: Variable für haptisches Feedback
-    let lastVibratedCell = { x: -1, y: -1 };
+    let lastSoundCell = { x: -1, y: -1 }; // Ersetzt die alte Vibrations-Variable
 
     async function initializeGame() {
         highscoreElement.classList.remove('pulsate');
         gameBoardElement.classList.remove('crumble');
 
-        // Nur beim allerersten Start die Konfiguration laden
         if (Object.keys(gameConfig).length === 0) {
             const configLoaded = await loadConfiguration();
             if (!configLoaded) {
                 document.body.innerHTML = "<h1>Fehler</h1><p>config.json konnte nicht geladen werden oder ist fehlerhaft. Bitte stellen Sie sicher, dass die Datei existiert und valide ist.</p>";
                 return;
             }
-            updateThemeFromImage('bg.png'); // Hier color theme ausschalten
+            updateThemeFromImage('bg.png');
         }
 
-        // Setzt die Zonk-Wahrscheinlichkeit für ein neues Spiel zurück
         currentZonkProbability = gameConfig.zonkProbability || 0;
-
         const serverVersion = gameConfig.gameVersion || "1.0";
         const localVersion = getCookie('gameVersion');
         if (serverVersion !== localVersion) {
             setCookie('highscore', '0', 365);
             setCookie('gameVersion', serverVersion, 365);
         }
-
         highscore = parseInt(getCookie('highscore') || '0', 10);
         highscoreElement.textContent = highscore;
         score = 0;
         scoreElement.textContent = score;
-
         createGameBoard();
         generateNewFigures();
     }
@@ -66,7 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
             gameConfig = await response.json();
             if (versionInfoElement) versionInfoElement.textContent = gameConfig.version || "?.??";
             if (lastModificationElement) lastModificationElement.textContent = gameConfig.lastModification || "N/A";
-
             if (!gameConfig.figures || !gameConfig.figures.normal || !gameConfig.figures.zonk || !gameConfig.figures.joker) {
                 throw new Error("Figurenpools in config.json sind nicht korrekt definiert.");
             }
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const max = Math.max(r, g, b), min = Math.min(r, g, b);
         let h, s, l = (max + min) / 2;
         if (max === min) {
-            h = s = 0; // achromatic
+            h = s = 0;
         } else {
             const d = max - min;
             s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
@@ -114,69 +114,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const img = new Image();
     img.crossOrigin = "Anonymous";
     img.src = imageUrl;
-
     img.onload = function() {
         const colorThief = new ColorThief();
         let palette = colorThief.getPalette(img, 8);
-
         function getColorBrightness(rgb) {
-            return Math.sqrt(
-                0.299 * (rgb[0] * rgb[0]) +
-                0.587 * (rgb[1] * rgb[1]) +
-                0.114 * (rgb[2] * rgb[2])
-            );
+            return Math.sqrt(0.299 * (rgb[0] * rgb[0]) + 0.587 * (rgb[1] * rgb[1]) + 0.114 * (rgb[2] * rgb[2]));
         }
-
         palette.sort((a, b) => getColorBrightness(a) - getColorBrightness(b));
-
-        // Zuweisung der sortierten Palette
-        const textColor = palette[0];
-        const zonkColor = palette[1];
-        const figureNormalColor = palette[2];
-        const accentColor = palette[3]; // NEU: Akzentfarbe aus der Mitte der Palette
-        const borderColor = palette[5];
-        const jokerColor = palette[6];
-        const mainBgColor = palette[7];
-
-        // HSL-Werte berechnen
-        const [bgH, bgS, bgL] = rgbToHsl(mainBgColor[0], mainBgColor[1], mainBgColor[2]);
-        const [textH, textS, textL] = rgbToHsl(textColor[0], textColor[1], textColor[2]);
-        const [borderH, borderS, borderL] = rgbToHsl(borderColor[0], borderColor[1], borderColor[2]);
-        const [figH, figS, figL] = rgbToHsl(figureNormalColor[0], figureNormalColor[1], figureNormalColor[2]);
-        const [jokerH, jokerS, jokerL] = rgbToHsl(jokerColor[0], jokerColor[1], jokerColor[2]);
-        const [zonkH, zonkS, zonkL] = rgbToHsl(zonkColor[0], zonkColor[1], zonkColor[2]);
-        const [accentH, accentS, accentL] = rgbToHsl(accentColor[0], accentColor[1], accentColor[2]); // NEU
-
-        // CSS-Variablen dynamisch überschreiben
+        const textColor = palette[0], zonkColor = palette[1], figureNormalColor = palette[2], accentColor = palette[3], borderColor = palette[5], jokerColor = palette[6], mainBgColor = palette[7];
+        const [bgH, bgS, bgL] = rgbToHsl(mainBgColor[0], mainBgColor[1], mainBgColor[2]), [textH, textS, textL] = rgbToHsl(textColor[0], textColor[1], textColor[2]), [borderH, borderS, borderL] = rgbToHsl(borderColor[0], borderColor[1], borderColor[2]), [figH, figS, figL] = rgbToHsl(figureNormalColor[0], figureNormalColor[1], figureNormalColor[2]), [jokerH, jokerS, jokerL] = rgbToHsl(jokerColor[0], jokerColor[1], jokerColor[2]), [zonkH, zonkS, zonkL] = rgbToHsl(zonkColor[0], zonkColor[1], zonkColor[2]), [accentH, accentS, accentL] = rgbToHsl(accentColor[0], accentColor[1], accentColor[2]);
         const root = document.documentElement;
-        root.style.setProperty('--component-bg-h', bgH);
-        root.style.setProperty('--component-bg-s', bgS + '%');
-        root.style.setProperty('--component-bg-l', bgL + '%');
-        
-        root.style.setProperty('--text-h', textH);
-        root.style.setProperty('--text-s', textS + '%');
-        root.style.setProperty('--text-l', textL + '%');
-
-        root.style.setProperty('--border-h', borderH);
-        root.style.setProperty('--border-s', borderS + '%');
-        root.style.setProperty('--border-l', borderL + '%');
-
-        root.style.setProperty('--figure-normal-h', figH);
-        root.style.setProperty('--figure-normal-s', figS + '%');
-        root.style.setProperty('--figure-normal-l', figL + '%');
-        
-        root.style.setProperty('--figure-joker-h', jokerH);
-        root.style.setProperty('--figure-joker-s', jokerS + '%');
-        root.style.setProperty('--figure-joker-l', jokerL + '%');
-
-        root.style.setProperty('--figure-zonk-h', zonkH);
-        root.style.setProperty('--figure-zonk-s', zonkS + '%');
-        root.style.setProperty('--figure-zonk-l', zonkL + '%');
-
-        // NEU: Akzentfarbe setzen
-        root.style.setProperty('--accent-h', accentH);
-        root.style.setProperty('--accent-s', accentS + '%');
-        root.style.setProperty('--accent-l', accentL + '%');
+        root.style.setProperty('--component-bg-h', bgH); root.style.setProperty('--component-bg-s', bgS + '%'); root.style.setProperty('--component-bg-l', bgL + '%');
+        root.style.setProperty('--text-h', textH); root.style.setProperty('--text-s', textS + '%'); root.style.setProperty('--text-l', textL + '%');
+        root.style.setProperty('--border-h', borderH); root.style.setProperty('--border-s', borderS + '%'); root.style.setProperty('--border-l', borderL + '%');
+        root.style.setProperty('--figure-normal-h', figH); root.style.setProperty('--figure-normal-s', figS + '%'); root.style.setProperty('--figure-normal-l', figL + '%');
+        root.style.setProperty('--figure-joker-h', jokerH); root.style.setProperty('--figure-joker-s', jokerS + '%'); root.style.setProperty('--figure-joker-l', jokerL + '%');
+        root.style.setProperty('--figure-zonk-h', zonkH); root.style.setProperty('--figure-zonk-s', zonkS + '%'); root.style.setProperty('--figure-zonk-l', zonkL + '%');
+        root.style.setProperty('--accent-h', accentH); root.style.setProperty('--accent-s', accentS + '%'); root.style.setProperty('--accent-l', accentL + '%');
     };
 }
 
@@ -192,15 +146,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetSlot = e.currentTarget;
         const now = new Date().getTime();
         const timesince = now - lastTap;
-
         if (timesince < doubleTapDelay && timesince > 0) {
             clearTimeout(tapTimeout);
             rotateFigureInSlot(parseInt(targetSlot.dataset.slotId, 10));
             return;
         }
-
         lastTap = new Date().getTime();
-
         const event = e.touches ? e.touches[0] : e;
         handleDragStart(event, targetSlot);
     }
@@ -218,17 +169,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isDragging) return;
         const slotIndex = parseInt(targetSlot.dataset.slotId, 10);
         if (!figuresInSlots[slotIndex]) return;
-
         isDragging = true;
-
         selectedSlotIndex = slotIndex;
         selectedFigure = JSON.parse(JSON.stringify(figuresInSlots[selectedSlotIndex]));
         targetSlot.classList.add('dragging');
-
         const moveHandler = (moveEvent) => {
             handleInteractionMove(moveEvent.touches ? moveEvent.touches[0] : moveEvent);
         };
-
         const endHandler = (endEvent) => {
             document.removeEventListener('touchmove', moveHandler);
             document.removeEventListener('touchend', endHandler);
@@ -236,12 +183,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.removeEventListener('mouseup', endHandler);
             handleInteractionEnd(endEvent.changedTouches ? endEvent.changedTouches[0] : endEvent);
         };
-
         document.addEventListener('touchmove', moveHandler, { passive: false });
         document.addEventListener('touchend', endHandler);
         document.addEventListener('mousemove', moveHandler);
         document.addEventListener('mouseup', endHandler);
-
         handleInteractionMove(event);
     }
 
@@ -250,28 +195,24 @@ document.addEventListener('DOMContentLoaded', () => {
             isMoveScheduled = false;
             return;
         }
-
         const boardRect = gameBoardElement.getBoundingClientRect();
         const event = lastEvent.touches ? lastEvent.touches[0] : lastEvent;
-
         const xPos = event.clientX - boardRect.left;
         const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
-
         const cellX = Math.round(xPos / boardRect.width * GRID_SIZE);
         const cellY = Math.round(yPos / boardRect.height * GRID_SIZE);
 
-        // HAPTISCHES FEEDBACK: Beim Einrasten
-        if ((cellX !== lastVibratedCell.x || cellY !== lastVibratedCell.y) && navigator.vibrate) {
-            navigator.vibrate(5); // Ultra-kurze Vibration
-            lastVibratedCell.x = cellX;
-            lastVibratedCell.y = cellY;
+        // SOUND-EFFEKT: Beim Einrasten
+        if (cellX !== lastSoundCell.x || cellY !== lastSoundCell.y) {
+            clickSound.currentTime = 0;
+            clickSound.play().catch(e => {}); // Verhindert Fehler, wenn der Sound schnell wiederholt wird
+            lastSoundCell.x = cellX;
+            lastSoundCell.y = cellY;
         }
-
         drawPreview(selectedFigure, cellX, cellY);
-
         isMoveScheduled = false;
     }
-
+    
     function handleInteractionMove(event) {
         lastEvent = event;
         if (!isMoveScheduled) {
@@ -282,16 +223,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleInteractionEnd(event) {
         if (!isDragging) return;
-
         const boardRect = gameBoardElement.getBoundingClientRect();
         const cellSize = boardRect.width / GRID_SIZE;
         const xPos = event.clientX - boardRect.left;
         const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
         const cellX = Math.round(xPos / cellSize);
         const cellY = Math.round(yPos / cellSize);
-
         placeFigure(selectedFigure, cellX, cellY);
-
         document.querySelector('.figure-slot.dragging')?.classList.remove('dragging');
         selectedFigure = null;
         selectedSlotIndex = -1;
@@ -300,75 +238,58 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function rotateFigure90Degrees(matrix) {
-        // Transponiert die Matrix und kehrt dann die Spalten um, was zu einer Drehung im Uhrzeigersinn führt.
         return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])).map(row => row.reverse());
     }
 
     function placeFigure(figure, centerX, centerY) {
         const placeX = centerX - Math.floor(figure.form[0].length / 2);
         const placeY = centerY - Math.floor(figure.form.length / 2);
-
         if (!canPlace(figure, placeX, placeY)) return;
 
-        // HAPTISCHES FEEDBACK: Beim Platzieren
-        if (navigator.vibrate) {
-            navigator.vibrate(40);
-        }
+        // SOUND-EFFEKT: Beim Platzieren
+        putSound.currentTime = 0;
+        putSound.play().catch(e => {});
 
         figure.form.forEach((row, y) => row.forEach((block, x) => {
             if (block === 1) gameBoard[placeY + y][placeX + x] = figure.category;
         }));
-
         const points = clearFullLines() + (figure.points || 0);
         score += points;
         scoreElement.textContent = score;
         showScoreAnimation(points);
-
         if (score > highscore) {
             highscore = score;
             highscoreElement.textContent = highscore;
             setCookie('highscore', highscore, 365);
         }
-
         figuresInSlots[selectedSlotIndex] = null;
         drawFigureInSlot(selectedSlotIndex);
-
         if (figuresInSlots.every(f => f === null)) {
             generateNewFigures();
         }
-
         if (isGameOver()) {
             handleGameOver();
         }
     }
+
     function handleKeyPress(e) {
-        // Boss-Key "b"
         if (e.key === 'b') {
             const container = document.querySelector('.main-container');
-            const footer = document.querySelector('footer'); // NEUE ZEILE
-            if (container) {
-                container.classList.toggle('boss-key-hidden');
-            }
-            if (footer) {
-                footer.classList.toggle('boss-key-hidden'); // NEUE ZEILE
-            }
+            const footer = document.querySelector('footer');
+            if (container) container.classList.toggle('boss-key-hidden');
+            if (footer) footer.classList.toggle('boss-key-hidden');
         }
-        // Joker-Key "j"
         if (e.key === 'j') {
             generateJokerFigures();
         }
     }
 
-    // NEUE FUNKTION, um nur Joker-Figuren zu losen
     function generateJokerFigures() {
         if (!gameConfig.figures || !gameConfig.figures.joker) return;
-
         const jokerPool = gameConfig.figures.joker;
-
         for (let i = 0; i < 3; i++) {
             let figureData = { ...getWeightedRandomFigure(jokerPool) };
             let figure = { ...figureData, form: parseShape(figureData.shape), category: 'joker' };
-
             const rotations = Math.floor(Math.random() * 4);
             for (let r = 0; r < rotations; r++) {
                 figure.form = rotateFigure90Degrees(figure.form);
@@ -376,11 +297,11 @@ document.addEventListener('DOMContentLoaded', () => {
             figuresInSlots[i] = figure;
             drawFigureInSlot(i);
         }
-
         if (isGameOver()) {
             handleGameOver();
         }
     }
+
     function getWeightedRandomFigure(pool) {
         const totalWeight = pool.reduce((sum, figure) => sum + (figure.probability || 1), 0);
         let random = Math.random() * totalWeight;
@@ -393,20 +314,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function generateNewFigures() {
         console.log("Aktuelle Zonk-Wahrscheinlichkeit:", currentZonkProbability.toFixed(4));
-
         const { jokerProbability } = gameConfig;
         let isPlaceableSet = false;
         let newFigures = [];
-
-        // Diese Schleife läuft so lange, bis ein platzierbares Set gefunden wurde
         do {
-            newFigures = []; // Set für jeden Versuch zurücksetzen
-
-
+            newFigures = [];
             for (let i = 0; i < 3; i++) {
                 let pool, category;
                 const rand = Math.random();
-
                 if (rand < currentZonkProbability) {
                     pool = gameConfig.figures.zonk;
                     category = 'zonk';
@@ -417,35 +332,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     pool = gameConfig.figures.normal;
                     category = 'normal';
                 }
-
                 let figureData = { ...getWeightedRandomFigure(pool) };
                 let figure = { ...figureData, form: parseShape(figureData.shape), category: category };
-
                 const rotations = Math.floor(Math.random() * 4);
                 for (let r = 0; r < rotations; r++) {
                     figure.form = rotateFigure90Degrees(figure.form);
                 }
                 newFigures.push(figure);
             }
-
-            // Prüfen, ob mindestens eine der drei neuen Figuren passt
             if (newFigures.some(fig => canFigureBePlacedAnywhere(fig))) {
                 isPlaceableSet = true;
             }
-
         } while (!isPlaceableSet);
-
-        // Das gültige Set in die Haupt-Slots übernehmen
         for (let i = 0; i < 3; i++) {
             figuresInSlots[i] = newFigures[i];
             drawFigureInSlot(i);
         }
-
-        // Zonk-Wahrscheinlichkeit für die nächste Runde erhöhen
         const increment = gameConfig.zonkProbabilityIncrementPerRound || 0;
         const max = gameConfig.zonkProbabilityMax || 1;
         currentZonkProbability = Math.min(currentZonkProbability + increment, max);
-
         drawGameBoard();
         if (isGameOver()) {
             handleGameOver();
@@ -486,27 +391,28 @@ document.addEventListener('DOMContentLoaded', () => {
     function canFigureBePlacedAnywhere(figure) {
         if (!figure) return false;
         let currentForm = figure.form;
-        for (let i = 0; i < 4; i++) { // Alle 4 Rotationen prüfen
+        for (let i = 0; i < 4; i++) {
             for (let y = 0; y <= GRID_SIZE - currentForm.length; y++) {
                 for (let x = 0; x <= GRID_SIZE - currentForm[0].length; x++) {
                     if (canPlace({ form: currentForm }, x, y)) {
-                        return true; // Sobald ein Platz gefunden wird, abbrechen und 'true' zurückgeben
+                        return true;
                     }
                 }
             }
             currentForm = rotateFigure90Degrees(currentForm);
         }
-        return false; // Kein Platz in keiner Rotation gefunden
+        return false;
     }
 
     function clearFullLines() {
         let rows = [], cols = [];
         for (let y = 0; y < GRID_SIZE; y++) if (gameBoard[y].every(cell => cell !== 0)) rows.push(y);
         for (let x = 0; x < GRID_SIZE; x++) if (gameBoard.every(row => row[x] !== 0)) cols.push(x);
-
-        // HAPTISCHES FEEDBACK: Beim Abräumen von Reihen
-        if ((rows.length > 0 || cols.length > 0) && navigator.vibrate) {
-            navigator.vibrate([100, 50, 100]); // Pulsierende Vibration
+        
+        // SOUND-EFFEKT: Beim Abräumen von Reihen
+        if (rows.length > 0 || cols.length > 0) {
+            plopSound.currentTime = 0;
+            plopSound.play().catch(e => {});
         }
 
         rows.forEach(y => gameBoard[y].fill(0));
@@ -515,22 +421,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleGameOver() {
+        overSound.currentTime = 0;
+        overSound.play().catch(e => {});
         gameBoardElement.classList.add('crumble');
-
         let isNewHighscore = score > highscore;
         if (isNewHighscore) {
             highscore = score;
             setCookie('highscore', highscore, 365);
         }
-
         setTimeout(() => {
             const allCells = gameBoardElement.querySelectorAll('.cell.occupied');
             allCells.forEach(cell => {
                 cell.className = 'cell';
             });
-
             gameBoardElement.classList.remove('crumble');
-
             if (isNewHighscore) {
                 highscoreElement.textContent = highscore;
                 highscoreElement.classList.add('pulsate');
@@ -538,7 +442,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 initializeGame();
             }
-
         }, 1600);
     }
 
@@ -560,11 +463,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         currentPreviewCells = [];
-
         const placeX = centerX - Math.floor(figure.form[0].length / 2);
         const placeY = centerY - Math.floor(figure.form.length / 2);
         const canBePlaced = canPlace(figure, placeX, placeY);
-
         figure.form.forEach((row, y) => {
             row.forEach((block, x) => {
                 if (block === 1) {
@@ -572,15 +473,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const boardX = placeX + x;
                     if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
                         const cell = gameBoardElement.children[boardY * GRID_SIZE + boardX];
-
                         cell.classList.add('preview');
-
                         if (canBePlaced) {
                             cell.classList.add(`color-${figure.category}`);
                         } else {
                             cell.classList.add('invalid');
                         }
-
                         currentPreviewCells.push(cell);
                     }
                 }
