@@ -2,38 +2,63 @@
    1. Farb- & Layout-Variablen
    ================================= */
 :root {
- /* HSL für Akzentfarbe */
---accent-h: 203; --accent-s: 53%; --accent-l: 61%;
+    /* HSL für Akzentfarbe */
+    --accent-h: 203;
+    --accent-s: 53%;
+    --accent-l: 61%;
 
-/* Finale Farbvariablen... */
---accent-color: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+    /* Finale Farbvariablen... */
+    --accent-color: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
 
     /* HSL-Komponenten für alle Farben (Basis ist das helle Design) */
-    --text-h: 15; --text-s: 32%; --text-l: 30%;
-    --border-h: 180; --border-s: 13%; --border-l: 59%;
-    --component-bg-h: 40; --component-bg-s: 58%; --component-bg-l: 91%;
-    --shadow-h: 180; --shadow-s: 58%; --shadow-l: 22%;
-    --footer-text-h: 15; --footer-text-s: 32%; --footer-l: 30%;
-    
-    --figure-normal-h: 186; --figure-normal-s: 44%; --figure-normal-l: 24%;
-    --figure-joker-h: 180; --figure-joker-s: 13%; --figure-joker-l: 49%;
-    --figure-zonk-h: 180; --figure-zonk-s: 61%; --figure-zonk-l: 15%;
+    --text-h: 15;
+    --text-s: 32%;
+    --text-l: 30%;
+    --border-h: 180;
+    --border-s: 13%;
+    --border-l: 59%;
+    --shadow-h: 180;
+    --shadow-s: 58%;
+    --shadow-l: 22%;
+    --footer-text-h: 15;
+    --footer-text-s: 32%;
+    --footer-l: 30%;
+
+    --figure-normal-h: 186;
+    --figure-normal-s: 44%;
+    --figure-normal-l: 24%;
+    --figure-joker-h: 180;
+    --figure-joker-s: 13%;
+    --figure-joker-l: 49%;
+    --figure-zonk-h: 180;
+    --figure-zonk-s: 61%;
+    --figure-zonk-l: 15%;
 
     /* HSL für Titel-Buchstaben */
-    --c-z1-h: 120; --c-z1-s: 8%; --c-z1-l: 89%;
-    --c-z2-h: 171; --c-z2-s: 10%; --c-z2-l: 60%;
-    --c-z3-h: 140; --c-z3-s: 11%; --c-z3-l: 87%;
-    --c-e-h: 158; --c-e-s: 5%; --c-e-l: 64%;
-    --c-n-h: 182; --c-n-s: 8%; --c-n-l: 56%;
+    --c-z1-h: 120;
+    --c-z1-s: 8%;
+    --c-z1-l: 89%;
+    --c-z2-h: 171;
+    --c-z2-s: 10%;
+    --c-z2-l: 60%;
+    --c-z3-h: 140;
+    --c-z3-s: 11%;
+    --c-z3-l: 87%;
+    --c-e-h: 158;
+    --c-e-s: 5%;
+    --c-e-l: 64%;
+    --c-n-h: 182;
+    --c-n-s: 8%;
+    --c-n-l: 56%;
 
     /* Finale Farbvariablen, die im gesamten Code verwendet werden */
     --text-color: hsl(var(--text-h), var(--text-s), var(--text-l));
     --border-color: hsl(var(--border-h), var(--border-s), var(--border-l));
-    --component-bg: hsl(var(--component-bg-h), var(--component-bg-s), var(--component-bg-l));
+    --component-bg: hsla(var(--component-bg-h), var(--component-bg-s), var(--component-bg-l), 0.6);
     --shadow-color: hsl(var(--shadow-h), var(--shadow-s), var(--shadow-l));
     --footer-bg: hsl(var(--component-bg-h), var(--component-bg-s), var(--component-bg-l));
     --footer-text: hsl(var(--footer-text-h), var(--footer-text-s), var(--footer-l));
-    
+
     --figure-color-normal: hsl(var(--figure-normal-h), var(--figure-normal-s), var(--figure-normal-l));
     --figure-color-joker: hsl(var(--figure-joker-h), var(--figure-joker-s), var(--figure-joker-l));
     --figure-color-zonk: hsl(var(--figure-zonk-h), var(--figure-zonk-s), var(--figure-zonk-l));
@@ -79,35 +104,36 @@ body::before {
     body {
         color: var(--text-color-dark);
     }
+
     body::before {
         filter: brightness(0.6);
     }
+
     .game-wrapper {
         background-color: var(--component-bg-dark);
-        border-color: #AED6F14D;
         box-shadow: 0 10px 30px var(--shadow-color-dark);
     }
-    #game-board { 
-        border-color: var(--border-color-dark); 
+
+    #game-board {
+        border-color: var(--border-color-dark);
     }
+
     .cell {
         border-right-color: var(--border-color-dark);
         border-bottom-color: var(--border-color-dark);
     }
+
     footer {
         background-color: var(--footer-bg-dark);
         border-top-color: var(--border-color-dark);
         color: var(--footer-text-dark);
     }
+
     footer a {
         color: var(--footer-text-dark);
     }
-    /* Titel-Farben für Dark Mode (optional, falls du sie anpassen willst) */
-    .c-z1 { background-color: #404540; } /* Beispiel für abgedunkelte Titelfarben */
-    .c-z2 { background-color: #4C5957; }
-    .c-z3 { background-color: #424A46; }
-    .c-e  { background-color: #515753; }
-    .c-n  { background-color: #495252; }
+
+ 
 }
 
 
@@ -127,10 +153,12 @@ body::before {
     width: 100%;
     background-color: var(--component-bg);
     border: 1px solid #FFFFFF80;
-    border-radius: 18px; /*xxx 24px*/
+    border-radius: 18px;
+    /*xxx 24px*/
     padding: 20px;
     box-sizing: border-box;
-    box-shadow: 0 10px 30px;  /*hier geändert*/
+    box-shadow: 0 10px 30px;
+    /*hier geändert*/
     backdrop-filter: blur(8px);
     touch-action: none;
     contain: content;
@@ -148,9 +176,7 @@ body::before {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    padding: 10px;
-    background-color: #FFFFFF1A;
-    border-radius: 12px;
+
 }
 
 footer {
@@ -191,13 +217,12 @@ footer a {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 10%; /* GEÄNDERT: Angepasst an die Spielsteine */
+    border-radius: 10%;
     color: #FFFFFF;
-    /* Die text-shadow und box-shadow Eigenschaften wurden entfernt */
 }
 
 .score-display {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 700;
     line-height: 1.1;
     color: var(--figure-color-joker);
@@ -216,19 +241,25 @@ footer a {
     width: 100%;
     aspect-ratio: 1 / 1;
     border: 2px solid var(--border-color);
-    border-radius: 4px; /*xxx 8px*/
+    border-radius: 4px;
+    /*xxx 8px*/
 }
 
 .cell {
-    position: relative; 
+    position: relative;
     border-right: 2px solid var(--border-color);
     border-bottom: 2px solid var(--border-color);
     box-sizing: border-box;
     transition: background-color 0.1s ease;
 }
 
-.cell:nth-child(9n) { border-right: none; }
-.cell:nth-last-child(-n+9) { border-bottom: none; }
+.cell:nth-child(9n) {
+    border-right: none;
+}
+
+.cell:nth-last-child(-n+9) {
+    border-bottom: none;
+}
 
 .cell.occupied {
     z-index: 1;
@@ -309,23 +340,61 @@ footer a {
 /* =================================
    5. Farb- & Hilfsklassen
    ================================= */
-.c-z1 { background-color: var(--figure-color-normal); }
-.c-z2 { background-color: var(--figure-color-normal); }
-.c-z3 { background-color: var(--figure-color-normal); }
-.c-e  { background-color: var(--figure-color-zonk); }
-.c-n  { background-color: var(--figure-color-joker); }
+.c-z1 {
+    background-color: var(--figure-color-normal);
+}
 
-.figure-block.color-normal { background-color: var(--figure-color-normal); }
-.figure-block.color-joker  { background-color: var(--figure-color-joker); }
-.figure-block.color-zonk   { background-color: var(--figure-color-zonk); }
+.c-z2 {
+    background-color: var(--figure-color-normal);
+}
 
-.cell.occupied.color-normal::before { background-color: var(--figure-color-normal); }
-.cell.occupied.color-joker::before  { background-color: var(--figure-color-joker); }
-.cell.occupied.color-zonk::before   { background-color: var(--figure-color-zonk); }
+.c-z3 {
+    background-color: var(--figure-color-normal);
+}
 
-.cell.preview.color-normal::before { background-color: var(--figure-color-normal); }
-.cell.preview.color-joker::before { background-color: var(--figure-color-joker); }
-.cell.preview.color-zonk::before { background-color: var(--figure-color-zonk); }
+.c-e {
+    background-color: var(--figure-color-zonk);
+}
+
+.c-n {
+    background-color: var(--figure-color-joker);
+}
+
+.figure-block.color-normal {
+    background-color: var(--figure-color-normal);
+}
+
+.figure-block.color-joker {
+    background-color: var(--figure-color-joker);
+}
+
+.figure-block.color-zonk {
+    background-color: var(--figure-color-zonk);
+}
+
+.cell.occupied.color-normal::before {
+    background-color: var(--figure-color-normal);
+}
+
+.cell.occupied.color-joker::before {
+    background-color: var(--figure-color-joker);
+}
+
+.cell.occupied.color-zonk::before {
+    background-color: var(--figure-color-zonk);
+}
+
+.cell.preview.color-normal::before {
+    background-color: var(--figure-color-normal);
+}
+
+.cell.preview.color-joker::before {
+    background-color: var(--figure-color-joker);
+}
+
+.cell.preview.color-zonk::before {
+    background-color: var(--figure-color-zonk);
+}
 
 .cell.preview.invalid::before {
     background-color: #FF4D4DE6 !important;
@@ -338,40 +407,64 @@ footer a {
     animation: pulsate 0.6s 3;
 }
 
-#game-board.crumble .cell.occupied::before { 
-    animation: crumble 1.5s ease-in forwards; 
-    animation-delay: calc(var(--delay, 0) * 1s); 
+#game-board.crumble .cell.occupied::before {
+    animation: crumble 1.5s ease-in forwards;
+    animation-delay: calc(var(--delay, 0) * 1s);
 }
 
-.score-animation { 
-    position: absolute; 
-    font-size: 2.5em; 
-    font-family: 'Arial Black', Gadget, sans-serif; 
-    font-weight: bold; 
-    color: var(--accent-color); 
-    text-shadow: 0 0 10px #FFFFFF; 
-    opacity: 0; 
-    pointer-events: none; 
-    z-index: 100; 
+.score-animation {
+    position: absolute;
+    font-size: 2.5em;
+    font-family: 'Arial Black', Gadget, sans-serif;
+    font-weight: bold;
+    color: var(--accent-color);
+    text-shadow: 0 0 10px #FFFFFF;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 100;
 }
 
-.score-animation.animate { 
-    animation: scoreExplosion 1.2s ease-out forwards; 
+.score-animation.animate {
+    animation: scoreExplosion 1.2s ease-out forwards;
 }
 
-@keyframes crumble { 
-    from { transform: scale(1) rotate(0deg); opacity: 1; } 
-    to { transform: scale(8) rotate(180deg); opacity: 0; visibility: hidden; } 
+@keyframes crumble {
+    from {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+
+    to {
+        transform: scale(8) rotate(180deg);
+        opacity: 0;
+        visibility: hidden;
+    }
 }
 
 @keyframes pulsate {
-    0%, 100% { transform: scale(1); color: #0FF15A; }
-    50% { transform: scale(1.25); color: #0CB043; }
+
+    0%,
+    100% {
+        transform: scale(1);
+        color: #0FF15A;
+    }
+
+    50% {
+        transform: scale(1.25);
+        color: #0CB043;
+    }
 }
 
-@keyframes scoreExplosion { 
-    0% { transform: translateY(0) scale(0.5); opacity: 1; } 
-    100% { transform: translateY(-80px) scale(1.5); opacity: 0; } 
+@keyframes scoreExplosion {
+    0% {
+        transform: translateY(0) scale(0.5);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-80px) scale(1.5);
+        opacity: 0;
+    }
 }
 
 
