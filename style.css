@@ -115,7 +115,7 @@ body::before {
     width: 100%;
     background-color: var(--component-bg);
     border: 1px solid #FFFFFF80;
-    border-radius: 24px;
+    border-radius: 10%; /* GEÄNDERT von 24px */
     padding: 20px;
     box-sizing: border-box;
     box-shadow: 0 10px 30px var(--shadow-color);
@@ -205,7 +205,7 @@ footer a {
     width: 100%;
     aspect-ratio: 1 / 1;
     border: 2px solid var(--border-color);
-    border-radius: 10%; /* KORREKTUR: Angepasst an die Spielsteine */
+    border-radius: 10%; /* GEÄNDERT von 8px */
 }
 
 .cell {
