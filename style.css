@@ -1,8 +1,8 @@
 /* =================================
-   1. Variablen & Grund-Setup
+   1. Farb- & Layout-Variablen
    ================================= */
 :root {
-    /* Akzentfarbe */
+    /* Akzentfarbe (bleibt in beiden Modi gleich) */
     --accent-color: #66a5d0;
 
     /* HSL-Komponenten für alle Farben (Basis ist das helle Design) */
@@ -16,7 +16,7 @@
     --figure-joker-h: 180; --figure-joker-s: 13%; --figure-joker-l: 49%;
     --figure-zonk-h: 180; --figure-zonk-s: 61%; --figure-zonk-l: 15%;
 
-    /* Finale Farbvariablen, die im Code verwendet werden */
+    /* Finale Farbvariablen, die im gesamten Code verwendet werden */
     --text-color: hsl(var(--text-h), var(--text-s), var(--text-l));
     --border-color: hsl(var(--border-h), var(--border-s), var(--border-l));
     --component-bg: hsl(var(--component-bg-h), var(--component-bg-s), var(--component-bg-l));
@@ -29,6 +29,9 @@
     --figure-color-zonk: hsl(var(--figure-zonk-h), var(--figure-zonk-s), var(--figure-zonk-l));
 }
 
+/* =================================
+   2. Grund-Setup & Dark Mode
+   ================================= */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     margin: 0;
@@ -56,8 +59,28 @@ body::before {
     z-index: -1;
 }
 
+@media (prefers-color-scheme: dark) {
+    body::before {
+        filter: brightness(0.6);
+    }
+
+    :root {
+        /* Hier wird NUR NOCH die Helligkeit aller Farben angepasst */
+        --text-l: 88%;
+        --border-l: 35%;
+        --component-bg-l: 15%;
+        --shadow-h: 0; --shadow-s: 0%; --shadow-l: 10%; /* Dunklerer Schatten */
+        --footer-text-l: 68%;
+        
+        --figure-normal-l: 18%;
+        --figure-joker-l: 40%;
+        --figure-zonk-l: 12%;
+    }
+}
+
+
 /* =================================
-   2. Layout-Container
+   3. Layout-Container
    ================================= */
 .main-container {
     width: 100%;
@@ -118,9 +141,8 @@ footer a {
     color: var(--footer-text);
 }
 
-
 /* =================================
-   3. Spiel-Elemente & Zustände
+   4. Spiel-Elemente & Zustände
    ================================= */
 .block-title {
     display: flex;
@@ -163,7 +185,7 @@ footer a {
     width: 100%;
     aspect-ratio: 1 / 1;
     border: 2px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 10%;
 }
 
 .cell {
@@ -234,21 +256,21 @@ footer a {
 .figure-container {
     display: grid;
     pointer-events: none;
-    transform: scale(1.3);
+    transform: scale(1.0);
 }
 
 .figure-block {
     width: var(--figure-block-size, 8px);
     height: var(--figure-block-size, 8px);
     box-sizing: border-box;
-    border-radius: 20%;
+    border-radius: 10%;
     transform: scale(0.95);
     border-top: 1px solid #FFFFFFB3;
     border-left: 1px solid #FFFFFF99;
 }
 
 /* =================================
-   4. Farb- & Hilfsklassen
+   5. Farb- & Hilfsklassen
    ================================= */
 .c-z1 { background-color: #D0D7D0; }
 .c-z2 { background-color: #8DA6A2; }
@@ -271,40 +293,6 @@ footer a {
 .cell.preview.invalid::before {
     background-color: #FF4D4DE6 !important;
 }
-
-
-/* =================================
-   5. Dark Mode per HSL
-   ================================= */
-@media (prefers-color-scheme: dark) {
-    body::before {
-        filter: brightness(0.6);
-    }
-
-    :root {
-        /* Helligkeits-Werte für den Dark Mode überschreiben */
-        --text-l: 88%;
-        --border-l: 35%;
-        --component-bg-l: 15%;
-        --shadow-h: 0; --shadow-s: 0%; --shadow-l: 0%;
-        --footer-text-l: 68%;
-        
-        --figure-normal-l: 18%;
-        --figure-joker-l: 40%;
-        --figure-zonk-l: 12%;
-
-        /* Spezifische Anpassungen für Dark Mode */
-        --game-wrapper-border-color: #AED6F14D;
-        --game-wrapper-shadow-color: var(--shadow-color-dark);
-    }
-
-    /* Überschreibt die Border-Color, die nicht direkt an eine HSL-Variable gebunden ist */
-    .game-wrapper {
-        border-color: var(--game-wrapper-border-color);
-        box-shadow: 0 10px 30px var(--game-wrapper-shadow-color);
-    }
-}
-
 
 /* =================================
    6. Animationen & Effekte
