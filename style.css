@@ -2,7 +2,7 @@
    1. Farb- & Layout-Variablen
    ================================= */
 :root {
-    /* Akzentfarbe (bleibt in beiden Modi gleich) */
+    /* Akzentfarbe */
     --accent-color: #66a5d0;
 
     /* HSL-Komponenten für alle Farben (Basis ist das helle Design) */
@@ -16,6 +16,13 @@
     --figure-joker-h: 180; --figure-joker-s: 13%; --figure-joker-l: 49%;
     --figure-zonk-h: 180; --figure-zonk-s: 61%; --figure-zonk-l: 15%;
 
+    /* HSL für Titel-Buchstaben */
+    --c-z1-h: 120; --c-z1-s: 8%; --c-z1-l: 89%;
+    --c-z2-h: 171; --c-z2-s: 10%; --c-z2-l: 60%;
+    --c-z3-h: 140; --c-z3-s: 11%; --c-z3-l: 87%;
+    --c-e-h: 158; --c-e-s: 5%; --c-e-l: 64%;
+    --c-n-h: 182; --c-n-s: 8%; --c-n-l: 56%;
+
     /* Finale Farbvariablen, die im gesamten Code verwendet werden */
     --text-color: hsl(var(--text-h), var(--text-s), var(--text-l));
     --border-color: hsl(var(--border-h), var(--border-s), var(--border-l));
@@ -27,6 +34,12 @@
     --figure-color-normal: hsl(var(--figure-normal-h), var(--figure-normal-s), var(--figure-normal-l));
     --figure-color-joker: hsl(var(--figure-joker-h), var(--figure-joker-s), var(--figure-joker-l));
     --figure-color-zonk: hsl(var(--figure-zonk-h), var(--figure-zonk-s), var(--figure-zonk-l));
+
+    --c-z1-bg: hsl(var(--c-z1-h), var(--c-z1-s), var(--c-z1-l));
+    --c-z2-bg: hsl(var(--c-z2-h), var(--c-z2-s), var(--c-z2-l));
+    --c-z3-bg: hsl(var(--c-z3-h), var(--c-z3-s), var(--c-z3-l));
+    --c-e-bg: hsl(var(--c-e-h), var(--c-e-s), var(--c-e-l));
+    --c-n-bg: hsl(var(--c-n-h), var(--c-n-s), var(--c-n-l));
 }
 
 /* =================================
@@ -69,12 +82,19 @@ body::before {
         --text-l: 88%;
         --border-l: 35%;
         --component-bg-l: 15%;
-        --shadow-h: 0; --shadow-s: 0%; --shadow-l: 10%; /* Dunklerer Schatten */
+        --shadow-h: 0; --shadow-s: 0%; --shadow-l: 10%;
         --footer-text-l: 68%;
         
         --figure-normal-l: 18%;
         --figure-joker-l: 40%;
         --figure-zonk-l: 12%;
+
+        /* Helligkeit für Titel-Buchstaben anpassen */
+        --c-z1-l: 25%;
+        --c-z2-l: 30%;
+        --c-z3-l: 28%;
+        --c-e-l: 32%;
+        --c-n-l: 28%;
     }
 }
 
@@ -185,7 +205,7 @@ footer a {
     width: 100%;
     aspect-ratio: 1 / 1;
     border: 2px solid var(--border-color);
-    border-radius: 10%;
+    border-radius: 10%; /* KORREKTUR: Angepasst an die Spielsteine */
 }
 
 .cell {
@@ -272,11 +292,11 @@ footer a {
 /* =================================
    5. Farb- & Hilfsklassen
    ================================= */
-.c-z1 { background-color: #D0D7D0; }
-.c-z2 { background-color: #8DA6A2; }
-.c-z3 { background-color: #C7D2CC; }
-.c-e  { background-color: #9CA79F; color: #5499c7; }
-.c-n  { background-color: #85999A; }
+.c-z1 { background-color: var(--c-z1-bg); }
+.c-z2 { background-color: var(--c-z2-bg); }
+.c-z3 { background-color: var(--c-z3-bg); }
+.c-e  { background-color: var(--c-e-bg); color: #5499c7; }
+.c-n  { background-color: var(--c-n-bg); }
 
 .figure-block.color-normal { background-color: var(--figure-color-normal); }
 .figure-block.color-joker  { background-color: var(--figure-color-joker); }
