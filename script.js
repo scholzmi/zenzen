@@ -129,12 +129,6 @@ function handleDragStart(event, targetSlot) {
     const slotIndex = parseInt(targetSlot.dataset.slotId, 10);
     if (!figuresInSlots[slotIndex]) return;
 
-    // === TEST-VIBRATION: Ein kräftiger Impuls beim Anheben ===
-    if (navigator.vibrate) {
-        navigator.vibrate(200); // Ein langer, spürbarer Impuls zum Testen
-    }
-    // ======================================================
-
     isDragging = true;
 
     selectedSlotIndex = slotIndex;
