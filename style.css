@@ -2,8 +2,11 @@
    1. Farb- & Layout-Variablen
    ================================= */
 :root {
-    /* Akzentfarbe */
-    --accent-color: #66a5d0;
+ /* HSL für Akzentfarbe */
+--accent-h: 203; --accent-s: 53%; --accent-l: 61%;
+
+/* Finale Farbvariablen... */
+--accent-color: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
 
     /* HSL-Komponenten für alle Farben (Basis ist das helle Design) */
     --text-h: 15; --text-s: 32%; --text-l: 30%;
@@ -197,8 +200,8 @@ footer a {
     font-size: 24px;
     font-weight: 700;
     line-height: 1.1;
-    color: #FFFFFF;
-    text-shadow: 0 1px 3px #00000066;
+    color: var(--figure-color-joker);
+    text-shadow: 0 2px 4px #000000c5;
 }
 
 #game-board-wrapper {
