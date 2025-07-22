@@ -1,7 +1,10 @@
+/* =================================
+   1. Variablen & Grund-Setup
+   ================================= */
 :root {
-
     --accent-color: #66a5d0;
     
+    /* Helles Design */
     --text-color-light: #5D4037;
     --border-color-light: #86A6A6;
     --component-bg-light: #F2EBDC;
@@ -9,6 +12,7 @@
     --footer-bg-light: #F2EBDC;
     --footer-text-light: #4E342E;
 
+    /* Dunkles Design */
     --text-color-dark: #EAE0D1;
     --border-color-dark: #4A6464;
     --component-bg-dark: #2A2422;
@@ -16,6 +20,7 @@
     --footer-bg-dark: #25201e;
     --footer-text-dark: #B8AF9E;
 
+    /* Spielfiguren Farben */
     --figure-color-normal: #225459;
     --figure-color-joker: #6D8C8C;
     --figure-color-zonk: #0E4040;
@@ -26,7 +31,7 @@ body {
     margin: 0;
     box-sizing: border-box;
     display: flex;
-    justify-content: flex-start; /* GEÄNDERT: Richtet den Inhalt oben aus */
+    justify-content: flex-start;
     align-items: center;
     flex-direction: column;
     min-height: 100vh;
@@ -48,23 +53,16 @@ body::before {
     z-index: -1;
 }
 
-@media (prefers-color-scheme: dark) {
-    body {
-        color: var(--text-color-dark);
-    }
-    
-    body::before {
-        filter: brightness(0.6);
-    }
-}
-
+/* =================================
+   2. Layout-Container
+   ================================= */
 .main-container {
     width: 100%;
     max-width: 400px;
     display: flex;
     flex-direction: column;
     gap: 25px;
-    margin: 3vh 20px 0 20px; /* NEU: 5% Abstand oben, 20px seitlich, 0 unten */
+    margin: 3vh 20px 0 20px;
 }
 
 .game-wrapper {
@@ -78,14 +76,6 @@ body::before {
     backdrop-filter: blur(8px);
     touch-action: none;
     contain: content;
-}
-
-@media (prefers-color-scheme: dark) {
-    .game-wrapper {
-        background-color: var(--component-bg-dark);
-        border-color: #AED6F14D;
-        box-shadow: 0 10px 30px var(--shadow-color-dark);
-    }
 }
 
 .header {
@@ -104,24 +94,6 @@ body::before {
     margin: 0;
 }
 
-.block-title span {
-    width: 35px;
-    height: 35px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    color: #FFFFFF;
-    text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px var(--accent-color), 0 0 20px var(--accent-color);
-    box-shadow: inset 0 1px 3px #FFFFFF99, 0 2px 4px #0000004D;
-}
-
-.c-z1 { background-color: #D0D7D0; }
-.c-z2 { background-color: #8DA6A2; }
-.c-z3 { background-color: #C7D2CC; }
-.c-e  { background-color: #9CA79F; color: #5499c7; }
-.c-n  { background-color: #85999A; }
-
 .score-container {
     display: flex;
     justify-content: space-between;
@@ -130,18 +102,6 @@ body::before {
     padding: 10px;
     background-color: #FFFFFF1A;
     border-radius: 12px;
-}
-
-.score-display {
-    font-size: 24px;
-    font-weight: 700;
-    line-height: 1.1;
-    color: #FFFFFF;
-    text-shadow: 0 1px 3px #00000066;
-}
-
-#highscore.pulsate {
-    animation: pulsate 0.6s 3;
 }
 
 #game-board-wrapper {
@@ -159,10 +119,25 @@ body::before {
     border-radius: 8px;
 }
 
-@media (prefers-color-scheme: dark) {
-    #game-board { border-color: var(--border-color-dark); }
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 12px;
+    box-sizing: border-box;
+    background-color: var(--footer-bg-light);
+    backdrop-filter: blur(5px);
+    border-top: 1px solid var(--border-color-light);
+    text-align: center;
+    font-size: 10px;
+    color: var(--footer-text-light);
+    z-index: 1000;
 }
 
+/* =================================
+   3. Spiel-Elemente & Zustände
+   ================================= */
 .cell {
     position: relative; 
     border-right: 2px solid var(--border-color-light);
@@ -173,13 +148,6 @@ body::before {
 
 .cell:nth-child(9n) { border-right: none; }
 .cell:nth-last-child(-n+9) { border-bottom: none; }
-
-@media (prefers-color-scheme: dark) {
-    .cell {
-        border-right-color: var(--border-color-dark);
-        border-bottom-color: var(--border-color-dark);
-    }
-}
 
 .cell.occupied {
     z-index: 1;
@@ -196,6 +164,22 @@ body::before {
     border-radius: 10%;
     border: 1px solid #FFFFFF66;
     box-shadow: inset 0 0 5px #FFFFFF4D;
+    transform: translate(-50%, -50%) scale(0.90);
+}
+
+.cell.preview {
+    z-index: 10;
+}
+
+.cell.preview::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    border-radius: 10%;
+    opacity: 0.8;
     transform: translate(-50%, -50%) scale(0.90);
 }
 
@@ -235,6 +219,35 @@ body::before {
     border-left: 1px solid #FFFFFF99;
 }
 
+.score-display {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: #FFFFFF;
+    text-shadow: 0 1px 3px #00000066;
+}
+
+.block-title span {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    color: #FFFFFF;
+    text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px var(--accent-color), 0 0 20px var(--accent-color);
+    box-shadow: inset 0 1px 3px #FFFFFF99, 0 2px 4px #0000004D;
+}
+
+/* =================================
+   4. Farb-Definitionen
+   ================================= */
+.c-z1 { background-color: #D0D7D0; }
+.c-z2 { background-color: #8DA6A2; }
+.c-z3 { background-color: #C7D2CC; }
+.c-e  { background-color: #9CA79F; color: #5499c7; }
+.c-n  { background-color: #85999A; }
+
 .figure-block.color-normal { background-color: var(--figure-color-normal); }
 .figure-block.color-joker  { background-color: var(--figure-color-joker); }
 .figure-block.color-zonk   { background-color: var(--figure-color-zonk); }
@@ -243,23 +256,36 @@ body::before {
 .cell.occupied.color-joker::before  { background-color: var(--figure-color-joker); }
 .cell.occupied.color-zonk::before   { background-color: var(--figure-color-zonk); }
 
-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 12px;
-    box-sizing: border-box;
-    background-color: var(--footer-bg-light);
-    backdrop-filter: blur(5px);
-    border-top: 1px solid var(--border-color-light);
-    text-align: center;
-    font-size: 10px;
-    color: var(--footer-text-light);
-    z-index: 1000;
+.cell.preview.color-normal::before { background-color: var(--figure-color-normal); }
+.cell.preview.color-joker::before { background-color: var(--figure-color-joker); }
+.cell.preview.color-zonk::before { background-color: var(--figure-color-zonk); }
+
+.cell.preview.invalid::before {
+    background-color: #FF4D4DE6 !important;
 }
 
+/* =================================
+   5. Dark Mode Anpassungen
+   ================================= */
 @media (prefers-color-scheme: dark) {
+    body {
+        color: var(--text-color-dark);
+    }
+    body::before {
+        filter: brightness(0.6);
+    }
+    .game-wrapper {
+        background-color: var(--component-bg-dark);
+        border-color: #AED6F14D;
+        box-shadow: 0 10px 30px var(--shadow-color-dark);
+    }
+    #game-board { 
+        border-color: var(--border-color-dark); 
+    }
+    .cell {
+        border-right-color: var(--border-color-dark);
+        border-bottom-color: var(--border-color-dark);
+    }
     footer {
         background-color: var(--footer-bg-dark);
         border-top-color: var(--border-color-dark);
@@ -270,28 +296,32 @@ footer {
     }
 }
 
-.cell.preview {
-    z-index: 10;
+/* =================================
+   6. Animationen & Effekte
+   ================================= */
+#highscore.pulsate {
+    animation: pulsate 0.6s 3;
 }
 
-.cell.preview::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100%;
-    height: 100%;
-    border-radius: 10%;
-    opacity: 0.8;
-    transform: translate(-50%, -50%) scale(0.90);
+.score-animation { 
+    position: absolute; 
+    font-size: 2.5em; 
+    font-family: 'Arial Black', Gadget, sans-serif; 
+    font-weight: bold; 
+    color: var(--accent-color); 
+    text-shadow: 0 0 10px #FFFFFF; 
+    opacity: 0; 
+    pointer-events: none; 
+    z-index: 100; 
 }
 
-.cell.preview.color-normal::before { background-color: var(--figure-color-normal); }
-.cell.preview.color-joker::before { background-color: var(--figure-color-joker); }
-.cell.preview.color-zonk::before { background-color: var(--figure-color-zonk); }
+.score-animation.animate { 
+    animation: scoreExplosion 1.2s ease-out forwards; 
+}
 
-.cell.preview.invalid::before {
-    background-color: #FF4D4DE6 !important;
+#game-board.crumble .cell.occupied::before { 
+    animation: crumble 1.5s ease-in forwards; 
+    animation-delay: calc(var(--delay, 0) * 1s); 
 }
 
 @keyframes crumble { 
@@ -309,27 +339,6 @@ footer {
 @keyframes pulsate {
     0%, 100% { transform: scale(1); color: #0FF15A; }
     50% { transform: scale(1.25); color: #0CB043; }
-}
-
-#game-board.crumble .cell.occupied::before { 
-    animation: crumble 1.5s ease-in forwards; 
-    animation-delay: calc(var(--delay, 0) * 1s); 
-}
-
-.score-animation { 
-    position: absolute; 
-    font-size: 2.5em; 
-    font-family: 'Arial Black', Gadget, sans-serif; 
-    font-weight: bold; 
-    color: var(--accent-color); 
-    text-shadow: 0 0 10px #FFFFFF; 
-    opacity: 0; 
-    pointer-events: none; 
-    z-index: 100; 
-}
-
-.score-animation.animate { 
-    animation: scoreExplosion 1.2s ease-out forwards; 
 }
 
 @keyframes scoreExplosion { 
