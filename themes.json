@@ -1,0 +1,116 @@
+{
+  "themes": {
+    "0": {
+      "description": "Clear sky",
+      "background": "bilder/sommer.png"
+    },
+    "1": {
+      "description": "Mainly clear",
+      "background": "bilder/sommer.png"
+    },
+    "2": {
+      "description": "Partly cloudy",
+      "background": "bilder/cloudy.png"
+    },
+    "3": {
+      "description": "Overcast",
+      "background": "bilder/cloudy.png"
+    },
+    "45": {
+      "description": "Fog",
+      "background": "bilder/fog.png"
+    },
+    "48": {
+      "description": "Depositing rime fog",
+      "background": "bilder/fog.png"
+    },
+    "51": {
+      "description": "Drizzle: Light",
+      "background": "bilder/lightrain.png"
+    },
+    "53": {
+      "description": "Drizzle: Moderate",
+      "background": "bilder/lightrain.png"
+    },
+    "55": {
+      "description": "Drizzle: Dense intensity",
+      "background": "bilder/lightrain.png"
+    },
+    "56": {
+      "description": "Freezing Drizzle: Light intensity",
+      "background": "bilder/freeze_drizzle.png"
+    },
+    "57": {
+      "description": "Freezing Drizzle: Dense intensity",
+      "background": "bilder/freeze_drizzle.png"
+    },
+    "61": {
+      "description": "Rain: Slight intensity",
+      "background": "bilder/lightrain.png"
+    },
+    "63": {
+      "description": "Rain: Moderate intensity",
+      "background": "bilder/hardrain.png"
+    },
+    "65": {
+      "description": "Rain: Heavy intensity",
+      "background": "bilder/hardrain.png"
+    },
+    "66": {
+      "description": "Freezing Rain: Light intensity",
+      "background": "bilder/freeze_rain.png"
+    },
+    "67": {
+      "description": "Freezing Rain: Heavy intensity",
+      "background": "bilder/freeze_rain.png"
+    },
+    "71": {
+      "description": "Snow fall: Slight intensity",
+      "background": "bilder/winter.png"
+    },
+    "73": {
+      "description": "Snow fall: Moderate intensity",
+      "background": "bilder/winter.png"
+    },
+    "75": {
+      "description": "Snow fall: Heavy intensity",
+      "background": "bilder/winter.png"
+    },
+    "77": {
+      "description": "Snow grains",
+      "background": "bilder/winter.png"
+    },
+    "80": {
+      "description": "Rain showers: Slight",
+      "background": "bilder/lightrain.png"
+    },
+    "81": {
+      "description": "Rain showers: Moderate",
+      "background": "bilder/hardrain.png"
+    },
+    "82": {
+      "description": "Rain showers: Violent",
+      "background": "bilder/hardrain.png"
+    },
+    "85": {
+      "description": "Snow showers: Slight",
+      "background": "bilder/winter.png"
+    },
+    "86": {
+      "description": "Snow showers: Heavy",
+      "background": "bilder/winter.png"
+    },
+    "95": {
+      "description": "Thunderstorm: Slight or moderate",
+      "background": "bilder/thunderstorm.png"
+    },
+    "96": {
+      "description": "Thunderstorm with slight hail",
+      "background": "bilder/thunderstorm.png"
+    },
+    "99": {
+      "description": "Thunderstorm with heavy hail",
+      "background": "bilder/thunderstorm.png"
+    }
+  }
+}

@@ -88,6 +88,7 @@ body {
     position: relative;
 }
 
+/* NACHHER */
 body::before {
     content: '';
     position: fixed;
@@ -95,9 +96,12 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background: url('bg.png');
+    /* NEU: Wir nutzen eine CSS-Variable mit 'bg.png' als Fallback */
+    background-image: var(--background-image, url('bg.png'));
+    background-size: cover;
     opacity: 0.8;
     z-index: -1;
+    transition: background-image 0.5s ease-in-out; /* Optional: schöner Übergang */
 }
 
 @media (prefers-color-scheme: dark) {

@@ -32,17 +32,111 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPreviewCells = [];
     let currentZonkProbability = 0;
     let lastSoundCell = { x: -1, y: -1 };
-    let isSoundOn = true; // Der zentrale Schalter für den Sound
+    let isSoundOn = true;
+    let themes = {};
 
-    // --- (Funktionen bleiben größtenteils unverändert) ---
-    
+    // =======================================================
+    // THEME- UND WETTER-FUNKTIONEN
+    // =======================================================
+
+    /**
+     * Lädt die Konfiguration für die Wetter-Themes aus der themes.json Datei.
+     */
+    async function loadThemes() {
+        try {
+            const response = await fetch('themes.json?v=' + new Date().getTime());
+            if (!response.ok) throw new Error('themes.json konnte nicht geladen werden.');
+            const data = await response.json();
+            themes = data.themes;
+            console.log('Themes erfolgreich geladen:', themes);
+        } catch (error) {
+            console.error('Fehler beim Laden der Themes:', error);
+        }
+    }
+
+    function setBackgroundImage(imageUrl) {
+        const fallbackUrl = 'bg.png';
+        const finalImageUrl = imageUrl || fallbackUrl;
+
+        const img = new Image();
+        img.src = finalImageUrl;
+
+        // Wird ausgeführt, WENN das Bild erfolgreich geladen wurde
+        img.onload = () => {
+            console.log(`Hintergrund erfolgreich geladen: ${finalImageUrl}`);
+            document.body.style.setProperty('--background-image', `url('${finalImageUrl}')`);
+            updateThemeFromImage(finalImageUrl);
+        };
+
+        // Wird ausgeführt, WENN das Bild NICHT gefunden wurde (404-Fehler)
+        img.onerror = () => {
+            console.warn(`Hintergrund '${finalImageUrl}' nicht gefunden. Lade Fallback: ${fallbackUrl}`);
+            document.body.style.setProperty('--background-image', `url('${fallbackUrl}')`);
+            updateThemeFromImage(fallbackUrl);
+        };
+    }
+
+    function findAndApplyTheme(weatherCode) {
+        let imageUrl = null; // Starten mit keinem Bild
+
+        if (themes && themes[weatherCode]) {
+            const theme = themes[weatherCode];
+            imageUrl = theme.background;
+            console.log(`Wetter-Code ${weatherCode} gefunden! Versuche, Hintergrund zu laden: ${imageUrl}`);
+        } else {
+            console.log(`Kein Theme für Wetter-Code ${weatherCode} gefunden. Nutze Fallback.`);
+        }
+
+        // Ruft die neue, sichere Funktion auf
+        setBackgroundImage(imageUrl);
+    }
+
+    /**
+     * Ermittelt den Standort, ruft das Wetter ab und wendet das passende Theme an.
+     */
+    function getCurrentWeather() {
+        if (!navigator.geolocation) {
+            console.error("Geolocation wird von diesem Browser nicht unterstützt.");
+            findAndApplyTheme(null); // Fallback nutzen, wenn Geo nicht geht
+            return;
+        }
+
+        const successCallback = async (position) => {
+            const { latitude, longitude } = position.coords;
+            console.log(`Standort ermittelt: Lat ${latitude}, Lon ${longitude}`);
+            const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=weather_code`;
+
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error(`API-Antwort war nicht ok: ${response.status}`);
+                const data = await response.json();
+                const weatherCode = data.current.weather_code;
+                console.log(`Aktueller Wetter-Code: ${weatherCode}`);
+                findAndApplyTheme(weatherCode);
+            } catch (error) {
+                console.error("Fehler beim Abrufen der Wetterdaten:", error);
+                findAndApplyTheme(null); // Fallback bei API-Fehler
+            }
+        };
+
+        const errorCallback = (error) => {
+            console.error(`Fehler bei der Standortermittlung: ${error.message}`);
+            findAndApplyTheme(null); // Fallback bei Geo-Fehler
+        };
+
+        navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+    }
+
+    // =======================================================
+    // SPIEL-INITIALISIERUNG UND RESTLICHE LOGIK
+    // =======================================================
+
     async function initializeGame() {
         // Sound-Zustand aus Cookie laden
         const savedSoundState = getCookie('isSoundOn');
         if (savedSoundState !== null) {
             isSoundOn = (savedSoundState === 'true');
         }
-        // Button-Zustand initial setzen
         if (soundToggleButton) {
             soundToggleButton.textContent = isSoundOn ? '🔊' : '🔈';
             soundToggleButton.style.opacity = isSoundOn ? '0.7' : '0.3';
@@ -56,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.body.innerHTML = "<h1>Fehler</h1><p>config.json ...</p>";
                 return;
             }
-            updateThemeFromImage('bg.png');
+            // HINWEIS: updateThemeFromImage('bg.png') wurde entfernt, da es jetzt von der Wetter-Logik gesteuert wird.
         }
         currentZonkProbability = gameConfig.zonkProbability || 0;
         const serverVersion = gameConfig.gameVersion || "1.0";
@@ -72,6 +166,9 @@ document.addEventListener('DOMContentLoaded', () => {
         createGameBoard();
         generateNewFigures();
     }
+
+    // ... (Hier folgen alle anderen Funktionen wie loadConfiguration, createGameBoard, handleDragStart, placeFigure etc. unverändert) ...
+    // Ich füge sie hier der Vollständigkeit halber ein.
 
     async function loadConfiguration() {
         try {
@@ -123,11 +220,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
     }
 
-   function updateThemeFromImage(imageUrl) {
+    function updateThemeFromImage(imageUrl) {
         const img = new Image();
         img.crossOrigin = "Anonymous";
         img.src = imageUrl;
-        img.onload = function() {
+        img.onload = function () {
             const colorThief = new ColorThief();
             let palette = colorThief.getPalette(img, 8);
             function getColorBrightness(rgb) {
@@ -218,17 +315,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
         const cellX = Math.round(xPos / boardRect.width * GRID_SIZE);
         const cellY = Math.round(yPos / boardRect.height * GRID_SIZE);
-        
+
         if (isSoundOn && (cellX !== lastSoundCell.x || cellY !== lastSoundCell.y)) {
             clickSound.currentTime = 0;
-            clickSound.play().catch(e => {});
+            clickSound.play().catch(e => { });
             lastSoundCell.x = cellX;
             lastSoundCell.y = cellY;
         }
         drawPreview(selectedFigure, cellX, cellY);
         isMoveScheduled = false;
     }
-    
+
     function handleInteractionMove(event) {
         lastEvent = event;
         if (!isMoveScheduled) {
@@ -264,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (isSoundOn) {
             putSound.currentTime = 0;
-            putSound.play().catch(e => {});
+            putSound.play().catch(e => { });
         }
 
         figure.form.forEach((row, y) => row.forEach((block, x) => {
@@ -288,18 +385,16 @@ document.addEventListener('DOMContentLoaded', () => {
             handleGameOver();
         }
     }
-    
-    // FUNKTION zum Umschalten des Sounds
+
     function toggleSound() {
         isSoundOn = !isSoundOn;
         if (soundToggleButton) {
             soundToggleButton.textContent = isSoundOn ? '🔊' : '🔈';
             soundToggleButton.style.opacity = isSoundOn ? '0.7' : '0.3';
         }
-        setCookie('isSoundOn', isSoundOn, 365); // Cookie setzen
+        setCookie('isSoundOn', isSoundOn, 365);
         console.log("Sound ist jetzt:", isSoundOn ? "An" : "Aus");
     }
-
 
     function handleKeyPress(e) {
         if (e.key === 'b') {
@@ -311,7 +406,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'j') {
             generateJokerFigures();
         }
-
         if (e.key === 's') {
             toggleSound();
         }
@@ -441,10 +535,10 @@ document.addEventListener('DOMContentLoaded', () => {
         let rows = [], cols = [];
         for (let y = 0; y < GRID_SIZE; y++) if (gameBoard[y].every(cell => cell !== 0)) rows.push(y);
         for (let x = 0; x < GRID_SIZE; x++) if (gameBoard.every(row => row[x] !== 0)) cols.push(x);
-        
+
         if (isSoundOn && (rows.length > 0 || cols.length > 0)) {
             plopSound.currentTime = 0;
-            plopSound.play().catch(e => {});
+            plopSound.play().catch(e => { });
         }
 
         rows.forEach(y => gameBoard[y].fill(0));
@@ -455,7 +549,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleGameOver() {
         if (isSoundOn) {
             overSound.currentTime = 0;
-            overSound.play().catch(e => {});
+            overSound.play().catch(e => { });
         }
         gameBoardElement.classList.add('crumble');
         let isNewHighscore = score > highscore;
@@ -589,5 +683,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     assignEventListeners();
     document.addEventListener('keydown', handleKeyPress);
-    initializeGame();
+
+    // KORRIGIERTE Start-Logik
+    async function startGame() {
+        await loadThemes(); // Zuerst die Themes laden
+        getCurrentWeather(); // Dann das Wetter abrufen
+        initializeGame(); // Dann das restliche Spiel initialisieren
+    }
+
+    startGame(); // Das Spiel starten
 });
