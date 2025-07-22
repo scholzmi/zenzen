@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.innerHTML = "<h1>Fehler</h1><p>config.json konnte nicht geladen werden oder ist fehlerhaft. Bitte stellen Sie sicher, dass die Datei existiert und valide ist.</p>";
             return;
         }
+        updateThemeFromImage('bg.png'); // Hier color theme ausschalten
     }
 
     // Setzt die Zonk-Wahrscheinlichkeit für ein neues Spiel zurück
@@ -89,6 +90,70 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         document.documentElement.style.setProperty('--figure-block-size', `${Math.max(10, cellSize / 2.5)}px`);
     }
+
+function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+    if (max === min) {
+        h = s = 0; // achromatic
+    } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+    return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
+}    
+
+    function updateThemeFromImage(imageUrl) {
+    const img = new Image();
+    img.crossOrigin = "Anonymous"; // Wichtig, wenn das Bild von einer anderen Domain käme
+    img.src = imageUrl;
+
+    img.onload = function() {
+        const colorThief = new ColorThief();
+        // Wir extrahieren 8 dominante Farben
+        const palette = colorThief.getPalette(img, 8); 
+
+        // Annahme: Die Palette ist von dunkel nach hell sortiert. Wir nehmen Farben daraus.
+        // Hier kannst du kreativ werden, welche Farbe du wofür nimmst.
+        const mainBgColor = palette[7];     // Die hellste Farbe für den Hintergrund
+        const textColor = palette[0];       // Die dunkelste Farbe für den Text
+        const borderColor = palette[5];     // Eine mittlere Farbe für die Ränder
+        const figureNormalColor = palette[1]; // Eine andere dunkle Farbe für die Figuren
+
+        // Farben in HSL umwandeln
+        const [bgH, bgS, bgL] = rgbToHsl(mainBgColor[0], mainBgColor[1], mainBgColor[2]);
+        const [textH, textS, textL] = rgbToHsl(textColor[0], textColor[1], textColor[2]);
+        const [borderH, borderS, borderL] = rgbToHsl(borderColor[0], borderColor[1], borderColor[2]);
+        const [figH, figS, figL] = rgbToHsl(figureNormalColor[0], figureNormalColor[1], figureNormalColor[2]);
+
+        // Die CSS-Variablen im :root dynamisch überschreiben
+        const root = document.documentElement;
+        root.style.setProperty('--component-bg-h', bgH);
+        root.style.setProperty('--component-bg-s', bgS + '%');
+        root.style.setProperty('--component-bg-l', bgL + '%');
+        
+        root.style.setProperty('--text-h', textH);
+        root.style.setProperty('--text-s', textS + '%');
+        root.style.setProperty('--text-l', textL + '%');
+
+        root.style.setProperty('--border-h', borderH);
+        root.style.setProperty('--border-s', borderS + '%');
+        root.style.setProperty('--border-l', borderL + '%');
+
+        root.style.setProperty('--figure-normal-h', figH);
+        root.style.setProperty('--figure-normal-s', figS + '%');
+        root.style.setProperty('--figure-normal-l', figL + '%');
+        
+        console.log("Farb-Theme wurde dynamisch vom Bild abgeleitet!");
+    };
+}
 
     function assignEventListeners() {
         figureSlots.forEach(slot => {
