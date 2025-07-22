@@ -1,6 +1,6 @@
 {
-    "version": "V0.29b",
-    "lastModification": "sound",
+    "version": "V0.29c",
+    "lastModification": "sound" toggle,
     "gameVersion": "0.16",
     "zonkProbability": 0.10,
     "zonkProbabilityMax": 0.20,

@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const lastModificationElement = document.getElementById('last-modification');
     const figureSlots = document.querySelectorAll('.figure-slot');
     const scoreAnimationElement = document.getElementById('score-animation');
-    const soundToggleButton = document.getElementById('sound-toggle'); // NEU
+    const soundToggleButton = document.getElementById('sound-toggle');
 
     // Sound-Effekte laden
     const clickSound = new Audio('sounds/click.mp3');
@@ -32,11 +32,22 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPreviewCells = [];
     let currentZonkProbability = 0;
     let lastSoundCell = { x: -1, y: -1 };
-    let isSoundOn = true; // NEU: Der zentrale Schalter für den Sound
+    let isSoundOn = true; // Der zentrale Schalter für den Sound
 
-    // --- (Alle Funktionen von initializeGame bis placeFigure bleiben unverändert) ---
+    // --- (Funktionen bleiben größtenteils unverändert) ---
     
     async function initializeGame() {
+        // Sound-Zustand aus Cookie laden
+        const savedSoundState = getCookie('isSoundOn');
+        if (savedSoundState !== null) {
+            isSoundOn = (savedSoundState === 'true');
+        }
+        // Button-Zustand initial setzen
+        if (soundToggleButton) {
+            soundToggleButton.textContent = isSoundOn ? '🔊' : '🔈';
+            soundToggleButton.style.opacity = isSoundOn ? '0.7' : '0.3';
+        }
+
         highscoreElement.classList.remove('pulsate');
         gameBoardElement.classList.remove('crumble');
         if (Object.keys(gameConfig).length === 0) {
@@ -141,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
             slot.addEventListener('mousedown', (e) => handleTapOrDragStart(e));
             slot.addEventListener('touchstart', (e) => handleTapOrDragStart(e), { passive: false });
         });
-        // NEU: Event Listener für den Sound-Button
+
         if (soundToggleButton) {
             soundToggleButton.addEventListener('click', toggleSound);
         }
@@ -277,16 +288,18 @@ document.addEventListener('DOMContentLoaded', () => {
             handleGameOver();
         }
     }
-
-    // NEUE FUNKTION zum Umschalten des Sounds
+    
+    // FUNKTION zum Umschalten des Sounds
     function toggleSound() {
         isSoundOn = !isSoundOn;
         if (soundToggleButton) {
-            soundToggleButton.textContent = isSoundOn ? '🔊' : '🔇';
+            soundToggleButton.textContent = isSoundOn ? '🔊' : '🔈';
             soundToggleButton.style.opacity = isSoundOn ? '0.7' : '0.3';
         }
+        setCookie('isSoundOn', isSoundOn, 365); // Cookie setzen
         console.log("Sound ist jetzt:", isSoundOn ? "An" : "Aus");
     }
+
 
     function handleKeyPress(e) {
         if (e.key === 'b') {
@@ -298,7 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'j') {
             generateJokerFigures();
         }
-        // NEU: Sound mit "s" umschalten
+
         if (e.key === 's') {
             toggleSound();
         }

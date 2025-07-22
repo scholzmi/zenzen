@@ -165,6 +165,9 @@ body::before {
 }
 
 .header {
+    /* ----- HINZUGEFÜGT ----- */
+    position: relative;
+    /* ----------------------- */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -239,6 +242,15 @@ footer a {
 .sound-icon:hover {
     opacity: 1;
 }
+
+/* ----- NEUE REGEL HINZUGEFÜGT ----- */
+#sound-toggle {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+}
+/* ---------------------------------- */
 
 #game-board-wrapper {
     position: relative;
