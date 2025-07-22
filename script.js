@@ -7,14 +7,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const lastModificationElement = document.getElementById('last-modification');
     const figureSlots = document.querySelectorAll('.figure-slot');
     const scoreAnimationElement = document.getElementById('score-animation');
+    const soundToggleButton = document.getElementById('sound-toggle'); // NEU
 
-    // NEU: Sound-Effekte laden
+    // Sound-Effekte laden
     const clickSound = new Audio('sounds/click.mp3');
     const putSound = new Audio('sounds/put.mp3');
     const plopSound = new Audio('sounds/plop.mp3');
-    plopSound.volume = 0.7; // Lautstärke anpassen
+    plopSound.volume = 0.7;
     const overSound = new Audio('sounds/over.mp3');
-    clickSound.volume = 0.4; // Lautstärke anpassen
+    clickSound.volume = 0.4;
 
     // Game State
     let gameBoard = [], score = 0, highscore = 0;
@@ -30,21 +31,22 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastEvent = null;
     let currentPreviewCells = [];
     let currentZonkProbability = 0;
-    let lastSoundCell = { x: -1, y: -1 }; // Ersetzt die alte Vibrations-Variable
+    let lastSoundCell = { x: -1, y: -1 };
+    let isSoundOn = true; // NEU: Der zentrale Schalter für den Sound
 
+    // --- (Alle Funktionen von initializeGame bis placeFigure bleiben unverändert) ---
+    
     async function initializeGame() {
         highscoreElement.classList.remove('pulsate');
         gameBoardElement.classList.remove('crumble');
-
         if (Object.keys(gameConfig).length === 0) {
             const configLoaded = await loadConfiguration();
             if (!configLoaded) {
-                document.body.innerHTML = "<h1>Fehler</h1><p>config.json konnte nicht geladen werden oder ist fehlerhaft. Bitte stellen Sie sicher, dass die Datei existiert und valide ist.</p>";
+                document.body.innerHTML = "<h1>Fehler</h1><p>config.json ...</p>";
                 return;
             }
             updateThemeFromImage('bg.png');
         }
-
         currentZonkProbability = gameConfig.zonkProbability || 0;
         const serverVersion = gameConfig.gameVersion || "1.0";
         const localVersion = getCookie('gameVersion');
@@ -111,34 +113,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
    function updateThemeFromImage(imageUrl) {
-    const img = new Image();
-    img.crossOrigin = "Anonymous";
-    img.src = imageUrl;
-    img.onload = function() {
-        const colorThief = new ColorThief();
-        let palette = colorThief.getPalette(img, 8);
-        function getColorBrightness(rgb) {
-            return Math.sqrt(0.299 * (rgb[0] * rgb[0]) + 0.587 * (rgb[1] * rgb[1]) + 0.114 * (rgb[2] * rgb[2]));
-        }
-        palette.sort((a, b) => getColorBrightness(a) - getColorBrightness(b));
-        const textColor = palette[0], zonkColor = palette[1], figureNormalColor = palette[2], accentColor = palette[3], borderColor = palette[5], jokerColor = palette[6], mainBgColor = palette[7];
-        const [bgH, bgS, bgL] = rgbToHsl(mainBgColor[0], mainBgColor[1], mainBgColor[2]), [textH, textS, textL] = rgbToHsl(textColor[0], textColor[1], textColor[2]), [borderH, borderS, borderL] = rgbToHsl(borderColor[0], borderColor[1], borderColor[2]), [figH, figS, figL] = rgbToHsl(figureNormalColor[0], figureNormalColor[1], figureNormalColor[2]), [jokerH, jokerS, jokerL] = rgbToHsl(jokerColor[0], jokerColor[1], jokerColor[2]), [zonkH, zonkS, zonkL] = rgbToHsl(zonkColor[0], zonkColor[1], zonkColor[2]), [accentH, accentS, accentL] = rgbToHsl(accentColor[0], accentColor[1], accentColor[2]);
-        const root = document.documentElement;
-        root.style.setProperty('--component-bg-h', bgH); root.style.setProperty('--component-bg-s', bgS + '%'); root.style.setProperty('--component-bg-l', bgL + '%');
-        root.style.setProperty('--text-h', textH); root.style.setProperty('--text-s', textS + '%'); root.style.setProperty('--text-l', textL + '%');
-        root.style.setProperty('--border-h', borderH); root.style.setProperty('--border-s', borderS + '%'); root.style.setProperty('--border-l', borderL + '%');
-        root.style.setProperty('--figure-normal-h', figH); root.style.setProperty('--figure-normal-s', figS + '%'); root.style.setProperty('--figure-normal-l', figL + '%');
-        root.style.setProperty('--figure-joker-h', jokerH); root.style.setProperty('--figure-joker-s', jokerS + '%'); root.style.setProperty('--figure-joker-l', jokerL + '%');
-        root.style.setProperty('--figure-zonk-h', zonkH); root.style.setProperty('--figure-zonk-s', zonkS + '%'); root.style.setProperty('--figure-zonk-l', zonkL + '%');
-        root.style.setProperty('--accent-h', accentH); root.style.setProperty('--accent-s', accentS + '%'); root.style.setProperty('--accent-l', accentL + '%');
-    };
-}
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.src = imageUrl;
+        img.onload = function() {
+            const colorThief = new ColorThief();
+            let palette = colorThief.getPalette(img, 8);
+            function getColorBrightness(rgb) {
+                return Math.sqrt(0.299 * (rgb[0] * rgb[0]) + 0.587 * (rgb[1] * rgb[1]) + 0.114 * (rgb[2] * rgb[2]));
+            }
+            palette.sort((a, b) => getColorBrightness(a) - getColorBrightness(b));
+            const textColor = palette[0], zonkColor = palette[1], figureNormalColor = palette[2], accentColor = palette[3], borderColor = palette[5], jokerColor = palette[6], mainBgColor = palette[7];
+            const [bgH, bgS, bgL] = rgbToHsl(mainBgColor[0], mainBgColor[1], mainBgColor[2]), [textH, textS, textL] = rgbToHsl(textColor[0], textColor[1], textColor[2]), [borderH, borderS, borderL] = rgbToHsl(borderColor[0], borderColor[1], borderColor[2]), [figH, figS, figL] = rgbToHsl(figureNormalColor[0], figureNormalColor[1], figureNormalColor[2]), [jokerH, jokerS, jokerL] = rgbToHsl(jokerColor[0], jokerColor[1], jokerColor[2]), [zonkH, zonkS, zonkL] = rgbToHsl(zonkColor[0], zonkColor[1], zonkColor[2]), [accentH, accentS, accentL] = rgbToHsl(accentColor[0], accentColor[1], accentColor[2]);
+            const root = document.documentElement;
+            root.style.setProperty('--component-bg-h', bgH); root.style.setProperty('--component-bg-s', bgS + '%'); root.style.setProperty('--component-bg-l', bgL + '%');
+            root.style.setProperty('--text-h', textH); root.style.setProperty('--text-s', textS + '%'); root.style.setProperty('--text-l', textL + '%');
+            root.style.setProperty('--border-h', borderH); root.style.setProperty('--border-s', borderS + '%'); root.style.setProperty('--border-l', borderL + '%');
+            root.style.setProperty('--figure-normal-h', figH); root.style.setProperty('--figure-normal-s', figS + '%'); root.style.setProperty('--figure-normal-l', figL + '%');
+            root.style.setProperty('--figure-joker-h', jokerH); root.style.setProperty('--figure-joker-s', jokerS + '%'); root.style.setProperty('--figure-joker-l', jokerL + '%');
+            root.style.setProperty('--figure-zonk-h', zonkH); root.style.setProperty('--figure-zonk-s', zonkS + '%'); root.style.setProperty('--figure-zonk-l', zonkL + '%');
+            root.style.setProperty('--accent-h', accentH); root.style.setProperty('--accent-s', accentS + '%'); root.style.setProperty('--accent-l', accentL + '%');
+        };
+    }
 
     function assignEventListeners() {
         figureSlots.forEach(slot => {
             slot.addEventListener('mousedown', (e) => handleTapOrDragStart(e));
             slot.addEventListener('touchstart', (e) => handleTapOrDragStart(e), { passive: false });
         });
+        // NEU: Event Listener für den Sound-Button
+        if (soundToggleButton) {
+            soundToggleButton.addEventListener('click', toggleSound);
+        }
     }
 
     function handleTapOrDragStart(e) {
@@ -201,11 +207,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
         const cellX = Math.round(xPos / boardRect.width * GRID_SIZE);
         const cellY = Math.round(yPos / boardRect.height * GRID_SIZE);
-
-        // SOUND-EFFEKT: Beim Einrasten
-        if (cellX !== lastSoundCell.x || cellY !== lastSoundCell.y) {
+        
+        if (isSoundOn && (cellX !== lastSoundCell.x || cellY !== lastSoundCell.y)) {
             clickSound.currentTime = 0;
-            clickSound.play().catch(e => {}); // Verhindert Fehler, wenn der Sound schnell wiederholt wird
+            clickSound.play().catch(e => {});
             lastSoundCell.x = cellX;
             lastSoundCell.y = cellY;
         }
@@ -246,9 +251,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const placeY = centerY - Math.floor(figure.form.length / 2);
         if (!canPlace(figure, placeX, placeY)) return;
 
-        // SOUND-EFFEKT: Beim Platzieren
-        putSound.currentTime = 0;
-        putSound.play().catch(e => {});
+        if (isSoundOn) {
+            putSound.currentTime = 0;
+            putSound.play().catch(e => {});
+        }
 
         figure.form.forEach((row, y) => row.forEach((block, x) => {
             if (block === 1) gameBoard[placeY + y][placeX + x] = figure.category;
@@ -272,6 +278,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // NEUE FUNKTION zum Umschalten des Sounds
+    function toggleSound() {
+        isSoundOn = !isSoundOn;
+        if (soundToggleButton) {
+            soundToggleButton.textContent = isSoundOn ? '🔊' : '🔇';
+            soundToggleButton.style.opacity = isSoundOn ? '0.7' : '0.3';
+        }
+        console.log("Sound ist jetzt:", isSoundOn ? "An" : "Aus");
+    }
+
     function handleKeyPress(e) {
         if (e.key === 'b') {
             const container = document.querySelector('.main-container');
@@ -281,6 +297,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (e.key === 'j') {
             generateJokerFigures();
+        }
+        // NEU: Sound mit "s" umschalten
+        if (e.key === 's') {
+            toggleSound();
         }
     }
 
@@ -409,8 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let y = 0; y < GRID_SIZE; y++) if (gameBoard[y].every(cell => cell !== 0)) rows.push(y);
         for (let x = 0; x < GRID_SIZE; x++) if (gameBoard.every(row => row[x] !== 0)) cols.push(x);
         
-        // SOUND-EFFEKT: Beim Abräumen von Reihen
-        if (rows.length > 0 || cols.length > 0) {
+        if (isSoundOn && (rows.length > 0 || cols.length > 0)) {
             plopSound.currentTime = 0;
             plopSound.play().catch(e => {});
         }
@@ -421,8 +440,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleGameOver() {
-        overSound.currentTime = 0;
-        overSound.play().catch(e => {});
+        if (isSoundOn) {
+            overSound.currentTime = 0;
+            overSound.play().catch(e => {});
+        }
         gameBoardElement.classList.add('crumble');
         let isNewHighscore = score > highscore;
         if (isNewHighscore) {
