@@ -1,1 +1,358 @@
+/* =================================
+   1. Farb- & Layout-Variablen
+   ================================= */
+:root {
+    /* Akzentfarbe */
+    --accent-color: #66a5d0;
 
+    /* HSL-Komponenten für alle Farben (Basis ist das helle Design) */
+    --text-h: 15; --text-s: 32%; --text-l: 30%;
+    --border-h: 180; --border-s: 13%; --border-l: 59%;
+    --component-bg-h: 40; --component-bg-s: 58%; --component-bg-l: 91%;
+    --shadow-h: 180; --shadow-s: 58%; --shadow-l: 22%;
+    --footer-text-h: 15; --footer-text-s: 32%; --footer-l: 30%;
+    
+    --figure-normal-h: 186; --figure-normal-s: 44%; --figure-normal-l: 24%;
+    --figure-joker-h: 180; --figure-joker-s: 13%; --figure-joker-l: 49%;
+    --figure-zonk-h: 180; --figure-zonk-s: 61%; --figure-zonk-l: 15%;
+
+    /* HSL für Titel-Buchstaben */
+    --c-z1-h: 120; --c-z1-s: 8%; --c-z1-l: 89%;
+    --c-z2-h: 171; --c-z2-s: 10%; --c-z2-l: 60%;
+    --c-z3-h: 140; --c-z3-s: 11%; --c-z3-l: 87%;
+    --c-e-h: 158; --c-e-s: 5%; --c-e-l: 64%;
+    --c-n-h: 182; --c-n-s: 8%; --c-n-l: 56%;
+
+    /* Finale Farbvariablen, die im gesamten Code verwendet werden */
+    --text-color: hsl(var(--text-h), var(--text-s), var(--text-l));
+    --border-color: hsl(var(--border-h), var(--border-s), var(--border-l));
+    --component-bg: hsl(var(--component-bg-h), var(--component-bg-s), var(--component-bg-l));
+    --shadow-color: hsl(var(--shadow-h), var(--shadow-s), var(--shadow-l));
+    --footer-bg: hsl(var(--component-bg-h), var(--component-bg-s), var(--component-bg-l));
+    --footer-text: hsl(var(--footer-text-h), var(--footer-text-s), var(--footer-l));
+    
+    --figure-color-normal: hsl(var(--figure-normal-h), var(--figure-normal-s), var(--figure-normal-l));
+    --figure-color-joker: hsl(var(--figure-joker-h), var(--figure-joker-s), var(--figure-joker-l));
+    --figure-color-zonk: hsl(var(--figure-zonk-h), var(--figure-zonk-s), var(--figure-zonk-l));
+
+    --c-z1-bg: hsl(var(--c-z1-h), var(--c-z1-s), var(--c-z1-l));
+    --c-z2-bg: hsl(var(--c-z2-h), var(--c-z2-s), var(--c-z2-l));
+    --c-z3-bg: hsl(var(--c-z3-h), var(--c-z3-s), var(--c-z3-l));
+    --c-e-bg: hsl(var(--c-e-h), var(--c-e-s), var(--c-e-l));
+    --c-n-bg: hsl(var(--c-n-h), var(--c-n-s), var(--c-n-l));
+}
+
+/* =================================
+   2. Grund-Setup & Dark Mode
+   ================================= */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-direction: column;
+    min-height: 100vh;
+    color: var(--text-color);
+    -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('bg-wasser.png') center/cover;
+    opacity: 0.8;
+    z-index: -1;
+}
+
+@media (prefers-color-scheme: dark) {
+    body::before {
+        filter: brightness(0.6);
+    }
+
+    :root {
+        /* Hier wird NUR NOCH die Helligkeit aller Farben angepasst */
+        --text-l: 88%;
+        --border-l: 35%;
+        --component-bg-l: 35%;
+        --shadow-h: 0; --shadow-s: 0%; --shadow-l: 10%;
+        --footer-text-l: 80%;
+        
+        --figure-normal-l: 50%;
+        --figure-joker-l: 50%;
+        --figure-zonk-l: 50%;
+
+        /* Helligkeit für Titel-Buchstaben anpassen */
+        --c-z1-l: 25%;
+        --c-z2-l: 30%;
+        --c-z3-l: 28%;
+        --c-e-l: 32%;
+        --c-n-l: 28%;
+    }
+}
+
+
+/* =================================
+   3. Layout-Container
+   ================================= */
+.main-container {
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    margin: 3vh 20px 0 20px;
+}
+
+.game-wrapper {
+    width: 100%;
+    background-color: var(--component-bg);
+    border: 1px solid #FFFFFF80;
+    border-radius: 18px; /*xxx 24px*/
+    padding: 20px;
+    box-sizing: border-box;
+    box-shadow: 0 10px 30px var(--shadow-color);
+    backdrop-filter: blur(8px);
+    touch-action: none;
+    contain: content;
+}
+
+.header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.score-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #FFFFFF1A;
+    border-radius: 12px;
+}
+
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 12px;
+    box-sizing: border-box;
+    background-color: var(--footer-bg);
+    backdrop-filter: blur(5px);
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+    font-size: 10px;
+    color: var(--footer-text);
+    z-index: 1000;
+}
+
+footer a {
+    color: var(--footer-text);
+}
+
+/* =================================
+   4. Spiel-Elemente & Zustände
+   ================================= */
+.block-title {
+    display: flex;
+    justify-content: flex-start;
+    gap: 5px;
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0;
+}
+
+.block-title span {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    color: #FFFFFF;
+    text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px var(--accent-color), 0 0 20px var(--accent-color);
+    box-shadow: inset 0 1px 3px #FFFFFF99, 0 2px 4px #0000004D;
+}
+
+.score-display {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: #FFFFFF;
+    text-shadow: 0 1px 3px #00000066;
+}
+
+#game-board-wrapper {
+    position: relative;
+    width: 100%;
+    perspective: 800px;
+}
+
+#game-board {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border: 2px solid var(--border-color);
+    border-radius: 4px; /*xxx 8px*/
+}
+
+.cell {
+    position: relative; 
+    border-right: 2px solid var(--border-color);
+    border-bottom: 2px solid var(--border-color);
+    box-sizing: border-box;
+    transition: background-color 0.1s ease;
+}
+
+.cell:nth-child(9n) { border-right: none; }
+.cell:nth-last-child(-n+9) { border-bottom: none; }
+
+.cell.occupied {
+    z-index: 1;
+    background: transparent !important;
+}
+
+.cell.occupied::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    border-radius: 10%;
+    border: 1px solid #FFFFFF66;
+    box-shadow: inset 0 0 5px #FFFFFF4D;
+    transform: translate(-50%, -50%) scale(0.90);
+}
+
+.cell.preview {
+    z-index: 10;
+}
+
+.cell.preview::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    border-radius: 10%;
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(0.90);
+}
+
+#figure-selection {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.figure-slot {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+    cursor: grab;
+}
+
+.figure-slot.dragging .figure-container {
+    visibility: hidden;
+}
+
+.figure-container {
+    display: grid;
+    pointer-events: none;
+    transform: scale(1.0);
+}
+
+.figure-block {
+    width: var(--figure-block-size, 8px);
+    height: var(--figure-block-size, 8px);
+    box-sizing: border-box;
+    border-radius: 10%;
+    transform: scale(0.95);
+    border-top: 1px solid #FFFFFFB3;
+    border-left: 1px solid #FFFFFF99;
+}
+
+/* =================================
+   5. Farb- & Hilfsklassen
+   ================================= */
+.c-z1 { background-color: var(--c-z1-bg); }
+.c-z2 { background-color: var(--c-z2-bg); }
+.c-z3 { background-color: var(--c-z3-bg); }
+.c-e  { background-color: var(--c-e-bg); color: #5499c7; }
+.c-n  { background-color: var(--c-n-bg); }
+
+.figure-block.color-normal { background-color: var(--figure-color-normal); }
+.figure-block.color-joker  { background-color: var(--figure-color-joker); }
+.figure-block.color-zonk   { background-color: var(--figure-color-zonk); }
+
+.cell.occupied.color-normal::before { background-color: var(--figure-color-normal); }
+.cell.occupied.color-joker::before  { background-color: var(--figure-color-joker); }
+.cell.occupied.color-zonk::before   { background-color: var(--figure-color-zonk); }
+
+.cell.preview.color-normal::before { background-color: var(--figure-color-normal); }
+.cell.preview.color-joker::before { background-color: var(--figure-color-joker); }
+.cell.preview.color-zonk::before { background-color: var(--figure-color-zonk); }
+
+.cell.preview.invalid::before {
+    background-color: #FF4D4DE6 !important;
+}
+
+/* =================================
+   6. Animationen & Effekte
+   ================================= */
+#highscore.pulsate {
+    animation: pulsate 0.6s 3;
+}
+
+#game-board.crumble .cell.occupied::before { 
+    animation: crumble 1.5s ease-in forwards; 
+    animation-delay: calc(var(--delay, 0) * 1s); 
+}
+
+.score-animation { 
+    position: absolute; 
+    font-size: 2.5em; 
+    font-family: 'Arial Black', Gadget, sans-serif; 
+    font-weight: bold; 
+    color: var(--accent-color); 
+    text-shadow: 0 0 10px #FFFFFF; 
+    opacity: 0; 
+    pointer-events: none; 
+    z-index: 100; 
+}
+
+.score-animation.animate { 
+    animation: scoreExplosion 1.2s ease-out forwards; 
+}
+
+@keyframes crumble { 
+    from { transform: scale(1) rotate(0deg); opacity: 1; } 
+    to { transform: scale(8) rotate(180deg); opacity: 0; visibility: hidden; } 
+}
+
+@keyframes pulsate {
+    0%, 100% { transform: scale(1); color: #0FF15A; }
+    50% { transform: scale(1.25); color: #0CB043; }
+}
+
+@keyframes scoreExplosion { 
+    0% { transform: translateY(0) scale(0.5); opacity: 1; } 
+    100% { transform: translateY(-80px) scale(1.5); opacity: 0; } 
+}
