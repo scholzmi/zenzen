@@ -115,7 +115,7 @@ body::before {
     width: 100%;
     background-color: var(--component-bg);
     border: 1px solid #FFFFFF80;
-    border-radius: 30px; /*xxx 24px*/
+    border-radius: 36px; /*xxx 24px*/
     padding: 20px;
     box-sizing: border-box;
     box-shadow: 0 10px 30px var(--shadow-color);
