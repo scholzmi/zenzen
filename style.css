@@ -277,6 +277,7 @@ footer a {
     display: grid;
     pointer-events: none;
     transform: scale(1.0);
+    gap: 1px; /* NEU: Fügt einen gleichmäßigen Abstand von 1px zwischen den Blöcken hinzu */
 }
 
 .figure-block {
@@ -285,8 +286,6 @@ footer a {
     box-sizing: border-box;
     border-radius: 10%;
     transform: scale(0.95);
-    border-top: 1px solid #FFFFFFB3;
-    border-left: 1px solid #FFFFFF99;
 }
 
 /* =================================
