@@ -167,6 +167,27 @@ document.addEventListener('DOMContentLoaded', () => {
         navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
     }
 
+/**
+     * Spielt einen Sound ab und gibt ein Promise zurück, das aufgelöst wird, wenn der Sound endet.
+     * @param {HTMLAudioElement} audio Das abzuspielende Audio-Element.
+     * @returns {Promise<void>}
+     */
+    function playSoundAndWait(audio) {
+        return new Promise(resolve => {
+            // Wenn der Sound nicht an ist, sofort auflösen
+            if (!isSoundOn) {
+                resolve();
+                return;
+            }
+            audio.currentTime = 0;
+            // Wenn der Sound zu Ende gespielt wurde, wird das Promise aufgelöst
+            audio.onended = () => resolve();
+            audio.play().catch(e => resolve()); // Bei Fehler ebenfalls auflösen
+        });
+    }
+
+
+    
     // =======================================================
     // SPIEL-INITIALISIERUNG UND RESTLICHE LOGIK
     // =======================================================
@@ -474,10 +495,8 @@ function handleDragStart(event, targetSlot) {
         const placeY = centerY - Math.floor(figure.form.length / 2);
         if (!canPlace(figure, placeX, placeY)) return;
 
-        if (isSoundOn) {
-            putSound.currentTime = 0;
-            putSound.play().catch(e => { });
-        }
+        // Wartet, bis der "put" Sound fertig ist
+        await playSoundAndWait(putSound);
 
         figure.form.forEach((row, y) => row.forEach((block, x) => {
             if (block === 1) gameBoard[placeY + y][placeX + x] = figure.category;
