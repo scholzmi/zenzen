@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setBackgroundImage(imageUrl);
     }
 
-    /**
+/**
      * Überprüft, ob ein spezielles, datumsbasiertes Theme aktiv ist.
      * @returns {string|null} Die URL des Hintergrundbildes oder null, wenn kein Special aktiv ist.
      */
@@ -102,16 +102,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const now = new Date();
-        // Setzt die Uhrzeit auf 00:00:00, um nur das Datum zu vergleichen
-        now.setHours(0, 0, 0, 0);
+        // Die Uhrzeit von 'now' muss nicht auf 0 gesetzt werden,
+        // da wir jetzt den gesamten Tagesbereich prüfen.
 
         for (const special of themes.specials) {
             const startDate = new Date(special.startDate);
             const endDate = new Date(special.endDate);
 
-            // Setzt ebenfalls die Uhrzeit auf 0, um einen sauberen Vergleich zu gewährleisten
+            // Setzt die Uhrzeit auf den Anfang des Starttages
             startDate.setHours(0, 0, 0, 0);
-            endDate.setHours(0, 0, 0, 0);
+
+            // KORREKTUR: Setzt die Uhrzeit auf das Ende des Endtages
+            endDate.setHours(23, 59, 59, 999);
 
 
             if (now >= startDate && now <= endDate) {
