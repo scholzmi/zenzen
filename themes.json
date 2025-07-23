@@ -40,7 +40,7 @@
     },
     "3": {
       "description": "Overcast",
-      "background": "bilder/cloudy.png"
+      "background": "bilder/cloudy_no_rain.png"
     },
     "45": {
       "description": "Fog",

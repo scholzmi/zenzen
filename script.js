@@ -73,17 +73,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function findAndApplyTheme(weatherCode) {
-        let imageUrl = null; // Starten mit keinem Bild
+        let imageUrl = null; 
 
-        if (themes && themes[weatherCode]) {
-            const theme = themes[weatherCode];
+        // KORREKTUR: Wir müssen auf die 'themes'-Eigenschaft des Objekts zugreifen
+        if (themes.themes && themes.themes[weatherCode]) {
+            const theme = themes.themes[weatherCode];
             imageUrl = theme.background;
             console.log(`Wetter-Code ${weatherCode} gefunden! Versuche, Hintergrund zu laden: ${imageUrl}`);
         } else {
             console.log(`Kein Theme für Wetter-Code ${weatherCode} gefunden. Nutze Fallback.`);
         }
 
-        // Ruft die neue, sichere Funktion auf
         setBackgroundImage(imageUrl);
     }
 
