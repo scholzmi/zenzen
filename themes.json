@@ -7,6 +7,12 @@
       "background": "bilder/halloween.png"
     },
     {
+      "name": "Halloween Test",
+      "startDate": "2025-07-23",
+      "endDate": "2025-07-23",
+      "background": "bilder/halloween.png"
+    },
+    {
       "name": "Weihnachten",
       "startDate": "2025-12-01",
       "endDate": "2025-12-26",
