@@ -93,9 +93,47 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Ermittelt den Standort, ruft das Wetter ab und wendet das passende Theme an.
+     * Überprüft, ob ein spezielles, datumsbasiertes Theme aktiv ist.
+     * @returns {string|null} Die URL des Hintergrundbildes oder null, wenn kein Special aktiv ist.
      */
-    function getCurrentWeather() {
+    function checkForSpecialTheme() {
+        if (!themes.specials || !Array.isArray(themes.specials)) {
+            return null;
+        }
+
+        const now = new Date();
+        // Setzt die Uhrzeit auf 00:00:00, um nur das Datum zu vergleichen
+        now.setHours(0, 0, 0, 0);
+
+        for (const special of themes.specials) {
+            const startDate = new Date(special.startDate);
+            const endDate = new Date(special.endDate);
+
+            // Setzt ebenfalls die Uhrzeit auf 0, um einen sauberen Vergleich zu gewährleisten
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(0, 0, 0, 0);
+
+
+            if (now >= startDate && now <= endDate) {
+                console.log(`Aha! Heute ist ein spezielles Datum. Event "${special.name}" ist aktiv.`);
+                console.log(`Es wurde dieses Bild ausgewählt: ${special.background}`);
+                return special.background;
+            }
+        }
+
+        return null;
+    }
+
+      function applyTheme() {
+        // 1. Zuerst auf spezielle Events prüfen
+        const specialThemeUrl = checkForSpecialTheme();
+        if (specialThemeUrl) {
+            setBackgroundImage(specialThemeUrl);
+            return; // Mission erfüllt, wir brauchen kein Wetter
+        }
+
+        // 2. Wenn kein Special aktiv ist, fahre mit der Wetter-Logik fort
+        console.log("Kein spezielles Event heute. Ermittle das Wetter...");
         if (!navigator.geolocation) {
             console.error("Geolocation wird von diesem Browser nicht unterstützt.");
             findAndApplyTheme(null); // Fallback nutzen, wenn Geo nicht geht
@@ -685,11 +723,10 @@ document.addEventListener('DOMContentLoaded', () => {
     assignEventListeners();
     document.addEventListener('keydown', handleKeyPress);
 
-    // KORRIGIERTE Start-Logik
-    async function startGame() {
+   async function startGame() {
         await loadThemes(); // Zuerst die Themes laden
-        getCurrentWeather(); // Dann das Wetter abrufen
-        initializeGame(); // Dann das restliche Spiel initialisieren
+        applyTheme();       // Dann das Theme anwenden (Special oder Wetter)
+        initializeGame();   // Dann das restliche Spiel initialisieren
     }
 
     startGame(); // Das Spiel starten
