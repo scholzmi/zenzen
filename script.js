@@ -318,9 +318,6 @@ function assignEventListeners() {
         if (soundToggleButton) {
             soundToggleButton.addEventListener('click', toggleSound);
         }
-        
-        // Die folgende Zeile wurde entfernt, da der Listener jetzt dynamisch ist.
-        // document.addEventListener('contextmenu', handleRightClick);
     }
 
     // --- NEUER CODE FÜR MAUSRAD-STEUERUNG ---
