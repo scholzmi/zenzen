@@ -167,27 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
         navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
     }
 
-/**
-     * Spielt einen Sound ab und gibt ein Promise zurück, das aufgelöst wird, wenn der Sound endet.
-     * @param {HTMLAudioElement} audio Das abzuspielende Audio-Element.
-     * @returns {Promise<void>}
-     */
-    function playSoundAndWait(audio) {
-        return new Promise(resolve => {
-            // Wenn der Sound nicht an ist, sofort auflösen
-            if (!isSoundOn) {
-                resolve();
-                return;
-            }
-            audio.currentTime = 0;
-            // Wenn der Sound zu Ende gespielt wurde, wird das Promise aufgelöst
-            audio.onended = () => resolve();
-            audio.play().catch(e => resolve()); // Bei Fehler ebenfalls auflösen
-        });
-    }
-
-
-    
     // =======================================================
     // SPIEL-INITIALISIERUNG UND RESTLICHE LOGIK
     // =======================================================
@@ -490,13 +469,16 @@ function handleDragStart(event, targetSlot) {
         return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])).map(row => row.reverse());
     }
 
-    async function placeFigure(figure, centerX, centerY) {
+function placeFigure(figure, centerX, centerY) {
         const placeX = centerX - Math.floor(figure.form[0].length / 2);
         const placeY = centerY - Math.floor(figure.form.length / 2);
         if (!canPlace(figure, placeX, placeY)) return;
 
-        // Wartet, bis der "put" Sound fertig ist
-        await playSoundAndWait(putSound);
+        // Sound wird jetzt wieder ganz normal abgespielt
+        if (isSoundOn) {
+            putSound.currentTime = 0;
+            putSound.play().catch(e => { });
+        }
 
         figure.form.forEach((row, y) => row.forEach((block, x) => {
             if (block === 1) gameBoard[placeY + y][placeX + x] = figure.category;
@@ -665,14 +647,32 @@ function handleDragStart(event, targetSlot) {
         return false;
     }
 
-    function clearFullLines() {
+function clearFullLines() {
         let rows = [], cols = [];
         for (let y = 0; y < GRID_SIZE; y++) if (gameBoard[y].every(cell => cell !== 0)) rows.push(y);
         for (let x = 0; x < GRID_SIZE; x++) if (gameBoard.every(row => row[x] !== 0)) cols.push(x);
 
-        if (isSoundOn && (rows.length > 0 || cols.length > 0)) {
-            plopSound.currentTime = 0;
-            plopSound.play().catch(e => { });
+        const linesCleared = rows.length > 0 || cols.length > 0;
+
+        // NEUE LOGIK: Wir prüfen, ob der vorherige Sound noch läuft.
+        if (isSoundOn && linesCleared) {
+            // Funktion, die den Plop-Sound abspielt
+            const playPlop = () => {
+                plopSound.currentTime = 0;
+                plopSound.play().catch(e => { });
+                // Wichtig: Event-Listener wieder entfernen, damit er nicht mehrfach ausgelöst wird
+                putSound.removeEventListener('ended', playPlop);
+            };
+
+            // Wenn der putSound noch spielt, warte bis er fertig ist.
+            // Die "paused" Eigenschaft ist falsch, während er noch lädt/spielt.
+            // Ein kleiner Puffer ist hier die sicherste Methode.
+            if (!putSound.paused || putSound.currentTime > 0) {
+                putSound.addEventListener('ended', playPlop);
+            } else {
+                // Wenn der putSound nicht spielt, spiele den Plop-Sound sofort.
+                playPlop();
+            }
         }
 
         rows.forEach(y => gameBoard[y].fill(0));
