@@ -318,6 +318,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (soundToggleButton) {
             soundToggleButton.addEventListener('click', toggleSound);
         }
+
+        document.addEventListener('contextmenu', handleRightClick);
     }
 
     // --- NEUER CODE FÜR MAUSRAD-STEUERUNG ---
@@ -502,6 +504,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (e.key === 's') {
             toggleSound();
+        }
+    }
+
+    // --- NEUER CODE FÜR RECHTSKLICK-ROTATION ---
+
+    function handleRightClick(event) {
+        // Prüfen, ob wir gerade eine Figur mit der Maus ziehen
+        if (isDragging && selectedFigure) {
+            
+            // 1. Verhindert, dass das normale Rechtsklick-Menü des Browsers erscheint
+            event.preventDefault();
+
+            // 2. Die im Speicher gehaltene Figur um 90 Grad drehen
+            selectedFigure.form = rotateFigure90Degrees(selectedFigure.form);
+
+            // 3. Die Vorschau auf dem Spielfeld sofort aktualisieren
+            // Wir nutzen die zuletzt bekannte Mausposition aus dem "lastEvent",
+            // um die Vorschau an der korrekten Stelle neu zu zeichnen.
+            if (lastEvent) {
+                // Wir rufen einfach die bereits existierende Funktion auf,
+                // um die Vorschau neu zu zeichnen.
+                updatePreviewOnFrame();
+            }
         }
     }
 
