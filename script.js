@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.body.innerHTML = "<h1>Fehler</h1><p>config.json ...</p>";
                 return;
             }
-            // HINWEIS: updateThemeFromImage('bg.png') wurde entfernt, da es jetzt von der Wetter-Logik gesteuert wird.
+          
         }
         currentZonkProbability = gameConfig.zonkProbability || 0;
         const serverVersion = gameConfig.gameVersion || "1.0";
@@ -262,19 +262,42 @@ document.addEventListener('DOMContentLoaded', () => {
         return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
     }
 
-    function updateThemeFromImage(imageUrl) {
+  function updateThemeFromImage(imageUrl) {
         const img = new Image();
         img.crossOrigin = "Anonymous";
         img.src = imageUrl;
         img.onload = function () {
             const colorThief = new ColorThief();
             let palette = colorThief.getPalette(img, 8);
+            
             function getColorBrightness(rgb) {
+                // Formel zur Berechnung der wahrgenommenen Helligkeit
                 return Math.sqrt(0.299 * (rgb[0] * rgb[0]) + 0.587 * (rgb[1] * rgb[1]) + 0.114 * (rgb[2] * rgb[2]));
             }
+
+            // Sortiert die Palette von der dunkelsten [0] zur hellsten [7] Farbe
             palette.sort((a, b) => getColorBrightness(a) - getColorBrightness(b));
-            const textColor = palette[0], zonkColor = palette[1], figureNormalColor = palette[2], accentColor = palette[3], borderColor = palette[5], jokerColor = palette[6], mainBgColor = palette[7];
-            const [bgH, bgS, bgL] = rgbToHsl(mainBgColor[0], mainBgColor[1], mainBgColor[2]), [textH, textS, textL] = rgbToHsl(textColor[0], textColor[1], textColor[2]), [borderH, borderS, borderL] = rgbToHsl(borderColor[0], borderColor[1], borderColor[2]), [figH, figS, figL] = rgbToHsl(figureNormalColor[0], figureNormalColor[1], figureNormalColor[2]), [jokerH, jokerS, jokerL] = rgbToHsl(jokerColor[0], jokerColor[1], jokerColor[2]), [zonkH, zonkS, zonkL] = rgbToHsl(zonkColor[0], zonkColor[1], zonkColor[2]), [accentH, accentS, accentL] = rgbToHsl(accentColor[0], accentColor[1], accentColor[2]);
+            
+            // --- NEUE, VERBESSERTE FARBZUWEISUNG ---
+            // Wir weisen die Farben jetzt so zu, dass die Figuren mehr Kontrast haben.
+            console.log("Farbpalette nach Helligkeit sortiert:", palette);
+
+            const textColor         = palette[0]; // Die dunkelste Farbe für Text
+            const zonkColor         = palette[1]; // Die zweit-dunkelste für Zonk-Figuren
+            const figureNormalColor = palette[2]; // Eine weitere dunkle Farbe für normale Figuren
+            const jokerColor        = palette[3]; // Die dritt-dunkelste für Joker-Figuren
+            const borderColor       = palette[4]; // Eine Farbe aus der Mitte für die Ränder
+            const accentColor       = palette[5]; // Eine hellere Akzentfarbe
+            const mainBgColor       = palette[7]; // Die hellste Farbe für den Spielfeld-Hintergrund
+
+            const [bgH, bgS, bgL] = rgbToHsl(mainBgColor[0], mainBgColor[1], mainBgColor[2]), 
+                  [textH, textS, textL] = rgbToHsl(textColor[0], textColor[1], textColor[2]), 
+                  [borderH, borderS, borderL] = rgbToHsl(borderColor[0], borderColor[1], borderColor[2]), 
+                  [figH, figS, figL] = rgbToHsl(figureNormalColor[0], figureNormalColor[1], figureNormalColor[2]), 
+                  [jokerH, jokerS, jokerL] = rgbToHsl(jokerColor[0], jokerColor[1], jokerColor[2]), 
+                  [zonkH, zonkS, zonkL] = rgbToHsl(zonkColor[0], zonkColor[1], zonkColor[2]), 
+                  [accentH, accentS, accentL] = rgbToHsl(accentColor[0], accentColor[1], accentColor[2]);
+            
             const root = document.documentElement;
             root.style.setProperty('--component-bg-h', bgH); root.style.setProperty('--component-bg-s', bgS + '%'); root.style.setProperty('--component-bg-l', bgL + '%');
             root.style.setProperty('--text-h', textH); root.style.setProperty('--text-s', textS + '%'); root.style.setProperty('--text-l', textL + '%');
