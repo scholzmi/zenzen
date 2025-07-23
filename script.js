@@ -386,16 +386,32 @@ function handleDragStart(event, targetSlot) {
         selectedFigure = JSON.parse(JSON.stringify(figuresInSlots[selectedSlotIndex]));
         targetSlot.classList.add('dragging');
 
-        // >>> HIER WIRD DER LISTENER AKTIVIERT <<<
-        document.addEventListener('contextmenu', handleRightClick);
+        // NEUER HANDLER für alle Mausklicks während des Ziehens
+        const handleMouseDownDuringDrag = (e) => {
+            // Prüfen, ob die rechte Maustaste (event.button === 2) gedrückt wurde
+            if (e.button === 2) {
+                e.preventDefault(); // Verhindert das Kontextmenü
+                
+                // Figur drehen und Vorschau aktualisieren
+                if (selectedFigure) {
+                    selectedFigure.form = rotateFigure90Degrees(selectedFigure.form);
+                    if (lastEvent) {
+                        updatePreviewOnFrame();
+                    }
+                }
+            }
+        };
+
+        // Event-Listener wird AKTIVIERT, wenn das Ziehen beginnt
+        document.addEventListener('mousedown', handleMouseDownDuringDrag);
 
         const moveHandler = (moveEvent) => {
             handleInteractionMove(moveEvent.touches ? moveEvent.touches[0] : moveEvent);
         };
         
         const endHandler = (endEvent) => {
-            // >>> HIER WIRD DER LISTENER WIEDER DEAKTIVIERT <<<
-            document.removeEventListener('contextmenu', handleRightClick);
+            // Event-Listener wird DEAKTIVIERT, wenn das Ziehen endet
+            document.removeEventListener('mousedown', handleMouseDownDuringDrag);
 
             document.removeEventListener('touchmove', moveHandler);
             document.removeEventListener('touchend', endHandler);
@@ -515,29 +531,6 @@ function handleDragStart(event, targetSlot) {
         }
         if (e.key === 's') {
             toggleSound();
-        }
-    }
-
-    // --- NEUER CODE FÜR RECHTSKLICK-ROTATION ---
-
-    function handleRightClick(event) {
-        // Prüfen, ob wir gerade eine Figur mit der Maus ziehen
-        if (isDragging && selectedFigure) {
-            
-            // 1. Verhindert, dass das normale Rechtsklick-Menü des Browsers erscheint
-            event.preventDefault();
-
-            // 2. Die im Speicher gehaltene Figur um 90 Grad drehen
-            selectedFigure.form = rotateFigure90Degrees(selectedFigure.form);
-
-            // 3. Die Vorschau auf dem Spielfeld sofort aktualisieren
-            // Wir nutzen die zuletzt bekannte Mausposition aus dem "lastEvent",
-            // um die Vorschau an der korrekten Stelle neu zu zeichnen.
-            if (lastEvent) {
-                // Wir rufen einfach die bereits existierende Funktion auf,
-                // um die Vorschau neu zu zeichnen.
-                updatePreviewOnFrame();
-            }
         }
     }
 
