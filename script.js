@@ -325,7 +325,7 @@ function assignEventListeners() {
 
     function updateOpacity(newOpacity) {
         // Begrenzt die Opazität zwischen 0.05 (fast unsichtbar) und 1.0 (komplett sichtbar)
-        componentOpacity = Math.max(0.05, Math.min(1.0, newOpacity));
+        componentOpacity = Math.max(0.00, Math.min(1.0, newOpacity));
         document.documentElement.style.setProperty('--component-bg-a', componentOpacity);
     }
 
