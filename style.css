@@ -88,7 +88,6 @@ body {
     position: relative;
 }
 
-/* NACHHER */
 body::before {
     content: '';
     position: fixed;
@@ -98,8 +97,11 @@ body::before {
     height: 100%;
     /* NEU: Wir nutzen eine CSS-Variable mit 'bg.png' als Fallback */
     background-image: var(--background-image, url('bg.png'));
-    background-size: cover;
-    opacity: 0.8;
+    /* --- HIER SIND DIE ÄNDERUNGEN --- */
+    background-size: auto; /* Stellt die Originalgröße wieder her */
+    background-repeat: repeat; /* Sorgt für die Wiederholung */
+    /* -------------------------------- */
+    opacity: 1;
     z-index: -1;
     transition: background-image 0.5s ease-in-out; /* Optional: schöner Übergang */
 }
