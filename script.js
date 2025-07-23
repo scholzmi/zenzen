@@ -11,9 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Sound-Effekte laden
     const putSound = new Audio('sounds/put.mp3');
-    putSound.volume = 0.6;
     const plopSound = new Audio('sounds/plop.mp3');
-    plopSound.volume = 0.4;
     const overSound = new Audio('sounds/over.mp3');
 
     // Game State
@@ -30,7 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastEvent = null;
     let currentPreviewCells = [];
     let currentZonkProbability = 0;
-    let lastSoundCell = { x: -1, y: -1 };
     let isSoundOn = true;
     let themes = {};
 
@@ -46,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('themes.json?v=' + new Date().getTime());
             if (!response.ok) throw new Error('themes.json konnte nicht geladen werden.');
             // KORREKTUR: Das gesamte JSON-Objekt in der 'themes'-Variable speichern.
-            themes = await response.json(); 
+            themes = await response.json();
             console.log('Themes erfolgreich geladen:', themes);
         } catch (error) {
             console.error('Fehler beim Laden der Themes:', error);
@@ -90,10 +87,10 @@ document.addEventListener('DOMContentLoaded', () => {
         setBackgroundImage(imageUrl);
     }
 
-/**
-     * Überprüft, ob ein spezielles, datumsbasiertes Theme aktiv ist.
-     * @returns {string|null} Die URL des Hintergrundbildes oder null, wenn kein Special aktiv ist.
-     */
+    /**
+         * Überprüft, ob ein spezielles, datumsbasiertes Theme aktiv ist.
+         * @returns {string|null} Die URL des Hintergrundbildes oder null, wenn kein Special aktiv ist.
+         */
     function checkForSpecialTheme() {
         if (!themes.specials || !Array.isArray(themes.specials)) {
             return null;
@@ -124,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
 
-      function applyTheme() {
+    function applyTheme() {
         // 1. Zuerst auf spezielle Events prüfen
         const specialThemeUrl = checkForSpecialTheme();
         if (specialThemeUrl) {
@@ -190,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.body.innerHTML = "<h1>Fehler</h1><p>config.json ...</p>";
                 return;
             }
-          
+
         }
         currentZonkProbability = gameConfig.zonkProbability || 0;
         const serverVersion = gameConfig.gameVersion || "1.0";
@@ -260,14 +257,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
     }
 
-  function updateThemeFromImage(imageUrl) {
+    function updateThemeFromImage(imageUrl) {
         const img = new Image();
         img.crossOrigin = "Anonymous";
         img.src = imageUrl;
         img.onload = function () {
             const colorThief = new ColorThief();
             let palette = colorThief.getPalette(img, 8);
-            
+
             function getColorBrightness(rgb) {
                 // Formel zur Berechnung der wahrgenommenen Helligkeit
                 return Math.sqrt(0.299 * (rgb[0] * rgb[0]) + 0.587 * (rgb[1] * rgb[1]) + 0.114 * (rgb[2] * rgb[2]));
@@ -275,27 +272,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Sortiert die Palette von der dunkelsten [0] zur hellsten [7] Farbe
             palette.sort((a, b) => getColorBrightness(a) - getColorBrightness(b));
-            
+
             // --- NEUE, VERBESSERTE FARBZUWEISUNG ---
             // Wir weisen die Farben jetzt so zu, dass die Figuren mehr Kontrast haben.
             console.log("Farbpalette nach Helligkeit sortiert:", palette);
 
-            const textColor         = palette[0]; // Die dunkelste Farbe für Text
-            const zonkColor         = palette[1]; // Die zweit-dunkelste für Zonk-Figuren
+            const textColor = palette[0]; // Die dunkelste Farbe für Text
+            const zonkColor = palette[1]; // Die zweit-dunkelste für Zonk-Figuren
             const figureNormalColor = palette[2]; // Eine weitere dunkle Farbe für normale Figuren
-            const jokerColor        = palette[3]; // Die dritt-dunkelste für Joker-Figuren
-            const borderColor       = palette[4]; // Eine Farbe aus der Mitte für die Ränder
-            const accentColor       = palette[5]; // Eine hellere Akzentfarbe
-            const mainBgColor       = palette[7]; // Die hellste Farbe für den Spielfeld-Hintergrund
+            const jokerColor = palette[3]; // Die dritt-dunkelste für Joker-Figuren
+            const borderColor = palette[4]; // Eine Farbe aus der Mitte für die Ränder
+            const accentColor = palette[5]; // Eine hellere Akzentfarbe
+            const mainBgColor = palette[7]; // Die hellste Farbe für den Spielfeld-Hintergrund
 
-            const [bgH, bgS, bgL] = rgbToHsl(mainBgColor[0], mainBgColor[1], mainBgColor[2]), 
-                  [textH, textS, textL] = rgbToHsl(textColor[0], textColor[1], textColor[2]), 
-                  [borderH, borderS, borderL] = rgbToHsl(borderColor[0], borderColor[1], borderColor[2]), 
-                  [figH, figS, figL] = rgbToHsl(figureNormalColor[0], figureNormalColor[1], figureNormalColor[2]), 
-                  [jokerH, jokerS, jokerL] = rgbToHsl(jokerColor[0], jokerColor[1], jokerColor[2]), 
-                  [zonkH, zonkS, zonkL] = rgbToHsl(zonkColor[0], zonkColor[1], zonkColor[2]), 
-                  [accentH, accentS, accentL] = rgbToHsl(accentColor[0], accentColor[1], accentColor[2]);
-            
+            const [bgH, bgS, bgL] = rgbToHsl(mainBgColor[0], mainBgColor[1], mainBgColor[2]),
+                [textH, textS, textL] = rgbToHsl(textColor[0], textColor[1], textColor[2]),
+                [borderH, borderS, borderL] = rgbToHsl(borderColor[0], borderColor[1], borderColor[2]),
+                [figH, figS, figL] = rgbToHsl(figureNormalColor[0], figureNormalColor[1], figureNormalColor[2]),
+                [jokerH, jokerS, jokerL] = rgbToHsl(jokerColor[0], jokerColor[1], jokerColor[2]),
+                [zonkH, zonkS, zonkL] = rgbToHsl(zonkColor[0], zonkColor[1], zonkColor[2]),
+                [accentH, accentS, accentL] = rgbToHsl(accentColor[0], accentColor[1], accentColor[2]);
+
             const root = document.documentElement;
             root.style.setProperty('--component-bg-h', bgH); root.style.setProperty('--component-bg-s', bgS + '%'); root.style.setProperty('--component-bg-l', bgL + '%');
             root.style.setProperty('--text-h', textH); root.style.setProperty('--text-s', textS + '%'); root.style.setProperty('--text-l', textL + '%');
@@ -307,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-function assignEventListeners() {
+    function assignEventListeners() {
         figureSlots.forEach(slot => {
             slot.addEventListener('mousedown', (e) => handleTapOrDragStart(e));
             slot.addEventListener('touchstart', (e) => handleTapOrDragStart(e), { passive: false });
@@ -371,7 +368,7 @@ function assignEventListeners() {
         }
     }
 
-function handleDragStart(event, targetSlot) {
+    function handleDragStart(event, targetSlot) {
         if (isDragging) return;
         const slotIndex = parseInt(targetSlot.dataset.slotId, 10);
         if (!figuresInSlots[slotIndex]) return;
@@ -386,7 +383,7 @@ function handleDragStart(event, targetSlot) {
             // Prüfen, ob die Leertaste gedrückt wurde
             if (e.code === 'Space') {
                 e.preventDefault(); // Verhindert, dass die Seite scrollt
-                
+
                 if (selectedFigure) {
                     selectedFigure.form = rotateFigure90Degrees(selectedFigure.form);
                     if (lastEvent) {
@@ -402,7 +399,7 @@ function handleDragStart(event, targetSlot) {
         const moveHandler = (moveEvent) => {
             handleInteractionMove(moveEvent.touches ? moveEvent.touches[0] : moveEvent);
         };
-        
+
         const endHandler = (endEvent) => {
             // Event-Listener wird DEAKTIVIERT, wenn das Ziehen endet
             document.removeEventListener('keydown', handleKeyPressDuringDrag);
@@ -433,10 +430,6 @@ function handleDragStart(event, targetSlot) {
         const cellX = Math.round(xPos / boardRect.width * GRID_SIZE);
         const cellY = Math.round(yPos / boardRect.height * GRID_SIZE);
 
-        if (isSoundOn && (cellX !== lastSoundCell.x || cellY !== lastSoundCell.y)) {
-            lastSoundCell.x = cellX;
-            lastSoundCell.y = cellY;
-        }
         drawPreview(selectedFigure, cellX, cellY);
         isMoveScheduled = false;
     }
@@ -469,21 +462,31 @@ function handleDragStart(event, targetSlot) {
         return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])).map(row => row.reverse());
     }
 
-function placeFigure(figure, centerX, centerY) {
+    function placeFigure(figure, centerX, centerY) {
         const placeX = centerX - Math.floor(figure.form[0].length / 2);
         const placeY = centerY - Math.floor(figure.form.length / 2);
         if (!canPlace(figure, placeX, placeY)) return;
 
-        // Sound wird jetzt wieder ganz normal abgespielt
-        if (isSoundOn) {
-            putSound.currentTime = 0;
-            putSound.play().catch(e => { });
-        }
-
+        // Figur ZUERST im Datenmodell platzieren
         figure.form.forEach((row, y) => row.forEach((block, x) => {
             if (block === 1) gameBoard[placeY + y][placeX + x] = figure.category;
         }));
-        const points = clearFullLines() + (figure.points || 0);
+
+        // DANN prüfen, ob Reihen voll sind und den entsprechenden Sound abspielen
+        const clearResult = clearFullLines(); // clearFullLines spielt keinen Sound mehr
+        const points = clearResult.points + (figure.points || 0);
+
+        if (isSoundOn) {
+            if (clearResult.linesCleared) {
+                plopSound.currentTime = 0;
+                plopSound.play().catch(e => { });
+            } else {
+                putSound.currentTime = 0;
+                putSound.play().catch(e => { });
+            }
+        }
+
+        // Restliche Logik bleibt gleich
         score += points;
         scoreElement.textContent = score;
         showScoreAnimation(points);
@@ -647,37 +650,23 @@ function placeFigure(figure, centerX, centerY) {
         return false;
     }
 
-function clearFullLines() {
+    function clearFullLines() {
         let rows = [], cols = [];
         for (let y = 0; y < GRID_SIZE; y++) if (gameBoard[y].every(cell => cell !== 0)) rows.push(y);
         for (let x = 0; x < GRID_SIZE; x++) if (gameBoard.every(row => row[x] !== 0)) cols.push(x);
 
         const linesCleared = rows.length > 0 || cols.length > 0;
 
-        // NEUE LOGIK: Wir prüfen, ob der vorherige Sound noch läuft.
-        if (isSoundOn && linesCleared) {
-            // Funktion, die den Plop-Sound abspielt
-            const playPlop = () => {
-                plopSound.currentTime = 0;
-                plopSound.play().catch(e => { });
-                // Wichtig: Event-Listener wieder entfernen, damit er nicht mehrfach ausgelöst wird
-                putSound.removeEventListener('ended', playPlop);
-            };
-
-            // Wenn der putSound noch spielt, warte bis er fertig ist.
-            // Die "paused" Eigenschaft ist falsch, während er noch lädt/spielt.
-            // Ein kleiner Puffer ist hier die sicherste Methode.
-            if (!putSound.paused || putSound.currentTime > 0) {
-                putSound.addEventListener('ended', playPlop);
-            } else {
-                // Wenn der putSound nicht spielt, spiele den Plop-Sound sofort.
-                playPlop();
-            }
-        }
+        // Die Sound-Logik wurde von hier entfernt
 
         rows.forEach(y => gameBoard[y].fill(0));
         cols.forEach(x => gameBoard.forEach(row => row[x] = 0));
-        return Math.pow(rows.length + cols.length, 2) * 100;
+        
+        // Wir geben jetzt ein Objekt zurück, das beide Informationen enthält
+        return {
+            points: Math.pow(rows.length + cols.length, 2) * 100,
+            linesCleared: linesCleared
+        };
     }
 
     function handleGameOver() {
@@ -818,7 +807,7 @@ function clearFullLines() {
     assignEventListeners();
     document.addEventListener('keydown', handleKeyPress);
 
-   async function startGame() {
+    async function startGame() {
         await loadThemes(); // Zuerst die Themes laden
         applyTheme();       // Dann das Theme anwenden (Special oder Wetter)
         initializeGame();   // Dann das restliche Spiel initialisieren
