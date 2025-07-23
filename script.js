@@ -320,6 +320,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- NEUER CODE FÜR MAUSRAD-STEUERUNG ---
+
+    let componentOpacity = 0.05; // Startwert, passend zu deiner Einstellung
+    const gameWrapper = document.querySelector('.game-wrapper');
+
+    function updateOpacity(newOpacity) {
+        // Begrenzt die Opazität zwischen 0.05 (fast unsichtbar) und 1.0 (komplett sichtbar)
+        componentOpacity = Math.max(0.05, Math.min(1.0, newOpacity));
+        document.documentElement.style.setProperty('--component-bg-a', componentOpacity);
+    }
+
+    // Setzt den Startwert beim Laden des Spiels
+    updateOpacity(componentOpacity);
+
+    // Event Listener für das Mausrad auf dem Spielfeld
+    gameWrapper.addEventListener('wheel', (event) => {
+        // Verhindert, dass die ganze Seite scrollt
+        event.preventDefault();
+
+        // deltaY ist negativ beim Hochscrollen, positiv beim Runterscrollen
+        if (event.deltaY < 0) {
+            // Hochscrollen -> sichtbarer machen
+            updateOpacity(componentOpacity + 0.05);
+        } else {
+            // Runterscrollen -> durchsichtiger machen
+            updateOpacity(componentOpacity - 0.05);
+        }
+    }, { passive: false }); // Wichtig, um preventDefault() zu erlauben
+
     function handleTapOrDragStart(e) {
         e.preventDefault();
         const targetSlot = e.currentTarget;
