@@ -47,8 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('themes.json?v=' + new Date().getTime());
             if (!response.ok) throw new Error('themes.json konnte nicht geladen werden.');
-            const data = await response.json();
-            themes = data.themes;
+            // KORREKTUR: Das gesamte JSON-Objekt in der 'themes'-Variable speichern.
+            themes = await response.json(); 
             console.log('Themes erfolgreich geladen:', themes);
         } catch (error) {
             console.error('Fehler beim Laden der Themes:', error);
@@ -131,6 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const specialThemeUrl = checkForSpecialTheme();
         if (specialThemeUrl) {
             setBackgroundImage(specialThemeUrl);
+            console.log("Special Event gefunden; heute kein Wetter");
             return; // Mission erfüllt, wir brauchen kein Wetter
         }
 
