@@ -383,13 +383,12 @@ function handleDragStart(event, targetSlot) {
         selectedFigure = JSON.parse(JSON.stringify(figuresInSlots[selectedSlotIndex]));
         targetSlot.classList.add('dragging');
 
-        // NEUER HANDLER für alle Mausklicks während des Ziehens
-        const handleMouseDownDuringDrag = (e) => {
-            // Prüfen, ob die rechte Maustaste (event.button === 2) gedrückt wurde
-            if (e.button === 2) {
-                e.preventDefault(); // Verhindert das Kontextmenü
+        // NEUER HANDLER für die Leertaste während des Ziehens
+        const handleKeyPressDuringDrag = (e) => {
+            // Prüfen, ob die Leertaste gedrückt wurde
+            if (e.code === 'Space') {
+                e.preventDefault(); // Verhindert, dass die Seite scrollt
                 
-                // Figur drehen und Vorschau aktualisieren
                 if (selectedFigure) {
                     selectedFigure.form = rotateFigure90Degrees(selectedFigure.form);
                     if (lastEvent) {
@@ -399,8 +398,8 @@ function handleDragStart(event, targetSlot) {
             }
         };
 
-        // Event-Listener wird AKTIVIERT, wenn das Ziehen beginnt
-        document.addEventListener('mousedown', handleMouseDownDuringDrag);
+        // Event-Listener für Tastendruck wird AKTIVIERT
+        document.addEventListener('keydown', handleKeyPressDuringDrag);
 
         const moveHandler = (moveEvent) => {
             handleInteractionMove(moveEvent.touches ? moveEvent.touches[0] : moveEvent);
@@ -408,7 +407,7 @@ function handleDragStart(event, targetSlot) {
         
         const endHandler = (endEvent) => {
             // Event-Listener wird DEAKTIVIERT, wenn das Ziehen endet
-            document.removeEventListener('mousedown', handleMouseDownDuringDrag);
+            document.removeEventListener('keydown', handleKeyPressDuringDrag);
 
             document.removeEventListener('touchmove', moveHandler);
             document.removeEventListener('touchend', endHandler);
