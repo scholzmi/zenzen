@@ -54,7 +54,7 @@
     /* Finale Farbvariablen, die im gesamten Code verwendet werden */
     --text-color: hsl(var(--text-h), var(--text-s), var(--text-l));
     --border-color: hsla(var(--border-h), var(--border-s), var(--border-l), 0.5);
-    --component-bg: hsla(var(--component-bg-h), var(--component-bg-s), var(--component-bg-l), 0.05);
+    --component-bg: hsla(var(--component-bg-h), var(--component-bg-s), var(--component-bg-l), var(--component-bg-a, 0.8));
     --shadow-color: hsl(var(--shadow-h), var(--shadow-s), var(--shadow-l));
     --footer-bg: hsl(var(--component-bg-h), var(--component-bg-s), var(--component-bg-l));
     --footer-text: hsl(var(--footer-text-h), var(--footer-text-s), var(--footer-l));
