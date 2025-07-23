@@ -309,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    function assignEventListeners() {
+function assignEventListeners() {
         figureSlots.forEach(slot => {
             slot.addEventListener('mousedown', (e) => handleTapOrDragStart(e));
             slot.addEventListener('touchstart', (e) => handleTapOrDragStart(e), { passive: false });
@@ -318,8 +318,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (soundToggleButton) {
             soundToggleButton.addEventListener('click', toggleSound);
         }
-
-        document.addEventListener('contextmenu', handleRightClick);
+        
+        // Die folgende Zeile wurde entfernt, da der Listener jetzt dynamisch ist.
+        // document.addEventListener('contextmenu', handleRightClick);
     }
 
     // --- NEUER CODE FÜR MAUSRAD-STEUERUNG ---
@@ -375,24 +376,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function handleDragStart(event, targetSlot) {
+function handleDragStart(event, targetSlot) {
         if (isDragging) return;
         const slotIndex = parseInt(targetSlot.dataset.slotId, 10);
         if (!figuresInSlots[slotIndex]) return;
+
         isDragging = true;
         selectedSlotIndex = slotIndex;
         selectedFigure = JSON.parse(JSON.stringify(figuresInSlots[selectedSlotIndex]));
         targetSlot.classList.add('dragging');
+
+        // >>> HIER WIRD DER LISTENER AKTIVIERT <<<
+        document.addEventListener('contextmenu', handleRightClick);
+
         const moveHandler = (moveEvent) => {
             handleInteractionMove(moveEvent.touches ? moveEvent.touches[0] : moveEvent);
         };
+        
         const endHandler = (endEvent) => {
+            // >>> HIER WIRD DER LISTENER WIEDER DEAKTIVIERT <<<
+            document.removeEventListener('contextmenu', handleRightClick);
+
             document.removeEventListener('touchmove', moveHandler);
             document.removeEventListener('touchend', endHandler);
             document.removeEventListener('mousemove', moveHandler);
             document.removeEventListener('mouseup', endHandler);
             handleInteractionEnd(endEvent.changedTouches ? endEvent.changedTouches[0] : endEvent);
         };
+
         document.addEventListener('touchmove', moveHandler, { passive: false });
         document.addEventListener('touchend', endHandler);
         document.addEventListener('mousemove', moveHandler);
