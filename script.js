@@ -490,7 +490,7 @@ function handleDragStart(event, targetSlot) {
         return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])).map(row => row.reverse());
     }
 
-    function placeFigure(figure, centerX, centerY) {
+    async function placeFigure(figure, centerX, centerY) {
         const placeX = centerX - Math.floor(figure.form[0].length / 2);
         const placeY = centerY - Math.floor(figure.form.length / 2);
         if (!canPlace(figure, placeX, placeY)) return;
