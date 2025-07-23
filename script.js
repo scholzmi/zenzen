@@ -10,13 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const soundToggleButton = document.getElementById('sound-toggle');
 
     // Sound-Effekte laden
-    const clickSound = new Audio('sounds/click.mp3');
     const putSound = new Audio('sounds/put.mp3');
     putSound.volume = 0.6;
     const plopSound = new Audio('sounds/plop.mp3');
     plopSound.volume = 0.4;
     const overSound = new Audio('sounds/over.mp3');
-    clickSound.volume = 0.2;
 
     // Game State
     let gameBoard = [], score = 0, highscore = 0;
@@ -436,8 +434,6 @@ function handleDragStart(event, targetSlot) {
         const cellY = Math.round(yPos / boardRect.height * GRID_SIZE);
 
         if (isSoundOn && (cellX !== lastSoundCell.x || cellY !== lastSoundCell.y)) {
-            clickSound.currentTime = 0;
-            clickSound.play().catch(e => { });
             lastSoundCell.x = cellX;
             lastSoundCell.y = cellY;
         }
