@@ -23,23 +23,30 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastEvent = null;
     let currentPreviewCells = [];
     let currentZonkProbability = 0;
-    let themes = {};
+    let specialEvents = {};
+    let imageList = [];
 
     // =======================================================
-    // THEME- UND WETTER-FUNKTIONEN
+    // THEME-FUNKTIONEN (VEREINFACHT)
     // =======================================================
 
     /**
-     * Lädt die Konfiguration für die Wetter-Themes aus der themes.json Datei.
+     * Lädt die Konfiguration für die Special-Events und die Bilderliste.
      */
-    async function loadThemes() {
+    async function loadResources() {
         try {
-            const response = await fetch('themes.json?v=' + new Date().getTime());
-            if (!response.ok) throw new Error('themes.json konnte nicht geladen werden.');
-            themes = await response.json();
-            console.log('Themes erfolgreich geladen:', themes);
+            const eventsResponse = await fetch('special_events.json?v=' + new Date().getTime());
+            if (!eventsResponse.ok) throw new Error('special_events.json konnte nicht geladen werden.');
+            specialEvents = await eventsResponse.json();
+            console.log('Special Events erfolgreich geladen:', specialEvents);
+
+            const imagesResponse = await fetch('bilder.json?v=' + new Date().getTime());
+            if (!imagesResponse.ok) throw new Error('bilder.json konnte nicht geladen werden.');
+            imageList = await imagesResponse.json();
+            console.log('Bilderliste erfolgreich geladen:', imageList);
+
         } catch (error) {
-            console.error('Fehler beim Laden der Themes:', error);
+            console.error('Fehler beim Laden der Ressourcen:', error);
         }
     }
 
@@ -63,27 +70,13 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    function findAndApplyTheme(weatherCode) {
-        let imageUrl = null; 
-
-        if (themes.themes && themes.themes[weatherCode]) {
-            const theme = themes.themes[weatherCode];
-            imageUrl = theme.background;
-            console.log(`Wetter-Code ${weatherCode} gefunden! Versuche, Hintergrund zu laden: ${imageUrl}`);
-        } else {
-            console.log(`Kein Theme für Wetter-Code ${weatherCode} gefunden. Nutze Fallback.`);
-        }
-
-        setBackgroundImage(imageUrl);
-    }
-
     function checkForSpecialTheme() {
-        if (!themes.specials || !Array.isArray(themes.specials)) {
+        if (!specialEvents.specials || !Array.isArray(specialEvents.specials)) {
             return null;
         }
 
         const now = new Date();
-        for (const special of themes.specials) {
+        for (const special of specialEvents.specials) {
             const startDate = new Date(special.startDate);
             const endDate = new Date(special.endDate);
             startDate.setHours(0, 0, 0, 0);
@@ -102,42 +95,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const specialThemeUrl = checkForSpecialTheme();
         if (specialThemeUrl) {
             setBackgroundImage(specialThemeUrl);
-            console.log("Special Event gefunden; heute kein Wetter");
+            console.log("Special Event gefunden!");
             return;
         }
 
-        console.log("Kein spezielles Event heute. Ermittle das Wetter...");
-        if (!navigator.geolocation) {
-            console.error("Geolocation wird von diesem Browser nicht unterstützt.");
-            findAndApplyTheme(null);
-            return;
+        console.log("Kein spezielles Event heute. Wähle ein zufälliges Bild...");
+        if (imageList.length > 0) {
+            const randomImage = imageList[Math.floor(Math.random() * imageList.length)];
+            setBackgroundImage(randomImage);
+        } else {
+            setBackgroundImage(null); // Fallback
         }
-
-        const successCallback = async (position) => {
-            const { latitude, longitude } = position.coords;
-            console.log(`Standort ermittelt: Lat ${latitude}, Lon ${longitude}`);
-            const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=weather_code`;
-
-            try {
-                const response = await fetch(apiUrl);
-                if (!response.ok) throw new Error(`API-Antwort war nicht ok: ${response.status}`);
-                const data = await response.json();
-                const weatherCode = data.current.weather_code;
-                console.log(`Aktueller Wetter-Code: ${weatherCode}`);
-                findAndApplyTheme(weatherCode);
-            } catch (error) {
-                console.error("Fehler beim Abrufen der Wetterdaten:", error);
-                findAndApplyTheme(null);
-            }
-        };
-
-        const errorCallback = (error) => {
-            console.error(`Fehler bei der Standortermittlung: ${error.message}`);
-            findAndApplyTheme(null);
-        };
-
-        navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
     }
+
 
     // =======================================================
     // SPIEL-INITIALISIERUNG UND RESTLICHE LOGIK
@@ -465,41 +435,10 @@ document.addEventListener('DOMContentLoaded', () => {
             generateJokerFigures();
         }
         if (e.key === 't') {
-            setRandomThemeFromJSON();
+            applyTheme(); // Zufälliges Theme über die Taste 't'
         }
     }
     
-    function setRandomThemeFromJSON() {
-        if (!themes.specials || !themes.themes) {
-            console.error("Themes sind nicht geladen.");
-            return;
-        }
-
-        const imageSet = new Set();
-
-        themes.specials.forEach(special => {
-            if (special.background) {
-                imageSet.add(special.background);
-            }
-        });
-
-        Object.values(themes.themes).forEach(theme => {
-            if (theme.background) {
-                imageSet.add(theme.background);
-            }
-        });
-
-        const images = Array.from(imageSet);
-
-        if (images.length === 0) {
-            console.warn("Keine Hintergrundbilder in themes.json gefunden.");
-            return;
-        }
-
-        const randomImage = images[Math.floor(Math.random() * images.length)];
-        setBackgroundImage(randomImage);
-        console.log(`Zufälliges Theme aus JSON ausgewählt: ${randomImage}`);
-    }
 
     function generateJokerFigures() {
         if (!gameConfig.figures || !gameConfig.figures.joker) return;
@@ -771,7 +710,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', handleKeyPress);
 
     async function startGame() {
-        await loadThemes();
+        await loadResources();
         applyTheme();
         initializeGame();
     }
