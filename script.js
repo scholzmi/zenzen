@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const figureSlots = document.querySelectorAll('.figure-slot');
     const scoreAnimationElement = document.getElementById('score-animation');
 
-
     // Game State
     let gameBoard = [], score = 0, highscore = 0;
     let figuresInSlots = [null, null, null];
@@ -27,12 +26,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let imageList = [];
 
     // =======================================================
-    // THEME-FUNKTIONEN (VEREINFACHT)
+    // THEME-FUNKTIONEN
     // =======================================================
 
-    /**
-     * Lädt die Konfiguration für die Special-Events und die Bilderliste.
-     */
     async function loadResources() {
         try {
             const eventsResponse = await fetch('special_events.json?v=' + new Date().getTime());
@@ -69,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateThemeFromImage(fallbackUrl);
         };
     }
-
+    
     function checkForSpecialTheme() {
         if (!specialEvents.specials || !Array.isArray(specialEvents.specials)) {
             return null;
@@ -108,13 +104,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-
     // =======================================================
     // SPIEL-INITIALISIERUNG UND RESTLICHE LOGIK
     // =======================================================
 
     async function initializeGame() {
-
         highscoreElement.classList.remove('pulsate');
         gameBoardElement.classList.remove('crumble');
         if (Object.keys(gameConfig).length === 0) {
@@ -236,29 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
             slot.addEventListener('mousedown', (e) => handleTapOrDragStart(e));
             slot.addEventListener('touchstart', (e) => handleTapOrDragStart(e), { passive: false });
         });
-
-
-        // Joker-Cheat Listener
-        const titleElement = document.querySelector('.block-title');
-        let tapCount = 0;
-        let tapTimer = null;
-
-        if (titleElement) {
-            titleElement.addEventListener('click', () => {
-                tapCount++;
-                clearTimeout(tapTimer);
-                tapTimer = setTimeout(() => {
-                    tapCount = 0;
-                }, 800);
-
-                if (tapCount >= 5) {
-                    console.log("Joker-Cheat aktiviert!");
-                    generateJokerFigures();
-                    tapCount = 0;
-                    clearTimeout(tapTimer);
-                }
-            });
-        }
     }
 
     let componentOpacity = 0.05;
@@ -435,10 +406,9 @@ document.addEventListener('DOMContentLoaded', () => {
             generateJokerFigures();
         }
         if (e.key === 't') {
-            applyTheme(); // Zufälliges Theme über die Taste 't'
+            applyTheme();
         }
     }
-    
 
     function generateJokerFigures() {
         if (!gameConfig.figures || !gameConfig.figures.joker) return;
@@ -705,7 +675,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return null;
     }
-    
+
     assignEventListeners();
     document.addEventListener('keydown', handleKeyPress);
 
