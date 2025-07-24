@@ -528,6 +528,45 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 's') {
             toggleSound();
         }
+        // NEU: Zufälliges Theme bei 't'
+        if (e.key === 't') {
+            setRandomThemeFromJSON();
+        }
+    }
+    
+    // NEU: Funktion für zufälliges Theme aus der themes.json
+    function setRandomThemeFromJSON() {
+        if (!themes.specials || !themes.themes) {
+            console.error("Themes sind nicht geladen.");
+            return;
+        }
+
+        const imageSet = new Set();
+
+        // Bilder aus "specials" sammeln
+        themes.specials.forEach(special => {
+            if (special.background) {
+                imageSet.add(special.background);
+            }
+        });
+
+        // Bilder aus "themes" sammeln
+        Object.values(themes.themes).forEach(theme => {
+            if (theme.background) {
+                imageSet.add(theme.background);
+            }
+        });
+
+        const images = Array.from(imageSet);
+
+        if (images.length === 0) {
+            console.warn("Keine Hintergrundbilder in themes.json gefunden.");
+            return;
+        }
+
+        const randomImage = images[Math.floor(Math.random() * images.length)];
+        setBackgroundImage(randomImage);
+        console.log(`Zufälliges Theme aus JSON ausgewählt: ${randomImage}`);
     }
 
     function generateJokerFigures() {
