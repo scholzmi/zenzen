@@ -15,18 +15,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const overSound = new Audio('sounds/over.mp3');
 
     // Game State
-    let gameBoard = [],
-        score = 0,
-        highscore = 0;
+    let gameBoard = [], score = 0, highscore = 0;
     let figuresInSlots = [null, null, null];
-    let selectedFigure = null,
-        selectedSlotIndex = -1;
+    let selectedFigure = null, selectedSlotIndex = -1;
     const TOUCH_Y_OFFSET = -30;
     let gameConfig = {};
     const GRID_SIZE = 9;
     let isDragging = false;
-    let lastTap = 0,
-        tapTimeout = null;
+    let lastTap = 0, tapTimeout = null;
     const doubleTapDelay = 300;
     let isMoveScheduled = false;
     let lastEvent = null;
@@ -34,9 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentZonkProbability = 0;
     let isSoundOn = true;
     let themes = {};
-    let isShakeDetectionInitialized = false;
-    // NEU: Eigene Variable, um die Berechtigungsanfrage nur einmal zu stellen
-    let isPermissionRequested = false;
 
     // =======================================================
     // THEME- UND WETTER-FUNKTIONEN
@@ -49,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('themes.json?v=' + new Date().getTime());
             if (!response.ok) throw new Error('themes.json konnte nicht geladen werden.');
+            // KORREKTUR: Das gesamte JSON-Objekt in der 'themes'-Variable speichern.
             themes = await response.json();
             console.log('Themes erfolgreich geladen:', themes);
         } catch (error) {
@@ -63,12 +57,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const img = new Image();
         img.src = finalImageUrl;
 
+        // Wird ausgeführt, WENN das Bild erfolgreich geladen wurde
         img.onload = () => {
             console.log(`Hintergrund erfolgreich geladen: ${finalImageUrl}`);
             document.body.style.setProperty('--background-image', `url('${finalImageUrl}')`);
             updateThemeFromImage(finalImageUrl);
         };
 
+        // Wird ausgeführt, WENN das Bild NICHT gefunden wurde (404-Fehler)
         img.onerror = () => {
             console.warn(`Hintergrund '${finalImageUrl}' nicht gefunden. Lade Fallback: ${fallbackUrl}`);
             document.body.style.setProperty('--background-image', `url('${fallbackUrl}')`);
@@ -77,8 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function findAndApplyTheme(weatherCode) {
-        let imageUrl = null;
+        let imageUrl = null; 
 
+        // KORREKTUR: Wir müssen auf die 'themes'-Eigenschaft des Objekts zugreifen
         if (themes.themes && themes.themes[weatherCode]) {
             const theme = themes.themes[weatherCode];
             imageUrl = theme.background;
@@ -90,17 +87,29 @@ document.addEventListener('DOMContentLoaded', () => {
         setBackgroundImage(imageUrl);
     }
 
+    /**
+         * Überprüft, ob ein spezielles, datumsbasiertes Theme aktiv ist.
+         * @returns {string|null} Die URL des Hintergrundbildes oder null, wenn kein Special aktiv ist.
+         */
     function checkForSpecialTheme() {
         if (!themes.specials || !Array.isArray(themes.specials)) {
             return null;
         }
 
         const now = new Date();
+        // Die Uhrzeit von 'now' muss nicht auf 0 gesetzt werden,
+        // da wir jetzt den gesamten Tagesbereich prüfen.
+
         for (const special of themes.specials) {
             const startDate = new Date(special.startDate);
             const endDate = new Date(special.endDate);
+
+            // Setzt die Uhrzeit auf den Anfang des Starttages
             startDate.setHours(0, 0, 0, 0);
+
+            // KORREKTUR: Setzt die Uhrzeit auf das Ende des Endtages
             endDate.setHours(23, 59, 59, 999);
+
 
             if (now >= startDate && now <= endDate) {
                 console.log(`Aha! Heute ist ein spezielles Datum. Event "${special.name}" ist aktiv.`);
@@ -108,29 +117,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 return special.background;
             }
         }
+
         return null;
     }
 
     function applyTheme() {
+        // 1. Zuerst auf spezielle Events prüfen
         const specialThemeUrl = checkForSpecialTheme();
         if (specialThemeUrl) {
             setBackgroundImage(specialThemeUrl);
             console.log("Special Event gefunden; heute kein Wetter");
-            return;
+            return; // Mission erfüllt, wir brauchen kein Wetter
         }
 
+        // 2. Wenn kein Special aktiv ist, fahre mit der Wetter-Logik fort
         console.log("Kein spezielles Event heute. Ermittle das Wetter...");
         if (!navigator.geolocation) {
             console.error("Geolocation wird von diesem Browser nicht unterstützt.");
-            findAndApplyTheme(null);
+            findAndApplyTheme(null); // Fallback nutzen, wenn Geo nicht geht
             return;
         }
 
         const successCallback = async (position) => {
-            const {
-                latitude,
-                longitude
-            } = position.coords;
+            const { latitude, longitude } = position.coords;
             console.log(`Standort ermittelt: Lat ${latitude}, Lon ${longitude}`);
             const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=weather_code`;
 
@@ -143,13 +152,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 findAndApplyTheme(weatherCode);
             } catch (error) {
                 console.error("Fehler beim Abrufen der Wetterdaten:", error);
-                findAndApplyTheme(null);
+                findAndApplyTheme(null); // Fallback bei API-Fehler
             }
         };
 
         const errorCallback = (error) => {
             console.error(`Fehler bei der Standortermittlung: ${error.message}`);
-            findAndApplyTheme(null);
+            findAndApplyTheme(null); // Fallback bei Geo-Fehler
         };
 
         navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
@@ -160,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =======================================================
 
     async function initializeGame() {
+        // Sound-Zustand aus Cookie laden
         const savedSoundState = getCookie('isSoundOn');
         if (savedSoundState !== null) {
             isSoundOn = (savedSoundState === 'true');
@@ -177,6 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.body.innerHTML = "<h1>Fehler</h1><p>config.json ...</p>";
                 return;
             }
+
         }
         currentZonkProbability = gameConfig.zonkProbability || 0;
         const serverVersion = gameConfig.gameVersion || "1.0";
@@ -193,6 +204,9 @@ document.addEventListener('DOMContentLoaded', () => {
         generateNewFigures();
     }
 
+    // ... (Hier folgen alle anderen Funktionen wie loadConfiguration, createGameBoard, handleDragStart, placeFigure etc. unverändert) ...
+    // Ich füge sie hier der Vollständigkeit halber ein.
+
     async function loadConfiguration() {
         try {
             const response = await fetch('config.json?v=' + new Date().getTime());
@@ -204,17 +218,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error("Figurenpools in config.json sind nicht korrekt definiert.");
             }
             return true;
-        } catch (error) {
-            console.error('Error loading config:', error);
-            return false;
-        }
+        } catch (error) { console.error('Error loading config:', error); return false; }
     }
 
     function createGameBoard() {
         gameBoardElement.innerHTML = '';
-        gameBoard = Array.from({
-            length: GRID_SIZE
-        }, () => Array(GRID_SIZE).fill(0));
+        gameBoard = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
         const cellSize = gameBoardElement.clientWidth / GRID_SIZE;
         for (let y = 0; y < GRID_SIZE; y++) {
             for (let x = 0; x < GRID_SIZE; x++) {
@@ -230,11 +239,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function rgbToHsl(r, g, b) {
-        r /= 255;
-        g /= 255;
-        b /= 255;
-        const max = Math.max(r, g, b),
-            min = Math.min(r, g, b);
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
         let h, s, l = (max + min) / 2;
         if (max === min) {
             h = s = 0;
@@ -242,15 +248,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const d = max - min;
             s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
             switch (max) {
-                case r:
-                    h = (g - b) / d + (g < b ? 6 : 0);
-                    break;
-                case g:
-                    h = (b - r) / d + 2;
-                    break;
-                case b:
-                    h = (r - g) / d + 4;
-                    break;
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                case b: h = (r - g) / d + 4; break;
             }
             h /= 6;
         }
@@ -266,19 +266,24 @@ document.addEventListener('DOMContentLoaded', () => {
             let palette = colorThief.getPalette(img, 8);
 
             function getColorBrightness(rgb) {
+                // Formel zur Berechnung der wahrgenommenen Helligkeit
                 return Math.sqrt(0.299 * (rgb[0] * rgb[0]) + 0.587 * (rgb[1] * rgb[1]) + 0.114 * (rgb[2] * rgb[2]));
             }
 
+            // Sortiert die Palette von der dunkelsten [0] zur hellsten [7] Farbe
             palette.sort((a, b) => getColorBrightness(a) - getColorBrightness(b));
+
+            // --- NEUE, VERBESSERTE FARBZUWEISUNG ---
+            // Wir weisen die Farben jetzt so zu, dass die Figuren mehr Kontrast haben.
             console.log("Farbpalette nach Helligkeit sortiert:", palette);
 
-            const textColor = palette[0];
-            const zonkColor = palette[1];
-            const figureNormalColor = palette[2];
-            const jokerColor = palette[3];
-            const borderColor = palette[4];
-            const accentColor = palette[5];
-            const mainBgColor = palette[7];
+            const textColor = palette[0]; // Die dunkelste Farbe für Text
+            const zonkColor = palette[1]; // Die zweit-dunkelste für Zonk-Figuren
+            const figureNormalColor = palette[2]; // Eine weitere dunkle Farbe für normale Figuren
+            const jokerColor = palette[3]; // Die dritt-dunkelste für Joker-Figuren
+            const borderColor = palette[4]; // Eine Farbe aus der Mitte für die Ränder
+            const accentColor = palette[5]; // Eine hellere Akzentfarbe
+            const mainBgColor = palette[7]; // Die hellste Farbe für den Spielfeld-Hintergrund
 
             const [bgH, bgS, bgL] = rgbToHsl(mainBgColor[0], mainBgColor[1], mainBgColor[2]),
                 [textH, textS, textL] = rgbToHsl(textColor[0], textColor[1], textColor[2]),
@@ -289,86 +294,55 @@ document.addEventListener('DOMContentLoaded', () => {
                 [accentH, accentS, accentL] = rgbToHsl(accentColor[0], accentColor[1], accentColor[2]);
 
             const root = document.documentElement;
-            root.style.setProperty('--component-bg-h', bgH);
-            root.style.setProperty('--component-bg-s', bgS + '%');
-            root.style.setProperty('--component-bg-l', bgL + '%');
-            root.style.setProperty('--text-h', textH);
-            root.style.setProperty('--text-s', textS + '%');
-            root.style.setProperty('--text-l', textL + '%');
-            root.style.setProperty('--border-h', borderH);
-            root.style.setProperty('--border-s', borderS + '%');
-            root.style.setProperty('--border-l', borderL + '%');
-            root.style.setProperty('--figure-normal-h', figH);
-            root.style.setProperty('--figure-normal-s', figS + '%');
-            root.style.setProperty('--figure-normal-l', figL + '%');
-            root.style.setProperty('--figure-joker-h', jokerH);
-            root.style.setProperty('--figure-joker-s', jokerS + '%');
-            root.style.setProperty('--figure-joker-l', jokerL + '%');
-            root.style.setProperty('--figure-zonk-h', zonkH);
-            root.style.setProperty('--figure-zonk-s', zonkS + '%');
-            root.style.setProperty('--figure-zonk-l', zonkL + '%');
-            root.style.setProperty('--accent-h', accentH);
-            root.style.setProperty('--accent-s', accentS + '%');
-            root.style.setProperty('--accent-l', accentL + '%');
+            root.style.setProperty('--component-bg-h', bgH); root.style.setProperty('--component-bg-s', bgS + '%'); root.style.setProperty('--component-bg-l', bgL + '%');
+            root.style.setProperty('--text-h', textH); root.style.setProperty('--text-s', textS + '%'); root.style.setProperty('--text-l', textL + '%');
+            root.style.setProperty('--border-h', borderH); root.style.setProperty('--border-s', borderS + '%'); root.style.setProperty('--border-l', borderL + '%');
+            root.style.setProperty('--figure-normal-h', figH); root.style.setProperty('--figure-normal-s', figS + '%'); root.style.setProperty('--figure-normal-l', figL + '%');
+            root.style.setProperty('--figure-joker-h', jokerH); root.style.setProperty('--figure-joker-s', jokerS + '%'); root.style.setProperty('--figure-joker-l', jokerL + '%');
+            root.style.setProperty('--figure-zonk-h', zonkH); root.style.setProperty('--figure-zonk-s', zonkS + '%'); root.style.setProperty('--figure-zonk-l', zonkL + '%');
+            root.style.setProperty('--accent-h', accentH); root.style.setProperty('--accent-s', accentS + '%'); root.style.setProperty('--accent-l', accentL + '%');
         };
     }
 
     function assignEventListeners() {
         figureSlots.forEach(slot => {
             slot.addEventListener('mousedown', (e) => handleTapOrDragStart(e));
-            slot.addEventListener('touchstart', (e) => handleTapOrDragStart(e), {
-                passive: false
-            });
+            slot.addEventListener('touchstart', (e) => handleTapOrDragStart(e), { passive: false });
         });
 
         if (soundToggleButton) {
             soundToggleButton.addEventListener('click', toggleSound);
         }
-
-        const titleElement = document.querySelector('.block-title');
-        let tapCount = 0;
-        let tapTimer = null;
-
-        if (titleElement) {
-            titleElement.addEventListener('click', () => {
-                tapCount++;
-                clearTimeout(tapTimer);
-                tapTimer = setTimeout(() => {
-                    tapCount = 0;
-                }, 800);
-
-                if (tapCount >= 5) {
-                    console.log("Joker-Cheat aktiviert!");
-                    generateJokerFigures();
-                    tapCount = 0;
-                    clearTimeout(tapTimer);
-                }
-            });
-        }
     }
 
-    let componentOpacity = 0.05;
+    // --- NEUER CODE FÜR MAUSRAD-STEUERUNG ---
+
+    let componentOpacity = 0.05; // Startwert, passend zu deiner Einstellung
     const gameWrapper = document.querySelector('.game-wrapper');
 
     function updateOpacity(newOpacity) {
+        // Begrenzt die Opazität zwischen 0.05 (fast unsichtbar) und 1.0 (komplett sichtbar)
         componentOpacity = Math.max(0.00, Math.min(1.0, newOpacity));
         document.documentElement.style.setProperty('--component-bg-a', componentOpacity);
     }
 
+    // Setzt den Startwert beim Laden des Spiels
     updateOpacity(componentOpacity);
 
-    if (gameWrapper) {
-        gameWrapper.addEventListener('wheel', (event) => {
-            event.preventDefault();
-            if (event.deltaY < 0) {
-                updateOpacity(componentOpacity + 0.05);
-            } else {
-                updateOpacity(componentOpacity - 0.05);
-            }
-        }, {
-            passive: false
-        });
-    }
+    // Event Listener für das Mausrad auf dem Spielfeld
+    gameWrapper.addEventListener('wheel', (event) => {
+        // Verhindert, dass die ganze Seite scrollt
+        event.preventDefault();
+
+        // deltaY ist negativ beim Hochscrollen, positiv beim Runterscrollen
+        if (event.deltaY < 0) {
+            // Hochscrollen -> sichtbarer machen
+            updateOpacity(componentOpacity + 0.05);
+        } else {
+            // Runterscrollen -> durchsichtiger machen
+            updateOpacity(componentOpacity - 0.05);
+        }
+    }, { passive: false }); // Wichtig, um preventDefault() zu erlauben
 
     function handleTapOrDragStart(e) {
         e.preventDefault();
@@ -404,9 +378,12 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedFigure = JSON.parse(JSON.stringify(figuresInSlots[selectedSlotIndex]));
         targetSlot.classList.add('dragging');
 
+        // NEUER HANDLER für die Leertaste während des Ziehens
         const handleKeyPressDuringDrag = (e) => {
+            // Prüfen, ob die Leertaste gedrückt wurde
             if (e.code === 'Space') {
-                e.preventDefault();
+                e.preventDefault(); // Verhindert, dass die Seite scrollt
+
                 if (selectedFigure) {
                     selectedFigure.form = rotateFigure90Degrees(selectedFigure.form);
                     if (lastEvent) {
@@ -416,6 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
+        // Event-Listener für Tastendruck wird AKTIVIERT
         document.addEventListener('keydown', handleKeyPressDuringDrag);
 
         const moveHandler = (moveEvent) => {
@@ -423,7 +401,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const endHandler = (endEvent) => {
+            // Event-Listener wird DEAKTIVIERT, wenn das Ziehen endet
             document.removeEventListener('keydown', handleKeyPressDuringDrag);
+
             document.removeEventListener('touchmove', moveHandler);
             document.removeEventListener('touchend', endHandler);
             document.removeEventListener('mousemove', moveHandler);
@@ -431,9 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
             handleInteractionEnd(endEvent.changedTouches ? endEvent.changedTouches[0] : endEvent);
         };
 
-        document.addEventListener('touchmove', moveHandler, {
-            passive: false
-        });
+        document.addEventListener('touchmove', moveHandler, { passive: false });
         document.addEventListener('touchend', endHandler);
         document.addEventListener('mousemove', moveHandler);
         document.addEventListener('mouseup', endHandler);
@@ -489,37 +467,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const placeY = centerY - Math.floor(figure.form.length / 2);
         if (!canPlace(figure, placeX, placeY)) return;
 
-        // NEU: iOS-Berechtigung beim ersten Platzieren anfordern
-        if (!isPermissionRequested && typeof DeviceMotionEvent.requestPermission === 'function') {
-            isPermissionRequested = true; // Verhindert zukünftige Anfragen
-            DeviceMotionEvent.requestPermission()
-                .then(permissionState => {
-                    if (permissionState === 'granted') {
-                        initShakeDetection();
-                    } else {
-                        console.log("Erlaubnis für Bewegungssensoren nicht erteilt.");
-                    }
-                })
-                .catch(console.error);
-        }
-
+        // Figur ZUERST im Datenmodell platzieren
         figure.form.forEach((row, y) => row.forEach((block, x) => {
             if (block === 1) gameBoard[placeY + y][placeX + x] = figure.category;
         }));
 
-        const clearResult = clearFullLines();
+        // DANN prüfen, ob Reihen voll sind und den entsprechenden Sound abspielen
+        const clearResult = clearFullLines(); // clearFullLines spielt keinen Sound mehr
         const points = clearResult.points + (figure.points || 0);
 
         if (isSoundOn) {
             if (clearResult.linesCleared) {
                 plopSound.currentTime = 0;
-                plopSound.play().catch(e => {});
+                plopSound.play().catch(e => { });
             } else {
                 putSound.currentTime = 0;
-                putSound.play().catch(e => {});
+                putSound.play().catch(e => { });
             }
         }
 
+        // Restliche Logik bleibt gleich
         score += points;
         scoreElement.textContent = score;
         showScoreAnimation(points);
@@ -538,7 +505,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Die toggleSound-Funktion ist jetzt wieder nur für den Sound zuständig
     function toggleSound() {
         isSoundOn = !isSoundOn;
         if (soundToggleButton) {
@@ -562,11 +528,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 's') {
             toggleSound();
         }
+        // NEU: Zufälliges Theme bei 't'
         if (e.key === 't') {
             setRandomThemeFromJSON();
         }
     }
-
+    
+    // NEU: Funktion für zufälliges Theme aus der themes.json
     function setRandomThemeFromJSON() {
         if (!themes.specials || !themes.themes) {
             console.error("Themes sind nicht geladen.");
@@ -575,12 +543,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const imageSet = new Set();
 
+        // Bilder aus "specials" sammeln
         themes.specials.forEach(special => {
             if (special.background) {
                 imageSet.add(special.background);
             }
         });
 
+        // Bilder aus "themes" sammeln
         Object.values(themes.themes).forEach(theme => {
             if (theme.background) {
                 imageSet.add(theme.background);
@@ -603,12 +573,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!gameConfig.figures || !gameConfig.figures.joker) return;
         const jokerPool = gameConfig.figures.joker;
         for (let i = 0; i < 3; i++) {
-            let figureData = { ...getWeightedRandomFigure(jokerPool)
-            };
-            let figure = { ...figureData,
-                form: parseShape(figureData.shape),
-                category: 'joker'
-            };
+            let figureData = { ...getWeightedRandomFigure(jokerPool) };
+            let figure = { ...figureData, form: parseShape(figureData.shape), category: 'joker' };
             const rotations = Math.floor(Math.random() * 4);
             for (let r = 0; r < rotations; r++) {
                 figure.form = rotateFigure90Degrees(figure.form);
@@ -633,9 +599,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function generateNewFigures() {
         console.log("Aktuelle Zonk-Wahrscheinlichkeit:", currentZonkProbability.toFixed(4));
-        const {
-            jokerProbability
-        } = gameConfig;
+        const { jokerProbability } = gameConfig;
         let isPlaceableSet = false;
         let newFigures = [];
         do {
@@ -653,12 +617,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     pool = gameConfig.figures.normal;
                     category = 'normal';
                 }
-                let figureData = { ...getWeightedRandomFigure(pool)
-                };
-                let figure = { ...figureData,
-                    form: parseShape(figureData.shape),
-                    category: category
-                };
+                let figureData = { ...getWeightedRandomFigure(pool) };
+                let figure = { ...figureData, form: parseShape(figureData.shape), category: category };
                 const rotations = Math.floor(Math.random() * 4);
                 for (let r = 0; r < rotations; r++) {
                     figure.form = rotateFigure90Degrees(figure.form);
@@ -704,9 +664,7 @@ document.addEventListener('DOMContentLoaded', () => {
             for (let i = 0; i < 4; i++) {
                 for (let y = 0; y <= GRID_SIZE - currentForm.length; y++) {
                     for (let x = 0; x <= GRID_SIZE - currentForm[0].length; x++) {
-                        if (canPlace({
-                                form: currentForm
-                            }, x, y)) return false;
+                        if (canPlace({ form: currentForm }, x, y)) return false;
                     }
                 }
                 currentForm = rotateFigure90Degrees(currentForm);
@@ -721,9 +679,7 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < 4; i++) {
             for (let y = 0; y <= GRID_SIZE - currentForm.length; y++) {
                 for (let x = 0; x <= GRID_SIZE - currentForm[0].length; x++) {
-                    if (canPlace({
-                            form: currentForm
-                        }, x, y)) {
+                    if (canPlace({ form: currentForm }, x, y)) {
                         return true;
                     }
                 }
@@ -734,17 +690,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function clearFullLines() {
-        let rows = [],
-            cols = [];
-        for (let y = 0; y < GRID_SIZE; y++)
-            if (gameBoard[y].every(cell => cell !== 0)) rows.push(y);
-        for (let x = 0; x < GRID_SIZE; x++)
-            if (gameBoard.every(row => row[x] !== 0)) cols.push(x);
+        let rows = [], cols = [];
+        for (let y = 0; y < GRID_SIZE; y++) if (gameBoard[y].every(cell => cell !== 0)) rows.push(y);
+        for (let x = 0; x < GRID_SIZE; x++) if (gameBoard.every(row => row[x] !== 0)) cols.push(x);
 
         const linesCleared = rows.length > 0 || cols.length > 0;
+
+        // Die Sound-Logik wurde von hier entfernt
+
         rows.forEach(y => gameBoard[y].fill(0));
         cols.forEach(x => gameBoard.forEach(row => row[x] = 0));
-
+        
+        // Wir geben jetzt ein Objekt zurück, das beide Informationen enthält
         return {
             points: Math.pow(rows.length + cols.length, 2) * 100,
             linesCleared: linesCleared
@@ -754,7 +711,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleGameOver() {
         if (isSoundOn) {
             overSound.currentTime = 0;
-            overSound.play().catch(e => {});
+            overSound.play().catch(e => { });
         }
         gameBoardElement.classList.add('crumble');
         let isNewHighscore = score > highscore;
@@ -841,21 +798,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function parseShape(shapeCoords) {
-        let tempMatrix = Array.from({
-            length: 5
-        }, () => Array(5).fill(0));
-        let minRow = 5,
-            maxRow = -1,
-            minCol = 5,
-            maxCol = -1;
+        let tempMatrix = Array.from({ length: 5 }, () => Array(5).fill(0));
+        let minRow = 5, maxRow = -1, minCol = 5, maxCol = -1;
         shapeCoords.forEach(coord => {
             const row = Math.floor((coord - 1) / 5);
             const col = (coord - 1) % 5;
             tempMatrix[row][col] = 1;
-            minRow = Math.min(minRow, row);
-            maxRow = Math.max(maxRow, row);
-            minCol = Math.min(minCol, col);
-            maxCol = Math.max(maxCol, col);
+            minRow = Math.min(minRow, row); maxRow = Math.max(maxRow, row);
+            minCol = Math.min(minCol, col); maxCol = Math.max(maxCol, col);
         });
         return tempMatrix.slice(minRow, maxRow + 1).map(row => row.slice(minCol, maxCol + 1));
     }
@@ -893,42 +843,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
 
-    function initShakeDetection() {
-        if (isShakeDetectionInitialized) return;
-
-        console.log("Initialisiere Schüttel-Erkennung...");
-        isShakeDetectionInitialized = true;
-        let lastShakeTime = 0;
-        const shakeThreshold = 15;
-
-        window.addEventListener('devicemotion', (event) => {
-            const now = new Date().getTime();
-            if ((now - lastShakeTime) > 3000) {
-                const acceleration = event.accelerationIncludingGravity;
-                const motion = Math.abs(acceleration.x) + Math.abs(acceleration.y) + Math.abs(acceleration.z);
-
-                if (motion > shakeThreshold) {
-                    console.log("Gerät geschüttelt, wechsle Theme!");
-                    setRandomThemeFromJSON();
-                    lastShakeTime = now;
-                }
-            }
-        });
-    }
-
     assignEventListeners();
     document.addEventListener('keydown', handleKeyPress);
 
-    // Wenn es kein iOS ist (also die Funktion nicht existiert), starte die Erkennung sofort.
-    if (typeof DeviceMotionEvent.requestPermission !== 'function') {
-        initShakeDetection();
-    }
-
     async function startGame() {
-        await loadThemes();
-        applyTheme();
-        initializeGame();
+        await loadThemes(); // Zuerst die Themes laden
+        applyTheme();       // Dann das Theme anwenden (Special oder Wetter)
+        initializeGame();   // Dann das restliche Spiel initialisieren
     }
 
-    startGame();
+    startGame(); // Das Spiel starten
 });
