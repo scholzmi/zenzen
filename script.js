@@ -42,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('themes.json?v=' + new Date().getTime());
             if (!response.ok) throw new Error('themes.json konnte nicht geladen werden.');
-            // KORREKTUR: Das gesamte JSON-Objekt in der 'themes'-Variable speichern.
             themes = await response.json();
             console.log('Themes erfolgreich geladen:', themes);
         } catch (error) {
@@ -57,14 +56,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const img = new Image();
         img.src = finalImageUrl;
 
-        // Wird ausgeführt, WENN das Bild erfolgreich geladen wurde
         img.onload = () => {
             console.log(`Hintergrund erfolgreich geladen: ${finalImageUrl}`);
             document.body.style.setProperty('--background-image', `url('${finalImageUrl}')`);
             updateThemeFromImage(finalImageUrl);
         };
 
-        // Wird ausgeführt, WENN das Bild NICHT gefunden wurde (404-Fehler)
         img.onerror = () => {
             console.warn(`Hintergrund '${finalImageUrl}' nicht gefunden. Lade Fallback: ${fallbackUrl}`);
             document.body.style.setProperty('--background-image', `url('${fallbackUrl}')`);
@@ -75,7 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function findAndApplyTheme(weatherCode) {
         let imageUrl = null; 
 
-        // KORREKTUR: Wir müssen auf die 'themes'-Eigenschaft des Objekts zugreifen
         if (themes.themes && themes.themes[weatherCode]) {
             const theme = themes.themes[weatherCode];
             imageUrl = theme.background;
@@ -87,29 +83,17 @@ document.addEventListener('DOMContentLoaded', () => {
         setBackgroundImage(imageUrl);
     }
 
-    /**
-         * Überprüft, ob ein spezielles, datumsbasiertes Theme aktiv ist.
-         * @returns {string|null} Die URL des Hintergrundbildes oder null, wenn kein Special aktiv ist.
-         */
     function checkForSpecialTheme() {
         if (!themes.specials || !Array.isArray(themes.specials)) {
             return null;
         }
 
         const now = new Date();
-        // Die Uhrzeit von 'now' muss nicht auf 0 gesetzt werden,
-        // da wir jetzt den gesamten Tagesbereich prüfen.
-
         for (const special of themes.specials) {
             const startDate = new Date(special.startDate);
             const endDate = new Date(special.endDate);
-
-            // Setzt die Uhrzeit auf den Anfang des Starttages
             startDate.setHours(0, 0, 0, 0);
-
-            // KORREKTUR: Setzt die Uhrzeit auf das Ende des Endtages
             endDate.setHours(23, 59, 59, 999);
-
 
             if (now >= startDate && now <= endDate) {
                 console.log(`Aha! Heute ist ein spezielles Datum. Event "${special.name}" ist aktiv.`);
@@ -117,24 +101,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 return special.background;
             }
         }
-
         return null;
     }
 
     function applyTheme() {
-        // 1. Zuerst auf spezielle Events prüfen
         const specialThemeUrl = checkForSpecialTheme();
         if (specialThemeUrl) {
             setBackgroundImage(specialThemeUrl);
             console.log("Special Event gefunden; heute kein Wetter");
-            return; // Mission erfüllt, wir brauchen kein Wetter
+            return;
         }
 
-        // 2. Wenn kein Special aktiv ist, fahre mit der Wetter-Logik fort
         console.log("Kein spezielles Event heute. Ermittle das Wetter...");
         if (!navigator.geolocation) {
             console.error("Geolocation wird von diesem Browser nicht unterstützt.");
-            findAndApplyTheme(null); // Fallback nutzen, wenn Geo nicht geht
+            findAndApplyTheme(null);
             return;
         }
 
@@ -152,13 +133,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 findAndApplyTheme(weatherCode);
             } catch (error) {
                 console.error("Fehler beim Abrufen der Wetterdaten:", error);
-                findAndApplyTheme(null); // Fallback bei API-Fehler
+                findAndApplyTheme(null);
             }
         };
 
         const errorCallback = (error) => {
             console.error(`Fehler bei der Standortermittlung: ${error.message}`);
-            findAndApplyTheme(null); // Fallback bei Geo-Fehler
+            findAndApplyTheme(null);
         };
 
         navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
@@ -169,7 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // =======================================================
 
     async function initializeGame() {
-        // Sound-Zustand aus Cookie laden
         const savedSoundState = getCookie('isSoundOn');
         if (savedSoundState !== null) {
             isSoundOn = (savedSoundState === 'true');
@@ -187,7 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.body.innerHTML = "<h1>Fehler</h1><p>config.json ...</p>";
                 return;
             }
-
         }
         currentZonkProbability = gameConfig.zonkProbability || 0;
         const serverVersion = gameConfig.gameVersion || "1.0";
@@ -203,9 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
         createGameBoard();
         generateNewFigures();
     }
-
-    // ... (Hier folgen alle anderen Funktionen wie loadConfiguration, createGameBoard, handleDragStart, placeFigure etc. unverändert) ...
-    // Ich füge sie hier der Vollständigkeit halber ein.
 
     async function loadConfiguration() {
         try {
@@ -266,24 +242,19 @@ document.addEventListener('DOMContentLoaded', () => {
             let palette = colorThief.getPalette(img, 8);
 
             function getColorBrightness(rgb) {
-                // Formel zur Berechnung der wahrgenommenen Helligkeit
                 return Math.sqrt(0.299 * (rgb[0] * rgb[0]) + 0.587 * (rgb[1] * rgb[1]) + 0.114 * (rgb[2] * rgb[2]));
             }
 
-            // Sortiert die Palette von der dunkelsten [0] zur hellsten [7] Farbe
             palette.sort((a, b) => getColorBrightness(a) - getColorBrightness(b));
-
-            // --- NEUE, VERBESSERTE FARBZUWEISUNG ---
-            // Wir weisen die Farben jetzt so zu, dass die Figuren mehr Kontrast haben.
             console.log("Farbpalette nach Helligkeit sortiert:", palette);
 
-            const textColor = palette[0]; // Die dunkelste Farbe für Text
-            const zonkColor = palette[1]; // Die zweit-dunkelste für Zonk-Figuren
-            const figureNormalColor = palette[2]; // Eine weitere dunkle Farbe für normale Figuren
-            const jokerColor = palette[3]; // Die dritt-dunkelste für Joker-Figuren
-            const borderColor = palette[4]; // Eine Farbe aus der Mitte für die Ränder
-            const accentColor = palette[5]; // Eine hellere Akzentfarbe
-            const mainBgColor = palette[7]; // Die hellste Farbe für den Spielfeld-Hintergrund
+            const textColor = palette[0];
+            const zonkColor = palette[1];
+            const figureNormalColor = palette[2];
+            const jokerColor = palette[3];
+            const borderColor = palette[4];
+            const accentColor = palette[5];
+            const mainBgColor = palette[7];
 
             const [bgH, bgS, bgL] = rgbToHsl(mainBgColor[0], mainBgColor[1], mainBgColor[2]),
                 [textH, textS, textL] = rgbToHsl(textColor[0], textColor[1], textColor[2]),
@@ -313,36 +284,50 @@ document.addEventListener('DOMContentLoaded', () => {
         if (soundToggleButton) {
             soundToggleButton.addEventListener('click', toggleSound);
         }
+
+        // Joker-Cheat Listener
+        const titleElement = document.querySelector('.block-title');
+        let tapCount = 0;
+        let tapTimer = null;
+
+        if (titleElement) {
+            titleElement.addEventListener('click', () => {
+                tapCount++;
+                clearTimeout(tapTimer);
+                tapTimer = setTimeout(() => {
+                    tapCount = 0;
+                }, 800);
+
+                if (tapCount >= 5) {
+                    console.log("Joker-Cheat aktiviert!");
+                    generateJokerFigures();
+                    tapCount = 0;
+                    clearTimeout(tapTimer);
+                }
+            });
+        }
     }
 
-    // --- NEUER CODE FÜR MAUSRAD-STEUERUNG ---
-
-    let componentOpacity = 0.05; // Startwert, passend zu deiner Einstellung
+    let componentOpacity = 0.05;
     const gameWrapper = document.querySelector('.game-wrapper');
 
     function updateOpacity(newOpacity) {
-        // Begrenzt die Opazität zwischen 0.05 (fast unsichtbar) und 1.0 (komplett sichtbar)
         componentOpacity = Math.max(0.00, Math.min(1.0, newOpacity));
         document.documentElement.style.setProperty('--component-bg-a', componentOpacity);
     }
 
-    // Setzt den Startwert beim Laden des Spiels
     updateOpacity(componentOpacity);
 
-    // Event Listener für das Mausrad auf dem Spielfeld
-    gameWrapper.addEventListener('wheel', (event) => {
-        // Verhindert, dass die ganze Seite scrollt
-        event.preventDefault();
-
-        // deltaY ist negativ beim Hochscrollen, positiv beim Runterscrollen
-        if (event.deltaY < 0) {
-            // Hochscrollen -> sichtbarer machen
-            updateOpacity(componentOpacity + 0.05);
-        } else {
-            // Runterscrollen -> durchsichtiger machen
-            updateOpacity(componentOpacity - 0.05);
-        }
-    }, { passive: false }); // Wichtig, um preventDefault() zu erlauben
+    if (gameWrapper) {
+        gameWrapper.addEventListener('wheel', (event) => {
+            event.preventDefault();
+            if (event.deltaY < 0) {
+                updateOpacity(componentOpacity + 0.05);
+            } else {
+                updateOpacity(componentOpacity - 0.05);
+            }
+        }, { passive: false });
+    }
 
     function handleTapOrDragStart(e) {
         e.preventDefault();
@@ -378,12 +363,9 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedFigure = JSON.parse(JSON.stringify(figuresInSlots[selectedSlotIndex]));
         targetSlot.classList.add('dragging');
 
-        // NEUER HANDLER für die Leertaste während des Ziehens
         const handleKeyPressDuringDrag = (e) => {
-            // Prüfen, ob die Leertaste gedrückt wurde
             if (e.code === 'Space') {
-                e.preventDefault(); // Verhindert, dass die Seite scrollt
-
+                e.preventDefault();
                 if (selectedFigure) {
                     selectedFigure.form = rotateFigure90Degrees(selectedFigure.form);
                     if (lastEvent) {
@@ -393,7 +375,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // Event-Listener für Tastendruck wird AKTIVIERT
         document.addEventListener('keydown', handleKeyPressDuringDrag);
 
         const moveHandler = (moveEvent) => {
@@ -401,9 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const endHandler = (endEvent) => {
-            // Event-Listener wird DEAKTIVIERT, wenn das Ziehen endet
             document.removeEventListener('keydown', handleKeyPressDuringDrag);
-
             document.removeEventListener('touchmove', moveHandler);
             document.removeEventListener('touchend', endHandler);
             document.removeEventListener('mousemove', moveHandler);
@@ -467,13 +446,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const placeY = centerY - Math.floor(figure.form.length / 2);
         if (!canPlace(figure, placeX, placeY)) return;
 
-        // Figur ZUERST im Datenmodell platzieren
         figure.form.forEach((row, y) => row.forEach((block, x) => {
             if (block === 1) gameBoard[placeY + y][placeX + x] = figure.category;
         }));
 
-        // DANN prüfen, ob Reihen voll sind und den entsprechenden Sound abspielen
-        const clearResult = clearFullLines(); // clearFullLines spielt keinen Sound mehr
+        const clearResult = clearFullLines();
         const points = clearResult.points + (figure.points || 0);
 
         if (isSoundOn) {
@@ -486,7 +463,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Restliche Logik bleibt gleich
         score += points;
         scoreElement.textContent = score;
         showScoreAnimation(points);
@@ -528,13 +504,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 's') {
             toggleSound();
         }
-        // NEU: Zufälliges Theme bei 't'
         if (e.key === 't') {
             setRandomThemeFromJSON();
         }
     }
     
-    // NEU: Funktion für zufälliges Theme aus der themes.json
     function setRandomThemeFromJSON() {
         if (!themes.specials || !themes.themes) {
             console.error("Themes sind nicht geladen.");
@@ -543,14 +517,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const imageSet = new Set();
 
-        // Bilder aus "specials" sammeln
         themes.specials.forEach(special => {
             if (special.background) {
                 imageSet.add(special.background);
             }
         });
 
-        // Bilder aus "themes" sammeln
         Object.values(themes.themes).forEach(theme => {
             if (theme.background) {
                 imageSet.add(theme.background);
@@ -695,13 +667,9 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let x = 0; x < GRID_SIZE; x++) if (gameBoard.every(row => row[x] !== 0)) cols.push(x);
 
         const linesCleared = rows.length > 0 || cols.length > 0;
-
-        // Die Sound-Logik wurde von hier entfernt
-
         rows.forEach(y => gameBoard[y].fill(0));
         cols.forEach(x => gameBoard.forEach(row => row[x] = 0));
         
-        // Wir geben jetzt ein Objekt zurück, das beide Informationen enthält
         return {
             points: Math.pow(rows.length + cols.length, 2) * 100,
             linesCleared: linesCleared
@@ -842,15 +810,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return null;
     }
-
+    
     assignEventListeners();
     document.addEventListener('keydown', handleKeyPress);
 
     async function startGame() {
-        await loadThemes(); // Zuerst die Themes laden
-        applyTheme();       // Dann das Theme anwenden (Special oder Wetter)
-        initializeGame();   // Dann das restliche Spiel initialisieren
+        await loadThemes();
+        applyTheme();
+        initializeGame();
     }
 
-    startGame(); // Das Spiel starten
+    startGame();
 });
