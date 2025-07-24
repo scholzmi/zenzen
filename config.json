@@ -1,6 +1,6 @@
 {
-    "version": "V0.31a",
-    "lastModification": "stable",
+    "version": "V0.31b",
+    "lastModification": "shake",
     "gameVersion": "0.20",
     "zonkProbability": 0.10,
     "zonkProbabilityMax": 0.20,

@@ -15,14 +15,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const overSound = new Audio('sounds/over.mp3');
 
     // Game State
-    let gameBoard = [], score = 0, highscore = 0;
+    let gameBoard = [],
+        score = 0,
+        highscore = 0;
     let figuresInSlots = [null, null, null];
-    let selectedFigure = null, selectedSlotIndex = -1;
+    let selectedFigure = null,
+        selectedSlotIndex = -1;
     const TOUCH_Y_OFFSET = -30;
     let gameConfig = {};
     const GRID_SIZE = 9;
     let isDragging = false;
-    let lastTap = 0, tapTimeout = null;
+    let lastTap = 0,
+        tapTimeout = null;
     const doubleTapDelay = 300;
     let isMoveScheduled = false;
     let lastEvent = null;
@@ -30,6 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentZonkProbability = 0;
     let isSoundOn = true;
     let themes = {};
+    let isShakeDetectionInitialized = false;
+    // NEU: Eigene Variable, um die Berechtigungsanfrage nur einmal zu stellen
+    let isPermissionRequested = false;
 
     // =======================================================
     // THEME- UND WETTER-FUNKTIONEN
@@ -70,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function findAndApplyTheme(weatherCode) {
-        let imageUrl = null; 
+        let imageUrl = null;
 
         if (themes.themes && themes.themes[weatherCode]) {
             const theme = themes.themes[weatherCode];
@@ -120,7 +127,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const successCallback = async (position) => {
-            const { latitude, longitude } = position.coords;
+            const {
+                latitude,
+                longitude
+            } = position.coords;
             console.log(`Standort ermittelt: Lat ${latitude}, Lon ${longitude}`);
             const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=weather_code`;
 
@@ -194,12 +204,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error("Figurenpools in config.json sind nicht korrekt definiert.");
             }
             return true;
-        } catch (error) { console.error('Error loading config:', error); return false; }
+        } catch (error) {
+            console.error('Error loading config:', error);
+            return false;
+        }
     }
 
     function createGameBoard() {
         gameBoardElement.innerHTML = '';
-        gameBoard = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
+        gameBoard = Array.from({
+            length: GRID_SIZE
+        }, () => Array(GRID_SIZE).fill(0));
         const cellSize = gameBoardElement.clientWidth / GRID_SIZE;
         for (let y = 0; y < GRID_SIZE; y++) {
             for (let x = 0; x < GRID_SIZE; x++) {
@@ -215,8 +230,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function rgbToHsl(r, g, b) {
-        r /= 255; g /= 255; b /= 255;
-        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        r /= 255;
+        g /= 255;
+        b /= 255;
+        const max = Math.max(r, g, b),
+            min = Math.min(r, g, b);
         let h, s, l = (max + min) / 2;
         if (max === min) {
             h = s = 0;
@@ -224,9 +242,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const d = max - min;
             s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
             switch (max) {
-                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-                case g: h = (b - r) / d + 2; break;
-                case b: h = (r - g) / d + 4; break;
+                case r:
+                    h = (g - b) / d + (g < b ? 6 : 0);
+                    break;
+                case g:
+                    h = (b - r) / d + 2;
+                    break;
+                case b:
+                    h = (r - g) / d + 4;
+                    break;
             }
             h /= 6;
         }
@@ -265,27 +289,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 [accentH, accentS, accentL] = rgbToHsl(accentColor[0], accentColor[1], accentColor[2]);
 
             const root = document.documentElement;
-            root.style.setProperty('--component-bg-h', bgH); root.style.setProperty('--component-bg-s', bgS + '%'); root.style.setProperty('--component-bg-l', bgL + '%');
-            root.style.setProperty('--text-h', textH); root.style.setProperty('--text-s', textS + '%'); root.style.setProperty('--text-l', textL + '%');
-            root.style.setProperty('--border-h', borderH); root.style.setProperty('--border-s', borderS + '%'); root.style.setProperty('--border-l', borderL + '%');
-            root.style.setProperty('--figure-normal-h', figH); root.style.setProperty('--figure-normal-s', figS + '%'); root.style.setProperty('--figure-normal-l', figL + '%');
-            root.style.setProperty('--figure-joker-h', jokerH); root.style.setProperty('--figure-joker-s', jokerS + '%'); root.style.setProperty('--figure-joker-l', jokerL + '%');
-            root.style.setProperty('--figure-zonk-h', zonkH); root.style.setProperty('--figure-zonk-s', zonkS + '%'); root.style.setProperty('--figure-zonk-l', zonkL + '%');
-            root.style.setProperty('--accent-h', accentH); root.style.setProperty('--accent-s', accentS + '%'); root.style.setProperty('--accent-l', accentL + '%');
+            root.style.setProperty('--component-bg-h', bgH);
+            root.style.setProperty('--component-bg-s', bgS + '%');
+            root.style.setProperty('--component-bg-l', bgL + '%');
+            root.style.setProperty('--text-h', textH);
+            root.style.setProperty('--text-s', textS + '%');
+            root.style.setProperty('--text-l', textL + '%');
+            root.style.setProperty('--border-h', borderH);
+            root.style.setProperty('--border-s', borderS + '%');
+            root.style.setProperty('--border-l', borderL + '%');
+            root.style.setProperty('--figure-normal-h', figH);
+            root.style.setProperty('--figure-normal-s', figS + '%');
+            root.style.setProperty('--figure-normal-l', figL + '%');
+            root.style.setProperty('--figure-joker-h', jokerH);
+            root.style.setProperty('--figure-joker-s', jokerS + '%');
+            root.style.setProperty('--figure-joker-l', jokerL + '%');
+            root.style.setProperty('--figure-zonk-h', zonkH);
+            root.style.setProperty('--figure-zonk-s', zonkS + '%');
+            root.style.setProperty('--figure-zonk-l', zonkL + '%');
+            root.style.setProperty('--accent-h', accentH);
+            root.style.setProperty('--accent-s', accentS + '%');
+            root.style.setProperty('--accent-l', accentL + '%');
         };
     }
 
     function assignEventListeners() {
         figureSlots.forEach(slot => {
             slot.addEventListener('mousedown', (e) => handleTapOrDragStart(e));
-            slot.addEventListener('touchstart', (e) => handleTapOrDragStart(e), { passive: false });
+            slot.addEventListener('touchstart', (e) => handleTapOrDragStart(e), {
+                passive: false
+            });
         });
 
         if (soundToggleButton) {
             soundToggleButton.addEventListener('click', toggleSound);
         }
 
-        // NEU: Event-Listener für Joker-Cheat
         const titleElement = document.querySelector('.block-title');
         let tapCount = 0;
         let tapTimer = null;
@@ -326,7 +365,9 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 updateOpacity(componentOpacity - 0.05);
             }
-        }, { passive: false });
+        }, {
+            passive: false
+        });
     }
 
     function handleTapOrDragStart(e) {
@@ -390,7 +431,9 @@ document.addEventListener('DOMContentLoaded', () => {
             handleInteractionEnd(endEvent.changedTouches ? endEvent.changedTouches[0] : endEvent);
         };
 
-        document.addEventListener('touchmove', moveHandler, { passive: false });
+        document.addEventListener('touchmove', moveHandler, {
+            passive: false
+        });
         document.addEventListener('touchend', endHandler);
         document.addEventListener('mousemove', moveHandler);
         document.addEventListener('mouseup', endHandler);
@@ -446,6 +489,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const placeY = centerY - Math.floor(figure.form.length / 2);
         if (!canPlace(figure, placeX, placeY)) return;
 
+        // NEU: iOS-Berechtigung beim ersten Platzieren anfordern
+        if (!isPermissionRequested && typeof DeviceMotionEvent.requestPermission === 'function') {
+            isPermissionRequested = true; // Verhindert zukünftige Anfragen
+            DeviceMotionEvent.requestPermission()
+                .then(permissionState => {
+                    if (permissionState === 'granted') {
+                        initShakeDetection();
+                    } else {
+                        console.log("Erlaubnis für Bewegungssensoren nicht erteilt.");
+                    }
+                })
+                .catch(console.error);
+        }
+
         figure.form.forEach((row, y) => row.forEach((block, x) => {
             if (block === 1) gameBoard[placeY + y][placeX + x] = figure.category;
         }));
@@ -456,10 +513,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isSoundOn) {
             if (clearResult.linesCleared) {
                 plopSound.currentTime = 0;
-                plopSound.play().catch(e => { });
+                plopSound.play().catch(e => {});
             } else {
                 putSound.currentTime = 0;
-                putSound.play().catch(e => { });
+                putSound.play().catch(e => {});
             }
         }
 
@@ -481,6 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Die toggleSound-Funktion ist jetzt wieder nur für den Sound zuständig
     function toggleSound() {
         isSoundOn = !isSoundOn;
         if (soundToggleButton) {
@@ -508,7 +566,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setRandomThemeFromJSON();
         }
     }
-    
+
     function setRandomThemeFromJSON() {
         if (!themes.specials || !themes.themes) {
             console.error("Themes sind nicht geladen.");
@@ -545,8 +603,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!gameConfig.figures || !gameConfig.figures.joker) return;
         const jokerPool = gameConfig.figures.joker;
         for (let i = 0; i < 3; i++) {
-            let figureData = { ...getWeightedRandomFigure(jokerPool) };
-            let figure = { ...figureData, form: parseShape(figureData.shape), category: 'joker' };
+            let figureData = { ...getWeightedRandomFigure(jokerPool)
+            };
+            let figure = { ...figureData,
+                form: parseShape(figureData.shape),
+                category: 'joker'
+            };
             const rotations = Math.floor(Math.random() * 4);
             for (let r = 0; r < rotations; r++) {
                 figure.form = rotateFigure90Degrees(figure.form);
@@ -571,7 +633,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function generateNewFigures() {
         console.log("Aktuelle Zonk-Wahrscheinlichkeit:", currentZonkProbability.toFixed(4));
-        const { jokerProbability } = gameConfig;
+        const {
+            jokerProbability
+        } = gameConfig;
         let isPlaceableSet = false;
         let newFigures = [];
         do {
@@ -589,8 +653,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     pool = gameConfig.figures.normal;
                     category = 'normal';
                 }
-                let figureData = { ...getWeightedRandomFigure(pool) };
-                let figure = { ...figureData, form: parseShape(figureData.shape), category: category };
+                let figureData = { ...getWeightedRandomFigure(pool)
+                };
+                let figure = { ...figureData,
+                    form: parseShape(figureData.shape),
+                    category: category
+                };
                 const rotations = Math.floor(Math.random() * 4);
                 for (let r = 0; r < rotations; r++) {
                     figure.form = rotateFigure90Degrees(figure.form);
@@ -636,7 +704,9 @@ document.addEventListener('DOMContentLoaded', () => {
             for (let i = 0; i < 4; i++) {
                 for (let y = 0; y <= GRID_SIZE - currentForm.length; y++) {
                     for (let x = 0; x <= GRID_SIZE - currentForm[0].length; x++) {
-                        if (canPlace({ form: currentForm }, x, y)) return false;
+                        if (canPlace({
+                                form: currentForm
+                            }, x, y)) return false;
                     }
                 }
                 currentForm = rotateFigure90Degrees(currentForm);
@@ -651,7 +721,9 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < 4; i++) {
             for (let y = 0; y <= GRID_SIZE - currentForm.length; y++) {
                 for (let x = 0; x <= GRID_SIZE - currentForm[0].length; x++) {
-                    if (canPlace({ form: currentForm }, x, y)) {
+                    if (canPlace({
+                            form: currentForm
+                        }, x, y)) {
                         return true;
                     }
                 }
@@ -662,14 +734,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function clearFullLines() {
-        let rows = [], cols = [];
-        for (let y = 0; y < GRID_SIZE; y++) if (gameBoard[y].every(cell => cell !== 0)) rows.push(y);
-        for (let x = 0; x < GRID_SIZE; x++) if (gameBoard.every(row => row[x] !== 0)) cols.push(x);
+        let rows = [],
+            cols = [];
+        for (let y = 0; y < GRID_SIZE; y++)
+            if (gameBoard[y].every(cell => cell !== 0)) rows.push(y);
+        for (let x = 0; x < GRID_SIZE; x++)
+            if (gameBoard.every(row => row[x] !== 0)) cols.push(x);
 
         const linesCleared = rows.length > 0 || cols.length > 0;
         rows.forEach(y => gameBoard[y].fill(0));
         cols.forEach(x => gameBoard.forEach(row => row[x] = 0));
-        
+
         return {
             points: Math.pow(rows.length + cols.length, 2) * 100,
             linesCleared: linesCleared
@@ -679,7 +754,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleGameOver() {
         if (isSoundOn) {
             overSound.currentTime = 0;
-            overSound.play().catch(e => { });
+            overSound.play().catch(e => {});
         }
         gameBoardElement.classList.add('crumble');
         let isNewHighscore = score > highscore;
@@ -766,14 +841,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function parseShape(shapeCoords) {
-        let tempMatrix = Array.from({ length: 5 }, () => Array(5).fill(0));
-        let minRow = 5, maxRow = -1, minCol = 5, maxCol = -1;
+        let tempMatrix = Array.from({
+            length: 5
+        }, () => Array(5).fill(0));
+        let minRow = 5,
+            maxRow = -1,
+            minCol = 5,
+            maxCol = -1;
         shapeCoords.forEach(coord => {
             const row = Math.floor((coord - 1) / 5);
             const col = (coord - 1) % 5;
             tempMatrix[row][col] = 1;
-            minRow = Math.min(minRow, row); maxRow = Math.max(maxRow, row);
-            minCol = Math.min(minCol, col); maxCol = Math.max(maxCol, col);
+            minRow = Math.min(minRow, row);
+            maxRow = Math.max(maxRow, row);
+            minCol = Math.min(minCol, col);
+            maxCol = Math.max(maxCol, col);
         });
         return tempMatrix.slice(minRow, maxRow + 1).map(row => row.slice(minCol, maxCol + 1));
     }
@@ -811,27 +893,36 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
 
+    function initShakeDetection() {
+        if (isShakeDetectionInitialized) return;
+
+        console.log("Initialisiere Schüttel-Erkennung...");
+        isShakeDetectionInitialized = true;
+        let lastShakeTime = 0;
+        const shakeThreshold = 15;
+
+        window.addEventListener('devicemotion', (event) => {
+            const now = new Date().getTime();
+            if ((now - lastShakeTime) > 3000) {
+                const acceleration = event.accelerationIncludingGravity;
+                const motion = Math.abs(acceleration.x) + Math.abs(acceleration.y) + Math.abs(acceleration.z);
+
+                if (motion > shakeThreshold) {
+                    console.log("Gerät geschüttelt, wechsle Theme!");
+                    setRandomThemeFromJSON();
+                    lastShakeTime = now;
+                }
+            }
+        });
+    }
+
     assignEventListeners();
     document.addEventListener('keydown', handleKeyPress);
 
-    // NEU: Event-Listener für Schüttel-Geste
-    let lastShakeTime = 0;
-    const shakeThreshold = 15; // Empfindlichkeit der Schüttel-Geste
-
-    window.addEventListener('devicemotion', (event) => {
-        const now = new Date().getTime();
-        // Cooldown von 3 Sekunden, um nicht ständig das Theme zu wechseln
-        if ((now - lastShakeTime) > 3000) {
-            const acceleration = event.accelerationIncludingGravity;
-            const motion = Math.abs(acceleration.x) + Math.abs(acceleration.y) + Math.abs(acceleration.z);
-
-            if (motion > shakeThreshold) {
-                console.log("Gerät geschüttelt, wechsle Theme!");
-                setRandomThemeFromJSON();
-                lastShakeTime = now;
-            }
-        }
-    });
+    // Wenn es kein iOS ist (also die Funktion nicht existiert), starte die Erkennung sofort.
+    if (typeof DeviceMotionEvent.requestPermission !== 'function') {
+        initShakeDetection();
+    }
 
     async function startGame() {
         await loadThemes();
