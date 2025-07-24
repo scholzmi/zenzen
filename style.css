@@ -240,24 +240,6 @@ footer a {
     text-shadow: 0 2px 4px #000000c5;
 }
 
-.sound-icon {
-    font-size: 20px;
-    cursor: pointer;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-}
-
-.sound-icon:hover {
-    opacity: 1;
-}
-
-/* ----- NEUE REGEL HINZUGEFÜGT ----- */
-#sound-toggle {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-}
 /* ---------------------------------- */
 
 #game-board-wrapper {

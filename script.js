@@ -7,12 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const lastModificationElement = document.getElementById('last-modification');
     const figureSlots = document.querySelectorAll('.figure-slot');
     const scoreAnimationElement = document.getElementById('score-animation');
-    const soundToggleButton = document.getElementById('sound-toggle');
 
-    // Sound-Effekte laden
-    const putSound = new Audio('sounds/put.mp3');
-    const plopSound = new Audio('sounds/plop.mp3');
-    const overSound = new Audio('sounds/over.mp3');
 
     // Game State
     let gameBoard = [], score = 0, highscore = 0;
@@ -28,7 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastEvent = null;
     let currentPreviewCells = [];
     let currentZonkProbability = 0;
-    let isSoundOn = true;
     let themes = {};
 
     // =======================================================
@@ -150,14 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // =======================================================
 
     async function initializeGame() {
-        const savedSoundState = getCookie('isSoundOn');
-        if (savedSoundState !== null) {
-            isSoundOn = (savedSoundState === 'true');
-        }
-        if (soundToggleButton) {
-            soundToggleButton.textContent = isSoundOn ? '🔊' : '🔈';
-            soundToggleButton.style.opacity = isSoundOn ? '0.7' : '0.3';
-        }
 
         highscoreElement.classList.remove('pulsate');
         gameBoardElement.classList.remove('crumble');
@@ -281,9 +267,6 @@ document.addEventListener('DOMContentLoaded', () => {
             slot.addEventListener('touchstart', (e) => handleTapOrDragStart(e), { passive: false });
         });
 
-        if (soundToggleButton) {
-            soundToggleButton.addEventListener('click', toggleSound);
-        }
 
         // Joker-Cheat Listener
         const titleElement = document.querySelector('.block-title');
@@ -453,16 +436,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const clearResult = clearFullLines();
         const points = clearResult.points + (figure.points || 0);
 
-        if (isSoundOn) {
-            if (clearResult.linesCleared) {
-                plopSound.currentTime = 0;
-                plopSound.play().catch(e => { });
-            } else {
-                putSound.currentTime = 0;
-                putSound.play().catch(e => { });
-            }
-        }
-
         score += points;
         scoreElement.textContent = score;
         showScoreAnimation(points);
@@ -481,16 +454,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function toggleSound() {
-        isSoundOn = !isSoundOn;
-        if (soundToggleButton) {
-            soundToggleButton.textContent = isSoundOn ? '🔊' : '🔈';
-            soundToggleButton.style.opacity = isSoundOn ? '0.7' : '0.3';
-        }
-        setCookie('isSoundOn', isSoundOn, 365);
-        console.log("Sound ist jetzt:", isSoundOn ? "An" : "Aus");
-    }
-
     function handleKeyPress(e) {
         if (e.key === 'b') {
             const container = document.querySelector('.main-container');
@@ -500,9 +463,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (e.key === 'j') {
             generateJokerFigures();
-        }
-        if (e.key === 's') {
-            toggleSound();
         }
         if (e.key === 't') {
             setRandomThemeFromJSON();
@@ -677,10 +637,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleGameOver() {
-        if (isSoundOn) {
-            overSound.currentTime = 0;
-            overSound.play().catch(e => { });
-        }
         gameBoardElement.classList.add('crumble');
         let isNewHighscore = score > highscore;
         if (isNewHighscore) {
