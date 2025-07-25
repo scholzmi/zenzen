@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const lastModificationElement = document.getElementById('last-modification');
     const figureSlots = document.querySelectorAll('.figure-slot');
     const scoreAnimationElement = document.getElementById('score-animation');
+    const titleElement = document.querySelector('.block-title');
+
 
     // Game State
     let gameBoard = [], score = 0, highscore = 0;
@@ -24,6 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentZonkProbability = 0;
     let specialEvents = {};
     let imageList = [];
+    let titleTapCount = 0;
+    let titleTapTimer = null;
+    let gameBoardTapCount = 0;
+    let gameBoardTapTimer = null;
+
 
     // =======================================================
     // THEME-FUNKTIONEN
@@ -230,6 +237,12 @@ document.addEventListener('DOMContentLoaded', () => {
             slot.addEventListener('mousedown', (e) => handleTapOrDragStart(e));
             slot.addEventListener('touchstart', (e) => handleTapOrDragStart(e), { passive: false });
         });
+
+        if (titleElement) {
+            titleElement.addEventListener('click', handleTitleTap);
+        }
+
+        gameBoardElement.addEventListener('click', handleGameBoardTap);
     }
 
     let componentOpacity = 0.05;
@@ -251,6 +264,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateOpacity(componentOpacity - 0.05);
             }
         }, { passive: false });
+    }
+
+    function handleGameBoardTap() {
+        gameBoardTapCount++;
+        if (gameBoardTapTimer) clearTimeout(gameBoardTapTimer);
+
+        if (gameBoardTapCount === 5) {
+            applyTheme();
+            gameBoardTapCount = 0;
+        } else {
+            gameBoardTapTimer = setTimeout(() => {
+                gameBoardTapCount = 0;
+            }, 1500); // 5 taps within 1.5 seconds
+        }
+    }
+
+
+    function handleTitleTap() {
+        titleTapCount++;
+        if (titleTapTimer) clearTimeout(titleTapTimer);
+
+        if (titleTapCount === 5) {
+            console.log("Cheat activated: Joker Figures");
+            generateJokerFigures();
+            titleTapCount = 0;
+        } else {
+            titleTapTimer = setTimeout(() => {
+                titleTapCount = 0;
+            }, 1500); // 5 Taps within 1.5 seconds
+        }
     }
 
     function handleTapOrDragStart(e) {
