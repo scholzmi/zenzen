@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const scoreAnimationElement = document.getElementById('score-animation');
     const titleElement = document.querySelector('.block-title');
 
-
     // Game State
     let gameBoard = [], score = 0, highscore = 0;
     let figuresInSlots = [null, null, null];
@@ -28,9 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let imageList = [];
     let titleTapCount = 0;
     let titleTapTimer = null;
-    let gameBoardTapCount = 0;
-    let gameBoardTapTimer = null;
-
+    
+    // Variables for Board Gestures
+    let boardTapCount = 0;
+    let boardTapTimer = null;
+    let boardTapHoldTimer = null;
+    let isAdjustingOpacity = false;
+    let startY = 0;
+    let startOpacity = 0;
 
     // =======================================================
     // THEME-FUNKTIONEN
@@ -242,7 +246,9 @@ document.addEventListener('DOMContentLoaded', () => {
             titleElement.addEventListener('click', handleTitleTap);
         }
 
-        gameBoardElement.addEventListener('click', handleGameBoardTap);
+        gameBoardElement.addEventListener('touchstart', handleBoardTouchStart, { passive: false });
+        gameBoardElement.addEventListener('touchmove', handleBoardTouchMove, { passive: false });
+        gameBoardElement.addEventListener('touchend', handleBoardTouchEnd);
     }
 
     let componentOpacity = 0.05;
@@ -266,20 +272,49 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { passive: false });
     }
 
-    function handleGameBoardTap() {
-        gameBoardTapCount++;
-        if (gameBoardTapTimer) clearTimeout(gameBoardTapTimer);
+    function handleBoardTouchStart(e) {
+        if (isDragging) return;
+        e.preventDefault();
+        boardTapCount++;
 
-        if (gameBoardTapCount === 5) {
+        if (boardTapTimer) clearTimeout(boardTapTimer);
+
+        if (boardTapCount === 2) {
+            boardTapHoldTimer = setTimeout(() => {
+                isAdjustingOpacity = true;
+                startY = e.touches[0].clientY;
+                startOpacity = componentOpacity;
+                boardTapCount = 0;
+            }, 200); // Hold time: 200ms
+        }
+
+        boardTapTimer = setTimeout(() => {
+            boardTapCount = 0;
+        }, 300); // Multi-tap window: 300ms
+
+        if (boardTapCount === 5) {
             applyTheme();
-            gameBoardTapCount = 0;
-        } else {
-            gameBoardTapTimer = setTimeout(() => {
-                gameBoardTapCount = 0;
-            }, 1500); // 5 taps within 1.5 seconds
+            boardTapCount = 0;
+            if (boardTapTimer) clearTimeout(boardTapTimer);
+            if (boardTapHoldTimer) clearTimeout(boardTapHoldTimer);
         }
     }
 
+    function handleBoardTouchMove(e) {
+        if (isAdjustingOpacity) {
+            e.preventDefault();
+            const deltaY = startY - e.touches[0].clientY;
+            const newOpacity = startOpacity + (deltaY / 400); // Sensitivity
+            updateOpacity(newOpacity);
+        }
+    }
+
+    function handleBoardTouchEnd() {
+        if (boardTapHoldTimer) clearTimeout(boardTapHoldTimer);
+        if (isAdjustingOpacity) {
+            isAdjustingOpacity = false;
+        }
+    }
 
     function handleTitleTap() {
         titleTapCount++;
