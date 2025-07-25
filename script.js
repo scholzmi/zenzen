@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =======================================================
 
     async function initializeGame() {
-        highscoreElement.classList.remove('pulsate');
+        highscoreElement.classList.remove('pulsate', 'new-highscore-animation');
         gameBoardElement.classList.remove('crumble');
         if (Object.keys(gameConfig).length === 0) {
             const configLoaded = await loadConfiguration();
@@ -380,11 +380,18 @@ document.addEventListener('DOMContentLoaded', () => {
         score += points;
         scoreElement.textContent = score;
         showScoreAnimation(points);
+
         if (score > highscore) {
             highscore = score;
             highscoreElement.textContent = highscore;
             setCookie('highscore', highscore, 365);
+            
+            highscoreElement.classList.add('new-highscore-animation');
+            setTimeout(() => {
+                highscoreElement.classList.remove('new-highscore-animation');
+            }, 2000); // Muss mit der Dauer der CSS-Animation übereinstimmen
         }
+
         figuresInSlots[selectedSlotIndex] = null;
         drawFigureInSlot(selectedSlotIndex);
         if (figuresInSlots.every(f => f === null)) {
@@ -547,24 +554,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleGameOver() {
         gameBoardElement.classList.add('crumble');
-        let isNewHighscore = score > highscore;
-        if (isNewHighscore) {
-            highscore = score;
-            setCookie('highscore', highscore, 365);
-        }
         setTimeout(() => {
             const allCells = gameBoardElement.querySelectorAll('.cell.occupied');
             allCells.forEach(cell => {
                 cell.className = 'cell';
             });
             gameBoardElement.classList.remove('crumble');
-            if (isNewHighscore) {
-                highscoreElement.textContent = highscore;
-                highscoreElement.classList.add('pulsate');
-                setTimeout(initializeGame, 1800);
-            } else {
-                initializeGame();
-            }
+            initializeGame();
         }, 1600);
     }
 

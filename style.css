@@ -95,15 +95,12 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    /* NEU: Wir nutzen eine CSS-Variable mit 'bg.png' als Fallback */
     background-image: var(--background-image, url('bg.png'));
-    /* --- HIER SIND DIE ÄNDERUNGEN --- */
-    background-size: auto; /* Stellt die Originalgröße wieder her */
-    background-repeat: repeat; /* Sorgt für die Wiederholung */
-    /* -------------------------------- */
+    background-size: auto; 
+    background-repeat: repeat;
     opacity: 1;
     z-index: -1;
-    transition: background-image 0.5s ease-in-out; /* Optional: schöner Übergang */
+    transition: background-image 0.5s ease-in-out;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -113,8 +110,8 @@ body::before {
 
     body::before {
         filter: brightness(0.6);
-        background-size: auto; /* Wiederholung der Regel für den Dark Mode */
-        background-repeat: repeat; /* Wiederholung der Regel für den Dark Mode */
+        background-size: auto;
+        background-repeat: repeat;
     }
 
     .game-wrapper {
@@ -162,20 +159,16 @@ body::before {
     background-color: var(--component-bg);
     border: 1px solid #FFFFFF80;
     border-radius: 18px;
-    /*xxx 24px*/
     padding: 20px;
     box-sizing: border-box;
     box-shadow: 0 10px 30px;
-    /*hier geändert*/
     backdrop-filter: blur(8px);
     touch-action: none;
     contain: content;
 }
 
 .header {
-    /* ----- HINZUGEFÜGT ----- */
     position: relative;
-    /* ----------------------- */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -240,8 +233,6 @@ footer a {
     text-shadow: 0 2px 4px #000000c5;
 }
 
-/* ---------------------------------- */
-
 #game-board-wrapper {
     position: relative;
     width: 100%;
@@ -255,7 +246,6 @@ footer a {
     aspect-ratio: 1 / 1;
     border: 2px solid var(--border-color);
     border-radius: 4px;
-    /*xxx 8px*/
 }
 
 .cell {
@@ -334,8 +324,6 @@ footer a {
     pointer-events: none;
     transform: scale(1.0);
     gap: 2px;
-
-    /* NEU: Zentriert die Figur innerhalb einer festen 5x5-Box */
     width: calc(var(--figure-block-size, 8px) * 5 + 4px * 2);
     height: calc(var(--figure-block-size, 8px) * 5 + 4px * 2);
     justify-content: center;
@@ -348,7 +336,6 @@ footer a {
     box-sizing: border-box;
     border-radius: 10%;
     transform: scale(0.95);
-    /* border-top und border-left wurden entfernt, da der gap den Abstand steuert */
 }
 
 /* =================================
@@ -417,8 +404,8 @@ footer a {
 /* =================================
    6. Animationen & Effekte
    ================================= */
-#highscore.pulsate {
-    animation: pulsate 0.6s 3;
+.new-highscore-animation {
+    animation: newHighscoreEffect 2s ease-in-out;
 }
 
 #game-board.crumble .cell.occupied::before {
@@ -455,19 +442,29 @@ footer a {
     }
 }
 
-@keyframes pulsate {
-
-    0%,
+@keyframes newHighscoreEffect {
+    0% {
+        transform: scale(1);
+        color: var(--figure-color-joker);
+        text-shadow: 0 2px 4px #000000c5;
+    }
+    25% {
+        transform: scale(1.5);
+        color: #FFD700; /* Gold */
+        text-shadow: 0 0 15px #FFD700;
+    }
+    50% {
+        transform: scale(1.2);
+        color: #FFD700;
+        text-shadow: 0 0 25px #FFD700;
+    }
     100% {
         transform: scale(1);
-        color: #0FF15A;
-    }
-
-    50% {
-        transform: scale(1.25);
-        color: #0CB043;
+        color: var(--figure-color-joker);
+        text-shadow: 0 2px 4px #000000c5;
     }
 }
+
 
 @keyframes scoreExplosion {
     0% {
