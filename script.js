@@ -535,8 +535,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }));
 
         const clearResult = clearFullLines();
-        const points = clearResult.points + (figure.points || 0);
-        const clearedLines = clearResult.clearedLineCount;
+        const rowsClearedCount = clearResult.rows.length;
+        const colsClearedCount = clearResult.cols.length;
+
+        // --- NEUE, DYNAMISCHE PUNKTEBERECHNUNG ---
+
+        // A: Punkte der platzierten Figur (aus config.json)
+        const figureBasePoints = figure.points || 0;
+
+        // B: Neue, dynamische Punkte für geplatzte Linien, basierend auf deiner Formel
+        let linePoints = 0;
+        if (rowsClearedCount > 0 || colsClearedCount > 0) {
+            // Zählt die Blöcke der platzierten Figur (z.B. 9 für einen 3x3 Block)
+            const figureCellCount = figure.form.flat().reduce((sum, cell) => sum + cell, 0);
+
+            // "Cross-Bonus": Gibt 1, wenn Reihen UND Spalten platzen, sonst 0
+            const crossBonus = (rowsClearedCount > 0 && colsClearedCount > 0) ? 1 : 0;
+
+            // Der Basiswert für die Potenzierung
+            const basiswert = rowsClearedCount + colsClearedCount + crossBonus + (figureCellCount / 10);
+
+            // Die finale Berechnung, gerundet auf eine ganze Zahl
+            linePoints = Math.round(Math.pow(basiswert, 2) * 100);
+        }
+
+        const points = figureBasePoints + linePoints;
+
+        // --- ENDE DER NEUEN BERECHNUNG ---
+
+        // Diese Variable wird für die Combo-Ketten-Logik weiterhin benötigt
+        const clearedLines = rowsClearedCount + colsClearedCount;
 
         if (isCurrentSetFromCombo) {
             comboSetClearedLines += clearedLines;
@@ -562,14 +590,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const allSlotsAreEmpty = figuresInSlots.every(f => f === null);
 
-        // NEUE, KORREKTE PRÜFUNG: Erst wenn alle Figuren des Sets platziert sind
         if (isCurrentSetFromCombo && allSlotsAreEmpty) {
             if (comboSetClearedLines >= 1) {
-                // Wenn der Zähler für das Set größer oder gleich 1 ist, läuft die Kette
                 console.log(`KETTE LÄUFT WEITER! (${comboSetClearedLines} Linien im Set geplatzt) Nächste Runde ist garantiert eine Combo.`);
                 isComboChainActive = true;
             } else {
-                // Ansonsten ist sie hier gerissen
                 console.log("KETTE GERISSEN! Keine Reihe beim letzten Set geplatzt.");
                 isComboChainActive = false;
             }
@@ -879,14 +904,14 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let y = 0; y < GRID_SIZE; y++) if (gameBoard[y].every(cell => cell !== 0)) rows.push(y);
         for (let x = 0; x < GRID_SIZE; x++) if (gameBoard.every(row => row[x] !== 0)) cols.push(x);
 
-        const clearedLineCount = rows.length + cols.length;
-
+        // Wichtig: Linien auf dem Spielfeld leeren
         rows.forEach(y => gameBoard[y].fill(0));
         cols.forEach(x => gameBoard.forEach(row => row[x] = 0));
 
+        // Die rohen Daten zurückgeben, die Berechnung erfolgt jetzt in placeFigure
         return {
-            points: Math.pow(clearedLineCount, 2) * 100,
-            clearedLineCount: clearedLineCount
+            rows: rows,
+            cols: cols
         };
     }
 

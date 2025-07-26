@@ -1,7 +1,7 @@
 {
-    "version": "V0.40",
+    "version": "V0.41a",
     "lastModification": "stable",
-    "gameVersion": "0.22",
+    "gameVersion": "0.23",
     "zonkProbability": 0.10,
     "zonkProbabilityMax": 0.20,
     "zonkProbabilityIncrementPerRound": 0.002,
