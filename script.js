@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isComboChainActive = false;
     let isCurrentSetFromCombo = false;
     let comboSetClearedLines = 0;
+    let lastThreeComboIds = []; // NEU: Merkt sich die letzten 3 gezogenen Combo-IDs
     let currentClearingPreviewCells = [];
 
 
@@ -672,6 +673,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function generateNewFigures() {
         comboSetClearedLines = 0;
         isCurrentSetFromCombo = false;
+
+        // Wenn eine neue Runde ohne aktive Kette beginnt, den Zähler zurücksetzen
+        if (!isComboChainActive) {
+            lastThreeComboIds = [];
+        }
+
         console.log("Aktuelle Zonk-Wahrscheinlichkeit:", currentZonkProbability.toFixed(4));
         const { jokerProbability, comboProbability, combos, figures } = gameConfig;
 
@@ -680,9 +687,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log("Combo-Kette ist aktiv, erzwinge neue Combo-Auslosung...");
             }
 
+            let comboFoundAndPlaced = false; // Hilfsvariable, um den Fallback zu steuern
             for (let attempt = 0; attempt < 20; attempt++) {
                 const selectedCombo = getWeightedRandomFigure(combos);
                 const figureNamesInSet = selectedCombo.set;
+                const selectedComboId = selectedCombo.id; // Die ID des gezogenen Sets
 
                 const findFigureDataByName = (name) => {
                     for (const category of ['normal', 'zonk', 'joker']) {
@@ -712,7 +721,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (canComboBePlaced(parsedFiguresInCombo, gameBoard)) {
-                    console.log(`Passendes Combo-Set gefunden (Versuch ${attempt + 1}):`, figureNamesInSet.join(', '));
+                    // --- NEUE LOGIK: NOTBREMSE BEI WIEDERHOLUNG ---
+                    lastThreeComboIds.push(selectedComboId);
+                    if (lastThreeComboIds.length > 3) {
+                        lastThreeComboIds.shift(); // Hält das Array bei maximal 3 Einträgen
+                    }
+
+                    // Prüft, ob die letzten 3 IDs gleich sind
+                    if (lastThreeComboIds.length === 3 && lastThreeComboIds.every(id => id === selectedComboId)) {
+                        console.log(`COMBO-KETTE HART BEENDET: 3x die gleiche Combo-ID (${selectedComboId}) in Folge.`);
+                        isComboChainActive = false; // Kette beenden
+                        lastThreeComboIds = []; // Zähler zurücksetzen
+                        break; // Die for-Schleife für die Versuche abbrechen und zum Fallback übergehen
+                    }
+                    // --- ENDE DER NEUEN LOGIK ---
+
+                    console.log(`Passendes Combo-Set gefunden (ID: ${selectedComboId}, Versuch ${attempt + 1}):`, figureNamesInSet.join(', '));
                     isCurrentSetFromCombo = true;
 
                     let shuffledCombo = [...parsedFiguresInCombo];
@@ -726,17 +750,21 @@ document.addEventListener('DOMContentLoaded', () => {
                         drawFigureInSlot(i);
                     }
 
-                    if (isGameOver()) {
-                        handleGameOver();
-                    }
-                    return;
+                    if (isGameOver()) handleGameOver();
+
+                    comboFoundAndPlaced = true; // Markieren, dass wir erfolgreich waren
+                    return; // Die Funktion hier beenden, kein Fallback nötig
                 }
             }
-            console.log("Nach 20 Versuchen kein platzierbares Combo-Set gefunden. Fallback zur normalen Logik.");
-            isComboChainActive = false;
+
+            // Wenn die Schleife durchläuft (oder durch die Notbremse abgebrochen wird), ohne eine Figur zu platzieren
+            if (!comboFoundAndPlaced) {
+                console.log("Kein platzierbares Combo-Set gefunden oder Kette durch Notbremse beendet. Fallback zur normalen Logik.");
+                isComboChainActive = false;
+            }
         }
 
-        // FALLBACK
+        // FALLBACK: Dieser Code wird nur erreicht, wenn die Combo-Auslosung fehlschlägt oder nicht getriggert wird.
         let isPlaceableSet = false;
         let newFigures = [];
         do {

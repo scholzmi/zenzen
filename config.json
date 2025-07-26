@@ -1,5 +1,5 @@
 {
-    "version": "V0.41b",
+    "version": "V0.41c",
     "lastModification": "touch optimization",
     "gameVersion": "0.23",
     "zonkProbability": 0.10,
@@ -68,18 +68,8 @@
     },
     { 
         "id": 7,
-        "set": ["I-5", "I-4", "I-5"], 
-        "probability": 5
-    },
-    { 
-        "id": 8,
-        "set": ["I-5", "I-5", "I-5"], 
-        "probability": 5
-    },
-    { 
-        "id": 9,
         "set": ["Winkel gross", "Winkel gross", "Block 2x2"], 
-        "probability": 5
+        "probability": 10
     }
 ]
 }
