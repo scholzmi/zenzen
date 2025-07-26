@@ -385,6 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleTapOrDragStart(e) {
+        document.body.style.cursor = 'none'; // NEU: Cursor sofort beim Klick ausblenden
         e.preventDefault();
         const targetSlot = e.currentTarget;
         const now = new Date().getTime();
@@ -409,6 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleDragStart(event, targetSlot) {
+        document.body.style.cursor = 'none'; // NEU: Macht den Mauszeiger unsichtbar
         if (isDragging) return;
         const slotIndex = parseInt(targetSlot.dataset.slotId, 10);
         if (!figuresInSlots[slotIndex]) return;
@@ -491,6 +493,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleInteractionEnd(event) {
+        document.body.style.cursor = 'auto'; // Stellt den normalen Mauszeiger wieder her
         if (!isDragging) return;
         const boardRect = gameBoardElement.getBoundingClientRect();
         const cellSize = boardRect.width / GRID_SIZE;
@@ -499,7 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const cellX = Math.round(xPos / cellSize);
         const cellY = Math.round(yPos / cellSize);
 
-        // NEU: Positionen zurücksetzen
+        // Positionen zurücksetzen
         lastPreviewX = null;
         lastPreviewY = null;
 
@@ -606,27 +609,22 @@ document.addEventListener('DOMContentLoaded', () => {
         // NEU: Versuch, ein Combo-Set zu erhalten
         if (Math.random() < (comboProbability || 0)) {
             for (let attempt = 0; attempt < 20; attempt++) {
-                const selectedCombo = getWeightedRandomFigure(combos); // Weighted-Funktion wiederverwenden
+                const selectedCombo = getWeightedRandomFigure(combos);
                 const figureNamesInSet = selectedCombo.set;
 
-                // Hilfsfunktion, um eine Figur anhand des Namens in allen Pools zu finden
                 const findFigureDataByName = (name) => {
                     for (const category of ['normal', 'zonk', 'joker']) {
                         const found = figures[category].find(f => f.name === name);
-                        if (found) {
-                            // Wichtig: Kategorie zur Figur hinzufügen
-                            return { ...found, category };
-                        }
+                        if (found) return { ...found, category };
                     }
                     return null;
                 };
 
                 const figuresInCombo = figureNamesInSet.map(findFigureDataByName);
 
-                // Sicherheitsprüfung, falls eine Figur nicht gefunden wird
                 if (figuresInCombo.some(f => f === null)) {
                     console.error("Eine Figur im Combo-Set wurde nicht in der config.json gefunden:", figureNamesInSet);
-                    continue; // Nächsten Versuch starten
+                    continue;
                 }
 
                 const parsedFiguresInCombo = figuresInCombo.map(figureData => ({
@@ -634,14 +632,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     form: parseShape(figureData.shape)
                 }));
 
-                // Prüfen, ob ALLE Figuren des Sets auf dem Feld platziert werden können
-                const allFiguresArePlaceable = parsedFiguresInCombo.every(canFigureBePlacedAnywhere);
-
-                if (allFiguresArePlaceable) {
+                // HIER IST DIE KORRIGIERTE PRÜFUNG:
+                // Wir rufen die neue, rekursive Funktion auf, die prüft, ob alle 3 Figuren NACHEINANDER passen.
+                if (canComboBePlaced(parsedFiguresInCombo, gameBoard)) {
                     console.log(`Passendes Combo-Set gefunden (Versuch ${attempt + 1}):`, figureNamesInSet.join(', '));
 
                     for (let i = 0; i < 3; i++) {
-                        // Die Figuren aus dem Set direkt zuweisen
                         figuresInSlots[i] = parsedFiguresInCombo[i];
                         drawFigureInSlot(i);
                     }
@@ -655,7 +651,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("Nach 20 Versuchen kein platzierbares Combo-Set gefunden. Fallback zur normalen Logik.");
         }
 
-        // FALLBACK: Bisherige Logik, wenn keine Combo gefunden wurde oder die Wahrscheinlichkeit nicht zutraf
+        // FALLBACK: Bisherige Logik, wenn keine Combo gefunden wurde
         let isPlaceableSet = false;
         let newFigures = [];
         do {
@@ -681,6 +677,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 newFigures.push(figure);
             }
+            // Hier bleibt die alte, einfache Prüfung, da es nur darum geht, ob das Spiel vorbei ist.
             if (newFigures.some(fig => canFigureBePlacedAnywhere(fig))) {
                 isPlaceableSet = true;
             }
@@ -697,6 +694,91 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isGameOver()) {
             handleGameOver();
         }
+    }
+
+    /**
+ * Prüft, ob eine Figur an einer bestimmten Position auf einem GEGEBENEN Spielfeld platziert werden kann.
+ * Anders als die globale `canPlace`, arbeitet diese mit einem übergebenen Board-Zustand.
+ * @param {Array<Array<number>>} figureForm - Die 2D-Matrix der Figur.
+ * @param {number} startX - Die X-Koordinate zum Platzieren.
+ * @param {number} startY - Die Y-Koordinate zum Platzieren.
+ * @param {Array<Array<number>>} boardState - Der zu prüfende Spielfeld-Zustand.
+ * @returns {boolean} - True, wenn die Platzierung gültig ist.
+ */
+    function canPlaceOnBoard(figureForm, startX, startY, boardState) {
+        for (let y = 0; y < figureForm.length; y++) {
+            for (let x = 0; x < figureForm[y].length; x++) {
+                if (figureForm[y][x] === 1) {
+                    const boardX = startX + x;
+                    const boardY = startY + y;
+                    if (boardX < 0 || boardX >= GRID_SIZE || boardY < 0 || boardY >= GRID_SIZE || boardState[boardY][boardX] !== 0) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Erzeugt einen NEUEN Spielfeld-Zustand, indem eine Figur platziert wird.
+     * Wichtig: Modifiziert nicht das Original-Board, um hypothetische Tests zu ermöglichen.
+     * @param {Array<Array<number>>} figureForm - Die zu platzierende Figur.
+     * @param {number} startX - Die X-Koordinate.
+     * @param {number} startY - Die Y-Koordinate.
+     * @param {Array<Array<number>>} originalBoard - Der Ausgangszustand des Spielfelds.
+     * @returns {Array<Array<number>>} - Der neue Zustand des Spielfelds.
+     */
+    function createNewBoardState(figureForm, startX, startY, originalBoard) {
+        const newBoard = originalBoard.map(row => [...row]); // Tiefe Kopie erstellen
+        for (let y = 0; y < figureForm.length; y++) {
+            for (let x = 0; x < figureForm[y].length; x++) {
+                if (figureForm[y][x] === 1) {
+                    newBoard[startY + y][startX + x] = 1; // Inhalt ist für den Test egal, nur "besetzt"
+                }
+            }
+        }
+        return newBoard;
+    }
+
+    /**
+     * Prüft rekursiv, ob ein ganzes Set von Figuren nacheinander auf dem Feld platziert werden kann.
+     * @param {Array<Object>} figuresToPlace - Ein Array von Figuren-Objekten, die platziert werden sollen.
+     * @param {Array<Array<number>>} currentBoardState - Der aktuelle Zustand des Spielfelds.
+     * @returns {boolean} - True, wenn das gesamte Set platziert werden kann.
+     */
+    function canComboBePlaced(figuresToPlace, currentBoardState) {
+        // Erfolgsbedingung: Wenn keine Figuren mehr zu platzieren sind, haben wir es geschafft.
+        if (figuresToPlace.length === 0) {
+            return true;
+        }
+
+        const currentFigure = figuresToPlace[0];
+        const remainingFigures = figuresToPlace.slice(1);
+
+        // Prüfe jede mögliche Rotation der aktuellen Figur
+        let formToCheck = currentFigure.form;
+        for (let r = 0; r < 4; r++) {
+            // Prüfe jede mögliche Position auf dem Brett
+            for (let y = 0; y <= GRID_SIZE - formToCheck.length; y++) {
+                for (let x = 0; x <= GRID_SIZE - formToCheck[0].length; x++) {
+
+                    if (canPlaceOnBoard(formToCheck, x, y, currentBoardState)) {
+                        // Wenn wir sie platzieren können, erstelle ein hypothetisches neues Brett
+                        const nextBoardState = createNewBoardState(formToCheck, x, y, currentBoardState);
+
+                        // Und prüfe rekursiv, ob der Rest der Figuren auf dieses NEUE Brett passt
+                        if (canComboBePlaced(remainingFigures, nextBoardState)) {
+                            return true; // Erfolg! Die ganze Kette war platzierbar.
+                        }
+                    }
+                }
+            }
+            formToCheck = rotateFigure90Degrees(formToCheck); // Nächste Rotation versuchen
+        }
+
+        // Wenn alle Rotationen und Positionen für die aktuelle Figur fehlschlagen, ist dieses Set nicht platzierbar.
+        return false;
     }
 
     function canPlace(figure, startX, startY) {
