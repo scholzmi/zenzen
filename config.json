@@ -36,41 +36,50 @@
         ]
     },
     "combos": [
-        { 
-            "set": ["Block 3x3", "Block 3x3", "Block 3x3"], 
-            "probability": 10
-        },
-        { 
-            "set": ["Block 4x4", "Block 4x4", "I-4"], 
-            "probability": 10
-        },
-        { 
-            "set": ["Block 4x4 O", "Block 2x2", "Block 2x2"], 
-            "probability": 10
-        },
-        { 
-            "set": ["U-Gross", "U-Gross", "I-4"], 
-            "probability": 10
-        },
-        { 
-            "set": ["Block 2x3", "Block 2x3", "Block 2x3"], 
-            "probability": 5
-        },
-        { 
-            "set": ["I-4", "I-4", "I-5"], 
-            "probability": 5
-        },
-        { 
-            "set": ["I-5", "I-4", "I-5"], 
-            "probability": 5
-        },
-        { 
-            "set": ["I-5", "I-5", "I-5"], 
-            "probability": 5
-        },
-        { 
-            "set": ["Winkel gross", "Winkel gross", "Block 2x2"], 
-            "probability": 5
-        }
-    ]
+    { 
+        "id": 1,
+        "set": ["Block 3x3", "Block 3x3", "Block 3x3"], 
+        "probability": 10
+    },
+    { 
+        "id": 2,
+        "set": ["Block 4x4", "Block 4x4", "I-4"], 
+        "probability": 10
+    },
+    { 
+        "id": 3,
+        "set": ["Block 4x4 O", "Block 2x2", "Block 2x2"], 
+        "probability": 10
+    },
+    { 
+        "id": 4,
+        "set": ["U-Gross", "U-Gross", "I-4"], 
+        "probability": 10
+    },
+    { 
+        "id": 5,
+        "set": ["Block 2x3", "Block 2x3", "Block 2x3"], 
+        "probability": 5
+    },
+    { 
+        "id": 6,
+        "set": ["I-4", "I-4", "I-5"], 
+        "probability": 5
+    },
+    { 
+        "id": 7,
+        "set": ["I-5", "I-4", "I-5"], 
+        "probability": 5
+    },
+    { 
+        "id": 8,
+        "set": ["I-5", "I-5", "I-5"], 
+        "probability": 5
+    },
+    { 
+        "id": 9,
+        "set": ["Winkel gross", "Winkel gross", "Block 2x2"], 
+        "probability": 5
+    }
+]
 }
