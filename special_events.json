@@ -2,7 +2,7 @@
   "specials": [
     {
       "name": "Halloween",
-      "startDate": "10-20",
+      "startDate": "07-20",
       "endDate": "11-02",
       "background": "special_events/halloween.png"
     },
