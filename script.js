@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentThemeIndex = -1; // Für alphabetisches Durchschalten
     let titleTapCount = 0;
     let titleTapTimer = null;
+    let themeErrorCounter = 0; // Zähler für Ladefehler
     
     // Variables for Board Gestures
     let boardTapCount = 0;
@@ -67,16 +68,34 @@ document.addEventListener('DOMContentLoaded', () => {
         img.src = finalImageUrl;
 
         img.onload = () => {
+            themeErrorCounter = 0; // Zähler bei Erfolg zurücksetzen
             console.log(`Hintergrund erfolgreich geladen: ${finalImageUrl}`);
             document.body.style.setProperty('--background-image', `url('${finalImageUrl}')`);
             updateThemeFromImage(finalImageUrl);
-            setCookie('theme', finalImageUrl, 365); // Theme im Cookie speichern
+            setCookie('theme', finalImageUrl, 365);
         };
 
         img.onerror = () => {
+            themeErrorCounter++;
+            // Verhindert Endlosschleife, wenn alle Bilder fehlen
+            if (imageList.length > 0 && themeErrorCounter >= imageList.length) {
+                console.error("Alle Bilder in der Liste konnten nicht geladen werden. Lade finales Fallback-Bild.");
+                document.body.style.setProperty('--background-image', `url('${fallbackUrl}')`);
+                updateThemeFromImage(fallbackUrl);
+                themeErrorCounter = 0; // Zähler zurücksetzen
+                return;
+            }
+
             console.warn(`Hintergrund '${finalImageUrl}' nicht gefunden. Lade nächstes Bild.`);
-            // Wenn das Bild nicht geladen werden kann (z.B. aus dem Cookie), lade das nächste
-            currentThemeIndex = (currentThemeIndex + 1) % imageList.length;
+            
+            // Finde den Index des fehlerhaften Bildes, um von dort aus weiterzumachen.
+            // Wenn es nicht in der Liste ist (z.B. Special Event), nutze den aktuellen Index.
+            let failedIndex = imageList.indexOf(finalImageUrl);
+            if (failedIndex === -1) {
+                failedIndex = currentThemeIndex;
+            }
+
+            currentThemeIndex = (failedIndex + 1) % imageList.length;
             const nextImage = imageList[currentThemeIndex];
             setBackgroundImage(nextImage);
         };
@@ -103,16 +122,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
 
-    function applyTheme() {
+    function applyTheme(forceNext = false) {
         const specialThemeUrl = checkForSpecialTheme();
-        if (specialThemeUrl) {
+        if (specialThemeUrl && !forceNext) {
             setBackgroundImage(specialThemeUrl);
             console.log("Special Event gefunden!");
             return;
         }
 
         const savedTheme = getCookie('theme');
-        if (savedTheme) {
+        if (savedTheme && !forceNext) {
             const savedThemeIndex = imageList.indexOf(savedTheme);
             if (savedThemeIndex !== -1) {
                 currentThemeIndex = savedThemeIndex;
@@ -122,7 +141,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        console.log("Kein spezielles Event oder gültiges Cookie-Theme. Wechsle zum nächsten Bild...");
         if (imageList.length > 0) {
             currentThemeIndex = (currentThemeIndex + 1) % imageList.length;
             const nextImage = imageList[currentThemeIndex];
@@ -310,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
         boardTapTimer = setTimeout(() => {
              if (boardTapCount === 5) {
                 e.preventDefault();
-                applyTheme();
+                applyTheme(true); // Force next theme
             }
             boardTapCount = 0;
         }, 300); // Multi-tap window: 300ms
@@ -508,7 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
             generateJokerFigures();
         }
         if (e.key === 't') {
-            applyTheme();
+            applyTheme(true); // Erzwingt das nächste Theme
         }
     }
 
