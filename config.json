@@ -1,5 +1,5 @@
 {
-    "version": "V0.37e",
+    "version": "V0.37f",
     "lastModification": "combos",
     "gameVersion": "0.21",
     "zonkProbability": 0.10,
@@ -38,35 +38,35 @@
     "combos": [
         { 
             "set": ["Block 3x3", "Block 3x3", "Block 3x3"], 
-            "probability": 30 
+            "probability": 10
         },
         { 
             "set": ["Block 4x4", "Block 4x4", "I-4"], 
-            "probability": 20 
+            "probability": 10
         },
         { 
             "set": ["Block 4x4 O", "Block 2x2", "Block 2x2"], 
-            "probability": 25 
+            "probability": 10
         },
         { 
             "set": ["U-Gross", "U-Gross", "I-4"], 
-            "probability": 25
+            "probability": 10
         },
                 { 
             "set": ["Block 2x2", "Block 2x2", "Block 2x3"], 
-            "probability": 25
+            "probability": 5
         },
         { 
             "set": ["Block 2x3", "Block 2x3", "Block 2x3"], 
-            "probability": 20 
+            "probability": 5
         },
         { 
             "set": ["I-4", "I-4", "I-5"], 
-            "probability": 15 
+            "probability": 5
         },
         { 
             "set": ["I-5", "I-4", "I-5"], 
-            "probability": 10 
+            "probability": 5
         }
     ]
 }
