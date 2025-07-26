@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isAdjustingOpacity = false;
     let startY = 0;
     let startOpacity = 0;
-    let componentOpacity = 0.05; // DEIN FEHLER WAR HIER: Diese Variable war nicht mehr global verfügbar.
+    let componentOpacity = 0.05;
 
     // =======================================================
     // THEME-FUNKTIONEN
@@ -410,27 +410,52 @@ document.addEventListener('DOMContentLoaded', () => {
     function generateNewFigures() {
         let newFigures = [];
         let isPlaceableSet = false;
+        let useFallback = false; // NEU: Flag, um den Fallback zur normalen Logik zu steuern.
 
-        do {
-            const randCombo = Math.random();
-            if (gameConfig.combos && randCombo < (gameConfig.comboProbability || 0)) {
-                console.log("🎲 Versuch: COMBO ausgelost!");
+        const randCombo = Math.random();
+        // --- 1. COMBO-VERSUCH ---
+        if (gameConfig.combos && randCombo < (gameConfig.comboProbability || 0)) {
+            console.log("🎲 Combo-Pfad wird versucht...");
+            let comboFound = false;
+            // Starte eine Schleife, die maximal 20 Mal versucht, eine passende Combo zu finden.
+            for (let i = 0; i < 20; i++) {
                 const selectedCombo = getWeightedRandomItem(gameConfig.combos);
-                
                 if (selectedCombo && selectedCombo.set) {
-                    newFigures = selectedCombo.set.map(figureName => {
+                    let tempFigures = selectedCombo.set.map(figureName => {
                         const figureData = findFigureByName(figureName);
                         if (!figureData) return null;
                         let figure = { ...figureData, form: parseShape(figureData.shape) };
-                        const rotations = Math.floor(Math.random() * 4);
-                        for (let r = 0; r < rotations; r++) {
-                            figure.form = rotateFigure90Degrees(figure.form);
-                        }
+                        // Figuren werden für die Prüfung NICHT zufällig gedreht, damit das Ergebnis konsistent ist.
                         return figure;
                     }).filter(f => f !== null);
+
+                    // NEU: Prüfen, ob ALLE Figuren des Sets auf das Brett passen.
+                    if (tempFigures.length === 3 && tempFigures.every(fig => canFigureBePlacedAnywhere(fig))) {
+                        console.log(`✅ Passende Combo "${selectedCombo.set.join(', ')}" nach ${i + 1} Versuchen gefunden!`);
+                        // Rotiere die Figuren erst jetzt, nachdem sie als passend validiert wurden.
+                        newFigures = tempFigures.map(figure => {
+                            const rotations = Math.floor(Math.random() * 4);
+                            for (let r = 0; r < rotations; r++) {
+                                figure.form = rotateFigure90Degrees(figure.form);
+                            }
+                            return figure;
+                        });
+                        comboFound = true;
+                        break; // Beende die Schleife, da wir eine passende Combo haben.
+                    }
                 }
-            } 
-            else {
+            }
+            // Wenn nach 20 Versuchen keine passende Combo gefunden wurde...
+            if (!comboFound) {
+                console.log("❌ Nach 20 Versuchen keine passende Combo gefunden. Wechsle zur normalen Auslosung (Fallback).");
+                useFallback = true;
+            }
+        }
+
+        // --- 2. NORMALE AUSLOSUNG (wenn keine Combo ausgelöst wurde ODER der Combo-Fallback aktiv ist) ---
+        if (!gameConfig.combos || randCombo >= (gameConfig.comboProbability || 0) || useFallback) {
+            let isValidNormalSet = false;
+            do {
                 const { jokerProbability } = gameConfig;
                 newFigures = [];
                 for (let i = 0; i < 3; i++) {
@@ -454,22 +479,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     newFigures.push(figure);
                 }
-            }
+                // Die normale Logik stellt sicher, dass MINDESTENS EINE Figur passt.
+                if (newFigures.some(fig => canFigureBePlacedAnywhere(fig))) {
+                    isValidNormalSet = true;
+                }
+            } while (!isValidNormalSet);
+        }
 
-            if (newFigures.length === 3 && newFigures.some(fig => canFigureBePlacedAnywhere(fig))) {
-                isPlaceableSet = true;
-                console.log("✅ Gültiges Set gefunden, wird verwendet.");
-            } else {
-                console.log("❌ Ungültiges Set, starte neuen Auslosungsversuch...");
-            }
-        } while (!isPlaceableSet);
-
+        // --- 3. ZUWEISUNG UND ABSCHLUSS ---
         figuresInSlots = newFigures;
         for (let i = 0; i < 3; i++) {
             drawFigureInSlot(i);
         }
 
-        if (Math.random() >= (gameConfig.comboProbability || 0)) {
+        // Erhöhe die Zonk-Wahrscheinlichkeit nur, wenn es eine normale Runde war.
+        if (randCombo >= (gameConfig.comboProbability || 0) || useFallback) {
             const increment = gameConfig.zonkProbabilityIncrementPerRound || 0;
             const max = gameConfig.zonkProbabilityMax || 1;
             currentZonkProbability = Math.min(currentZonkProbability + increment, max);
@@ -481,7 +505,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // ... (restlicher Code)
+    // ... (restlicher Code bleibt unverändert)
 
     function isGameOver() {
         return figuresInSlots.every(figure => {
@@ -552,9 +576,8 @@ document.addEventListener('DOMContentLoaded', () => {
         assignEventListeners();
         document.addEventListener('keydown', handleKeyPress);
 
-        // KORREKTUR: Listener für Transparenz hier hinzufügen, damit gameWrapper existiert
         const gameWrapper = document.querySelector('.game-wrapper');
-        updateOpacity(componentOpacity); // Initialwert setzen
+        updateOpacity(componentOpacity);
         if (gameWrapper) {
             gameWrapper.addEventListener('wheel', (event) => {
                 event.preventDefault();
