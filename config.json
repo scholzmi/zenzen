@@ -1,7 +1,7 @@
 {
     "version": "V0.41c",
     "lastModification": "touch optimization",
-    "gameVersion": "0.23",
+    "gameVersion": "0.24",
     "zonkProbability": 0.10,
     "zonkProbabilityMax": 0.20,
     "zonkProbabilityIncrementPerRound": 0.002,
