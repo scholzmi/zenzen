@@ -2,26 +2,26 @@
   "specials": [
     {
       "name": "Halloween",
-      "startDate": "2025-10-20",
-      "endDate": "2025-11-03",
+      "startDate": "10-20",
+      "endDate": "11-02",
       "background": "special_events/halloween.png"
     },
     {
       "name": "Weihnachten",
-      "startDate": "2025-12-20",
-      "endDate": "2025-12-26",
+      "startDate": "12-20",
+      "endDate": "12-26",
       "background": "special_events/xmas.png"
     },
     {
       "name": "Silvester",
-      "startDate": "2025-12-29",
-      "endDate": "2025-12-31",
+      "startDate": "12-29",
+      "endDate": "12-31",
       "background": "special_events/silvester.png"
     },
     {
       "name": "Neujahr",
-      "startDate": "2026-01-01",
-      "endDate": "2026-01-03",
+      "startDate": "01-01",
+      "endDate": "01-03",
       "background": "special_events/neujahr.png"
     }
   ]

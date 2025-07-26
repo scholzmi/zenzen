@@ -25,10 +25,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentZonkProbability = 0;
     let specialEvents = {};
     let imageList = [];
-    let currentThemeIndex = -1; // Für alphabetisches Durchschalten
+    let currentThemeIndex = -1;
     let titleTapCount = 0;
     let titleTapTimer = null;
-    let themeErrorCounter = 0; // Zähler für Ladefehler
+    let themeErrorCounter = 0;
     
     // Variables for Board Gestures
     let boardTapCount = 0;
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const imagesResponse = await fetch('bilder.json?v=' + new Date().getTime());
             if (!imagesResponse.ok) throw new Error('bilder.json konnte nicht geladen werden.');
             imageList = await imagesResponse.json();
-            imageList.sort(); // Bilderliste alphabetisch sortieren
+            imageList.sort();
             console.log('Bilderliste erfolgreich geladen und sortiert:', imageList);
 
         } catch (error) {
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         img.src = finalImageUrl;
 
         img.onload = () => {
-            themeErrorCounter = 0; // Zähler bei Erfolg zurücksetzen
+            themeErrorCounter = 0;
             console.log(`Hintergrund erfolgreich geladen: ${finalImageUrl}`);
             document.body.style.setProperty('--background-image', `url('${finalImageUrl}')`);
             updateThemeFromImage(finalImageUrl);
@@ -77,12 +77,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         img.onerror = () => {
             themeErrorCounter++;
-            // Verhindert Endlosschleife, wenn alle Bilder fehlen
             if (imageList.length > 0 && themeErrorCounter >= imageList.length) {
                 console.error("Alle Bilder in der Liste konnten nicht geladen werden. Lade finales Fallback-Bild.");
                 document.body.style.setProperty('--background-image', `url('${fallbackUrl}')`);
                 updateThemeFromImage(fallbackUrl);
-                themeErrorCounter = 0; // Zähler zurücksetzen
+                themeErrorCounter = 0;
                 return;
             }
 
@@ -99,26 +98,46 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
     
+    /**
+     * Prüft, ob ein Special-Event aktiv ist, basierend auf MM-DD Logik.
+     * Kann auch Zeiträume über den Jahreswechsel (z.B. 12-29 bis 01-03) korrekt verarbeiten.
+     * @returns {string|null} Die URL zum Hintergrundbild des Events oder null.
+     */
     function checkForSpecialTheme() {
         if (!specialEvents.specials || !Array.isArray(specialEvents.specials)) {
             return null;
         }
 
         const now = new Date();
-        for (const special of specialEvents.specials) {
-            const startDate = new Date(special.startDate);
-            const endDate = new Date(special.endDate);
-            startDate.setHours(0, 0, 0, 0);
-            endDate.setHours(23, 59, 59, 999);
+        // Formatiere das aktuelle Datum als "MM-DD" String für den Vergleich.
+        // `getMonth()` ist 0-basiert, daher +1. `padStart` sorgt für die führende Null.
+        const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+        const currentDay = String(now.getDate()).padStart(2, '0');
+        const currentDateStr = `${currentMonth}-${currentDay}`;
 
-            if (now >= startDate && now <= endDate) {
-                console.log(`Aha! Heute ist ein spezielles Datum. Event "${special.name}" ist aktiv.`);
-                console.log(`Es wurde dieses Bild ausgewählt: ${special.background}`);
-                return special.background;
+        for (const special of specialEvents.specials) {
+            const { start, end, background, name } = special;
+            
+            // Fall 1: Normaler Zeitraum innerhalb eines Jahres (z.B. 10-20 bis 11-03)
+            if (start <= end) {
+                if (currentDateStr >= start && currentDateStr <= end) {
+                    console.log(`Special Event "${name}" ist aktiv!`);
+                    return background;
+                }
+            } 
+            // Fall 2: Zeitraum über den Jahreswechsel (z.B. 12-29 bis 01-03)
+            else {
+                // Bedingung: (aktuelles Datum ist zwischen Start und Ende des Jahres) ODER (aktuelles Datum ist zwischen Anfang des Jahres und Ende)
+                if (currentDateStr >= start || currentDateStr <= end) {
+                    console.log(`Special Event "${name}" (Jahreswechsel) ist aktiv!`);
+                    return background;
+                }
             }
         }
-        return null;
+        
+        return null; // Kein Special-Event aktiv
     }
+
 
     function applyTheme(forceNext = false) {
         const specialThemeUrl = checkForSpecialTheme();
@@ -145,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setBackgroundImage(nextImage);
             console.log(`Neues Theme gesetzt: ${nextImage}`);
         } else {
-            setBackgroundImage(null); // Fallback
+            setBackgroundImage(null);
         }
     }
 
@@ -241,8 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             palette.sort((a, b) => getColorBrightness(a) - getColorBrightness(b));
-            console.log("Farbpalette nach Helligkeit sortiert:", palette);
-
+            
             const textColor = palette[0];
             const zonkColor = palette[1];
             const figureNormalColor = palette[2];
@@ -320,23 +338,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 startY = e.touches[0].clientY;
                 startOpacity = componentOpacity;
                 boardTapCount = 0;
-            }, 200); // Hold time: 200ms
+            }, 200);
         }
 
         boardTapTimer = setTimeout(() => {
              if (boardTapCount === 5) {
                 e.preventDefault();
-                applyTheme(true); // Force next theme
+                applyTheme(true);
             }
             boardTapCount = 0;
-        }, 300); // Multi-tap window: 300ms
+        }, 300);
     }
 
     function handleBoardTouchMove(e) {
         if (isAdjustingOpacity) {
             e.preventDefault();
             const deltaY = startY - e.touches[0].clientY;
-            const newOpacity = startOpacity + (deltaY / 400); // Sensitivity
+            const newOpacity = startOpacity + (deltaY / 400);
             updateOpacity(newOpacity);
         }
     }
@@ -360,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             titleTapTimer = setTimeout(() => {
                 titleTapCount = 0;
-            }, 1500); // 5 Taps within 1.5 seconds
+            }, 1500);
         }
     }
 
@@ -500,7 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
             highscoreElement.classList.add('new-highscore-animation');
             setTimeout(() => {
                 highscoreElement.classList.remove('new-highscore-animation');
-            }, 2000); // Muss mit der Dauer der CSS-Animation übereinstimmen
+            }, 2000);
         }
 
         figuresInSlots[selectedSlotIndex] = null;
@@ -792,7 +810,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function startGame() {
         await loadResources();
-        applyTheme(); // Wendet initial das erste Theme (oder ein Event-Theme) an
+        applyTheme();
         initializeGame();
     }
 
