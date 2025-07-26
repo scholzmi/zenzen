@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastPreviewY = null; // NEU
     let isComboChainActive = false; // NEU: Merkt sich, ob wir im "Fever-Mode" sind
     let isCurrentSetFromCombo = false; // NEU: Merkt sich, ob die aktuellen Figuren aus einer Combo stammen
-
+    let comboSetClearedLines = 0;
 
     // Variables for Board Gestures
     let boardTapCount = 0;
@@ -539,12 +539,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const points = clearResult.points + (figure.points || 0);
         const clearedLines = clearResult.clearedLineCount;
 
-        // Logik für die Combo-Kette
-        if (isCurrentSetFromCombo && clearedLines >= 1) {
-            isComboChainActive = true;
-        } else if (clearedLines < 1) {
-            isComboChainActive = false;
+        // NEU: Nur noch die geplatzten Reihen zum Zähler für das Set hinzufügen
+        if (isCurrentSetFromCombo) {
+            comboSetClearedLines += clearedLines;
         }
+
+        // Die alte, fehlerhafte Logik wurde hier komplett entfernt.
 
         score += points;
         scoreElement.textContent = score;
@@ -564,20 +564,20 @@ document.addEventListener('DOMContentLoaded', () => {
         figuresInSlots[selectedSlotIndex] = null;
         drawFigureInSlot(selectedSlotIndex);
 
-        // --- NEUE LOGIK ZUR KONSOLEN-AUSGABE ---
         const allSlotsAreEmpty = figuresInSlots.every(f => f === null);
 
-        // Prüft, ob das gerade beendete Set aus einer Combo stammte und alle Slots jetzt leer sind
+        // NEUE, KORREKTE PRÜFUNG: Erst wenn alle Figuren des Sets platziert sind
         if (isCurrentSetFromCombo && allSlotsAreEmpty) {
-            if (isComboChainActive) {
-                // Wenn die Kette jetzt aktiv ist, läuft sie weiter
-                console.log("KETTE LÄUFT WEITER! Nächste Runde ist garantiert eine Combo.");
+            if (comboSetClearedLines >= 1) {
+                // Wenn der Zähler für das Set größer oder gleich 1 ist, läuft die Kette
+                console.log(`KETTE LÄUFT WEITER! (${comboSetClearedLines} Linien im Set geplatzt) Nächste Runde ist garantiert eine Combo.`);
+                isComboChainActive = true;
             } else {
-                // Wenn sie nicht (mehr) aktiv ist, ist sie hier gerissen
+                // Ansonsten ist sie hier gerissen
                 console.log("KETTE GERISSEN! Keine Reihe beim letzten Set geplatzt.");
+                isComboChainActive = false;
             }
         }
-        // --- ENDE DER NEUEN LOGIK ---
 
         if (allSlotsAreEmpty) {
             generateNewFigures();
@@ -636,11 +636,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function generateNewFigures() {
-        isCurrentSetFromCombo = false; // Wichtig: Bei jeder neuen Auslosung zurücksetzen
+        comboSetClearedLines = 0; // NEU: Zähler für die neue Runde zurücksetzen
+        isCurrentSetFromCombo = false;
         console.log("Aktuelle Zonk-Wahrscheinlichkeit:", currentZonkProbability.toFixed(4));
         const { jokerProbability, comboProbability, combos, figures } = gameConfig;
 
-        // NEU: Bedingung erweitert. Combo wird ausgelöst, wenn die Kette aktiv ist ODER die normale Wahrscheinlichkeit zutrifft
         if (isComboChainActive || Math.random() < (comboProbability || 0)) {
             if (isComboChainActive) {
                 console.log("Combo-Kette ist aktiv, erzwinge neue Combo-Auslosung...");
@@ -670,12 +670,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     form: parseShape(figureData.shape)
                 }));
 
+                parsedFiguresInCombo.forEach(figure => {
+                    const rotations = Math.floor(Math.random() * 4);
+                    for (let r = 0; r < rotations; r++) {
+                        figure.form = rotateFigure90Degrees(figure.form);
+                    }
+                });
+
                 if (canComboBePlaced(parsedFiguresInCombo, gameBoard)) {
                     console.log(`Passendes Combo-Set gefunden (Versuch ${attempt + 1}):`, figureNamesInSet.join(', '));
-                    isCurrentSetFromCombo = true; // NEU: Merken, dass diese Figuren aus einer Combo stammen
+                    isCurrentSetFromCombo = true;
+
+                    let shuffledCombo = [...parsedFiguresInCombo];
+                    for (let i = shuffledCombo.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [shuffledCombo[i], shuffledCombo[j]] = [shuffledCombo[j], shuffledCombo[i]];
+                    }
 
                     for (let i = 0; i < 3; i++) {
-                        figuresInSlots[i] = parsedFiguresInCombo[i];
+                        figuresInSlots[i] = shuffledCombo[i];
                         drawFigureInSlot(i);
                     }
 
@@ -686,10 +699,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             console.log("Nach 20 Versuchen kein platzierbares Combo-Set gefunden. Fallback zur normalen Logik.");
-            isComboChainActive = false; // Kette bricht, wenn keine platzierbare Combo gefunden wird
+            isComboChainActive = false;
         }
 
-        // FALLBACK: Bisherige Logik, wenn keine Combo gefunden wurde
+        // FALLBACK
         let isPlaceableSet = false;
         let newFigures = [];
         do {
