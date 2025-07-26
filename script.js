@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentZonkProbability = 0;
     let specialEvents = {};
     let imageList = [];
+    let currentThemeIndex = -1; // Für alphabetisches Durchschalten
     let titleTapCount = 0;
     let titleTapTimer = null;
     
@@ -50,7 +51,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const imagesResponse = await fetch('bilder.json?v=' + new Date().getTime());
             if (!imagesResponse.ok) throw new Error('bilder.json konnte nicht geladen werden.');
             imageList = await imagesResponse.json();
-            console.log('Bilderliste erfolgreich geladen:', imageList);
+            imageList.sort(); // Bilderliste alphabetisch sortieren
+            console.log('Bilderliste erfolgreich geladen und sortiert:', imageList);
 
         } catch (error) {
             console.error('Fehler beim Laden der Ressourcen:', error);
@@ -101,15 +103,21 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyTheme() {
         const specialThemeUrl = checkForSpecialTheme();
         if (specialThemeUrl) {
+            const specialThemeIndex = imageList.indexOf(specialThemeUrl);
+            if (specialThemeIndex !== -1) {
+                currentThemeIndex = specialThemeIndex;
+            }
             setBackgroundImage(specialThemeUrl);
             console.log("Special Event gefunden!");
             return;
         }
 
-        console.log("Kein spezielles Event heute. Wähle ein zufälliges Bild...");
+        console.log("Kein spezielles Event heute. Wechsle zum nächsten Bild...");
         if (imageList.length > 0) {
-            const randomImage = imageList[Math.floor(Math.random() * imageList.length)];
-            setBackgroundImage(randomImage);
+            currentThemeIndex = (currentThemeIndex + 1) % imageList.length; // Zum nächsten Bild im Zyklus
+            const nextImage = imageList[currentThemeIndex];
+            setBackgroundImage(nextImage);
+            console.log(`Neues Theme gesetzt: ${nextImage}`);
         } else {
             setBackgroundImage(null); // Fallback
         }
@@ -274,12 +282,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleBoardTouchStart(e) {
         if (isDragging) return;
-        e.preventDefault();
+        
         boardTapCount++;
 
         if (boardTapTimer) clearTimeout(boardTapTimer);
 
         if (boardTapCount === 2) {
+             e.preventDefault();
             boardTapHoldTimer = setTimeout(() => {
                 isAdjustingOpacity = true;
                 startY = e.touches[0].clientY;
@@ -289,15 +298,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         boardTapTimer = setTimeout(() => {
+             if (boardTapCount === 5) {
+                e.preventDefault();
+                applyTheme();
+            }
             boardTapCount = 0;
         }, 300); // Multi-tap window: 300ms
-
-        if (boardTapCount === 5) {
-            applyTheme();
-            boardTapCount = 0;
-            if (boardTapTimer) clearTimeout(boardTapTimer);
-            if (boardTapHoldTimer) clearTimeout(boardTapHoldTimer);
-        }
     }
 
     function handleBoardTouchMove(e) {
@@ -309,9 +315,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function handleBoardTouchEnd() {
+    function handleBoardTouchEnd(e) {
         if (boardTapHoldTimer) clearTimeout(boardTapHoldTimer);
         if (isAdjustingOpacity) {
+            e.preventDefault();
             isAdjustingOpacity = false;
         }
     }
@@ -755,7 +762,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function startGame() {
         await loadResources();
-        applyTheme();
+        applyTheme(); // Wendet initial das erste Theme (oder ein Event-Theme) an
         initializeGame();
     }
 
