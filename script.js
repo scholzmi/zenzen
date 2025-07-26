@@ -29,6 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let titleTapCount = 0;
     let titleTapTimer = null;
     let themeErrorCounter = 0;
+    let lastPreviewX = null; // NEU
+    let lastPreviewY = null; // NEU
 
     // Variables for Board Gestures
     let boardTapCount = 0;
@@ -420,9 +422,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.code === 'Space') {
                 e.preventDefault();
                 if (selectedFigure) {
+                    // 1. Figur drehen
                     selectedFigure.form = rotateFigure90Degrees(selectedFigure.form);
-                    if (lastEvent) {
-                        updatePreviewOnFrame();
+
+                    // 2. Neuzeichnung der Vorschau direkt erzwingen.
+                    // Wir verwenden die zuletzt gespeicherten Koordinaten (lastPreviewX/Y), um die 
+                    // Vorschau an der aktuellen Mausposition neu zu zeichnen.
+                    if (lastPreviewX !== null && lastPreviewY !== null) {
+                        drawPreview(selectedFigure, lastPreviewX, lastPreviewY);
                     }
                 }
             }
@@ -462,6 +469,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const cellX = Math.round(xPos / boardRect.width * GRID_SIZE);
         const cellY = Math.round(yPos / boardRect.height * GRID_SIZE);
 
+        // NEU: Nur neu zeichnen, wenn sich die Gitterzelle geändert hat
+        if (cellX === lastPreviewX && cellY === lastPreviewY) {
+            isMoveScheduled = false;
+            return; // Nichts zu tun
+        }
+
+        lastPreviewX = cellX;
+        lastPreviewY = cellY;
+
         drawPreview(selectedFigure, cellX, cellY);
         isMoveScheduled = false;
     }
@@ -482,6 +498,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
         const cellX = Math.round(xPos / cellSize);
         const cellY = Math.round(yPos / cellSize);
+
+        // NEU: Positionen zurücksetzen
+        lastPreviewX = null;
+        lastPreviewY = null;
+
         placeFigure(selectedFigure, cellX, cellY);
         document.querySelector('.figure-slot.dragging')?.classList.remove('dragging');
         selectedFigure = null;
