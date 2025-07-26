@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let titleTapCount = 0;
     let titleTapTimer = null;
     let themeErrorCounter = 0;
-    
+
     // Variables for Board Gestures
     let boardTapCount = 0;
     let boardTapTimer = null;
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             console.warn(`Hintergrund '${finalImageUrl}' nicht gefunden. Lade nächstes Bild.`);
-            
+
             let failedIndex = imageList.indexOf(finalImageUrl);
             if (failedIndex === -1) {
                 failedIndex = currentThemeIndex;
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setBackgroundImage(nextImage);
         };
     }
-    
+
     /**
      * Prüft, ob ein Special-Event aktiv ist, basierend auf MM-DD Logik.
      * Kann auch Zeiträume über den Jahreswechsel (z.B. 12-29 bis 01-03) korrekt verarbeiten.
@@ -116,25 +116,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentDateStr = `${currentMonth}-${currentDay}`;
 
         for (const special of specialEvents.specials) {
-            const { start, end, background, name } = special;
-            
+            const { startDate, endDate, background, name } = special;
+
             // Fall 1: Normaler Zeitraum innerhalb eines Jahres (z.B. 10-20 bis 11-03)
-            if (start <= end) {
-                if (currentDateStr >= start && currentDateStr <= end) {
+            if (startDate <= endDate) {
+                if (currentDateStr >= startDate && currentDateStr <= endDate) {
                     console.log(`Special Event "${name}" ist aktiv!`);
                     return background;
                 }
-            } 
+            }
             // Fall 2: Zeitraum über den Jahreswechsel (z.B. 12-29 bis 01-03)
             else {
                 // Bedingung: (aktuelles Datum ist zwischen Start und Ende des Jahres) ODER (aktuelles Datum ist zwischen Anfang des Jahres und Ende)
-                if (currentDateStr >= start || currentDateStr <= end) {
+                if (currentDateStr >= startDate || currentDateStr <= endDate) {
                     console.log(`Special Event "${name}" (Jahreswechsel) ist aktiv!`);
                     return background;
                 }
             }
         }
-        
+
         return null; // Kein Special-Event aktiv
     }
 
@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             palette.sort((a, b) => getColorBrightness(a) - getColorBrightness(b));
-            
+
             const textColor = palette[0];
             const zonkColor = palette[1];
             const figureNormalColor = palette[2];
@@ -326,13 +326,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleBoardTouchStart(e) {
         if (isDragging) return;
-        
+
         boardTapCount++;
 
         if (boardTapTimer) clearTimeout(boardTapTimer);
 
         if (boardTapCount === 2) {
-             e.preventDefault();
+            e.preventDefault();
             boardTapHoldTimer = setTimeout(() => {
                 isAdjustingOpacity = true;
                 startY = e.touches[0].clientY;
@@ -342,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         boardTapTimer = setTimeout(() => {
-             if (boardTapCount === 5) {
+            if (boardTapCount === 5) {
                 e.preventDefault();
                 applyTheme(true);
             }
@@ -514,7 +514,7 @@ document.addEventListener('DOMContentLoaded', () => {
             highscore = score;
             highscoreElement.textContent = highscore;
             setCookie('highscore', highscore, 365);
-            
+
             highscoreElement.classList.add('new-highscore-animation');
             setTimeout(() => {
                 highscoreElement.classList.remove('new-highscore-animation');
@@ -580,7 +580,61 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function generateNewFigures() {
         console.log("Aktuelle Zonk-Wahrscheinlichkeit:", currentZonkProbability.toFixed(4));
-        const { jokerProbability } = gameConfig;
+        const { jokerProbability, comboProbability, combos, figures } = gameConfig;
+
+        // NEU: Versuch, ein Combo-Set zu erhalten
+        if (Math.random() < (comboProbability || 0)) {
+            for (let attempt = 0; attempt < 20; attempt++) {
+                const selectedCombo = getWeightedRandomFigure(combos); // Weighted-Funktion wiederverwenden
+                const figureNamesInSet = selectedCombo.set;
+
+                // Hilfsfunktion, um eine Figur anhand des Namens in allen Pools zu finden
+                const findFigureDataByName = (name) => {
+                    for (const category of ['normal', 'zonk', 'joker']) {
+                        const found = figures[category].find(f => f.name === name);
+                        if (found) {
+                            // Wichtig: Kategorie zur Figur hinzufügen
+                            return { ...found, category };
+                        }
+                    }
+                    return null;
+                };
+
+                const figuresInCombo = figureNamesInSet.map(findFigureDataByName);
+
+                // Sicherheitsprüfung, falls eine Figur nicht gefunden wird
+                if (figuresInCombo.some(f => f === null)) {
+                    console.error("Eine Figur im Combo-Set wurde nicht in der config.json gefunden:", figureNamesInSet);
+                    continue; // Nächsten Versuch starten
+                }
+
+                const parsedFiguresInCombo = figuresInCombo.map(figureData => ({
+                    ...figureData,
+                    form: parseShape(figureData.shape)
+                }));
+
+                // Prüfen, ob ALLE Figuren des Sets auf dem Feld platziert werden können
+                const allFiguresArePlaceable = parsedFiguresInCombo.every(canFigureBePlacedAnywhere);
+
+                if (allFiguresArePlaceable) {
+                    console.log(`Passendes Combo-Set gefunden (Versuch ${attempt + 1}):`, figureNamesInSet.join(', '));
+
+                    for (let i = 0; i < 3; i++) {
+                        // Die Figuren aus dem Set direkt zuweisen
+                        figuresInSlots[i] = parsedFiguresInCombo[i];
+                        drawFigureInSlot(i);
+                    }
+
+                    if (isGameOver()) {
+                        handleGameOver();
+                    }
+                    return; // Funktion erfolgreich beenden
+                }
+            }
+            console.log("Nach 20 Versuchen kein platzierbares Combo-Set gefunden. Fallback zur normalen Logik.");
+        }
+
+        // FALLBACK: Bisherige Logik, wenn keine Combo gefunden wurde oder die Wahrscheinlichkeit nicht zutraf
         let isPlaceableSet = false;
         let newFigures = [];
         do {
@@ -610,6 +664,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 isPlaceableSet = true;
             }
         } while (!isPlaceableSet);
+
         for (let i = 0; i < 3; i++) {
             figuresInSlots[i] = newFigures[i];
             drawFigureInSlot(i);
@@ -678,7 +733,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const linesCleared = rows.length > 0 || cols.length > 0;
         rows.forEach(y => gameBoard[y].fill(0));
         cols.forEach(x => gameBoard.forEach(row => row[x] = 0));
-        
+
         return {
             points: Math.pow(rows.length + cols.length, 2) * 100,
             linesCleared: linesCleared

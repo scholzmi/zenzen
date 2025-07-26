@@ -1,12 +1,12 @@
 {
-    "version": "V0.37b",
+    "version": "V0.37c",
     "lastModification": "combos",
     "gameVersion": "0.21",
     "zonkProbability": 0.10,
     "zonkProbabilityMax": 0.20,
     "zonkProbabilityIncrementPerRound": 0.002,
     "jokerProbability": 0.3,
-    "comboProbability": 0.2,
+    "comboProbability": 0.5,
     "figures": {
         "normal": [
             { "name": "I-4", "shape": [1, 2, 3, 4], "points": 50, "probability": 20 },
