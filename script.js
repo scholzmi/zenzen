@@ -305,12 +305,17 @@ document.addEventListener('DOMContentLoaded', () => {
         gameBoardElement.addEventListener('touchend', handleBoardTouchEnd);
     }
 
-    let componentOpacity = 0.05;
+    // ...
     const gameWrapper = document.querySelector('.game-wrapper');
+    // NEU: Liest den Wert aus dem Cookie oder nutzt 0.8 als Standard, falls kein Cookie existiert.
+    // Ich habe den Standardwert auf 0.8 erhöht, da 0.05 sehr transparent ist. Kannst du anpassen.
+    let componentOpacity = parseFloat(getCookie('componentOpacity')) || 0.8;
+    // ...
 
     function updateOpacity(newOpacity) {
         componentOpacity = Math.max(0.00, Math.min(1.0, newOpacity));
         document.documentElement.style.setProperty('--component-bg-a', componentOpacity);
+        setCookie('componentOpacity', componentOpacity, 365); // NEU: Speichert den Wert im Cookie
     }
 
     updateOpacity(componentOpacity);
