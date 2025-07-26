@@ -393,19 +393,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleTapOrDragStart(e) {
-        document.body.style.cursor = 'none';
         e.preventDefault();
         const targetSlot = e.currentTarget;
         const now = new Date().getTime();
         const timesince = now - lastTap;
+
+        // Prüft auf Doppelklick/Doppeltippen
         if (timesince < doubleTapDelay && timesince > 0) {
-            clearTimeout(tapTimeout);
+            // Ein zweiter Tap kam schnell genug
+            if (tapTimeout) {
+                clearTimeout(tapTimeout); // Verhindert, dass der Drag-Start vom ersten Tap ausgelöst wird
+                tapTimeout = null;
+            }
             rotateFigureInSlot(parseInt(targetSlot.dataset.slotId, 10));
+            lastTap = 0; // Setzt den Tap-Timer zurück, um "Dreifach-Taps" zu vermeiden
             return;
         }
-        lastTap = new Date().getTime();
-        const event = e.touches ? e.touches[0] : e;
-        handleDragStart(event, targetSlot);
+
+        // Dies ist der erste Tap. Wir warten einen kurzen Moment, bevor wir den Drag starten,
+        // um zu sehen, ob ein zweiter Tap folgt.
+        lastTap = now;
+        tapTimeout = setTimeout(() => {
+            document.body.style.cursor = 'none';
+            const event = e.touches ? e.touches[0] : e;
+            handleDragStart(event, targetSlot);
+            tapTimeout = null;
+        }, 150); // Eine kleine Verzögerung von 150ms. Fühlt sich noch direkt an.
     }
 
     function rotateFigureInSlot(slotIndex) {

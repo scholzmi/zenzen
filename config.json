@@ -1,6 +1,6 @@
 {
-    "version": "V0.41a",
-    "lastModification": "stable",
+    "version": "V0.41b",
+    "lastModification": "touch optimization",
     "gameVersion": "0.23",
     "zonkProbability": 0.10,
     "zonkProbabilityMax": 0.20,
@@ -52,10 +52,6 @@
             "set": ["U-Gross", "U-Gross", "I-4"], 
             "probability": 10
         },
-                { 
-            "set": ["Block 2x2", "Block 2x2", "Block 2x3"], 
-            "probability": 5
-        },
         { 
             "set": ["Block 2x3", "Block 2x3", "Block 2x3"], 
             "probability": 5
@@ -66,6 +62,14 @@
         },
         { 
             "set": ["I-5", "I-4", "I-5"], 
+            "probability": 5
+        },
+        { 
+            "set": ["I-5", "I-5", "I-5"], 
+            "probability": 5
+        },
+        { 
+            "set": ["Winkel gross", "Winkel gross", "Block 2x2"], 
             "probability": 5
         }
     ]
