@@ -88,8 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.warn(`Hintergrund '${finalImageUrl}' nicht gefunden. Lade nächstes Bild.`);
             
-            // Finde den Index des fehlerhaften Bildes, um von dort aus weiterzumachen.
-            // Wenn es nicht in der Liste ist (z.B. Special Event), nutze den aktuellen Index.
             let failedIndex = imageList.indexOf(finalImageUrl);
             if (failedIndex === -1) {
                 failedIndex = currentThemeIndex;
@@ -526,7 +524,11 @@ document.addEventListener('DOMContentLoaded', () => {
             generateJokerFigures();
         }
         if (e.key === 't') {
-            applyTheme(true); // Erzwingt das nächste Theme
+            if (checkForSpecialTheme()) {
+                console.log("Theme-Wechsel per 't' blockiert: Special-Event ist aktiv.");
+                return;
+            }
+            applyTheme(true);
         }
     }
 
