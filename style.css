@@ -338,6 +338,16 @@ footer a {
     transform: scale(0.95);
 }
 
+/* In style.css, z.B. nach den .cell-Regeln */
+
+.cell.clearing-preview {
+    transform: scale(0.8);
+    border-radius: 20%;
+    box-shadow: 0 0 10px hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+    z-index: 5;
+    transition: transform 0.15s ease-out, border-radius 0.15s ease-out;
+}
+
 /* =================================
    5. Farb- & Hilfsklassen
    ================================= */

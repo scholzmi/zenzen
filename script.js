@@ -29,11 +29,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let titleTapCount = 0;
     let titleTapTimer = null;
     let themeErrorCounter = 0;
-    let lastPreviewX = null; // NEU
-    let lastPreviewY = null; // NEU
-    let isComboChainActive = false; // NEU: Merkt sich, ob wir im "Fever-Mode" sind
-    let isCurrentSetFromCombo = false; // NEU: Merkt sich, ob die aktuellen Figuren aus einer Combo stammen
+    let lastPreviewX = null;
+    let lastPreviewY = null;
+    let isComboChainActive = false;
+    let isCurrentSetFromCombo = false;
     let comboSetClearedLines = 0;
+    let currentClearingPreviewCells = [];
+
 
     // Variables for Board Gestures
     let boardTapCount = 0;
@@ -310,15 +312,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ...
     const gameWrapper = document.querySelector('.game-wrapper');
-    // NEU: Liest den Wert aus dem Cookie oder nutzt 0.8 als Standard, falls kein Cookie existiert.
-    // Ich habe den Standardwert auf 0.8 erhöht, da 0.05 sehr transparent ist. Kannst du anpassen.
     let componentOpacity = parseFloat(getCookie('componentOpacity')) || 0.8;
     // ...
 
     function updateOpacity(newOpacity) {
         componentOpacity = Math.max(0.00, Math.min(1.0, newOpacity));
         document.documentElement.style.setProperty('--component-bg-a', componentOpacity);
-        setCookie('componentOpacity', componentOpacity, 365); // NEU: Speichert den Wert im Cookie
+        setCookie('componentOpacity', componentOpacity, 365);
     }
 
     updateOpacity(componentOpacity);
@@ -393,7 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleTapOrDragStart(e) {
-        document.body.style.cursor = 'none'; // NEU: Cursor sofort beim Klick ausblenden
+        document.body.style.cursor = 'none';
         e.preventDefault();
         const targetSlot = e.currentTarget;
         const now = new Date().getTime();
@@ -418,7 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleDragStart(event, targetSlot) {
-        document.body.style.cursor = 'none'; // NEU: Macht den Mauszeiger unsichtbar
+        document.body.style.cursor = 'none';
         if (isDragging) return;
         const slotIndex = parseInt(targetSlot.dataset.slotId, 10);
         if (!figuresInSlots[slotIndex]) return;
@@ -479,7 +479,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const cellX = Math.round(xPos / boardRect.width * GRID_SIZE);
         const cellY = Math.round(yPos / boardRect.height * GRID_SIZE);
 
-        // NEU: Nur neu zeichnen, wenn sich die Gitterzelle geändert hat
         if (cellX === lastPreviewX && cellY === lastPreviewY) {
             isMoveScheduled = false;
             return; // Nichts zu tun
@@ -539,12 +538,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const points = clearResult.points + (figure.points || 0);
         const clearedLines = clearResult.clearedLineCount;
 
-        // NEU: Nur noch die geplatzten Reihen zum Zähler für das Set hinzufügen
         if (isCurrentSetFromCombo) {
             comboSetClearedLines += clearedLines;
         }
-
-        // Die alte, fehlerhafte Logik wurde hier komplett entfernt.
 
         score += points;
         scoreElement.textContent = score;
@@ -636,7 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function generateNewFigures() {
-        comboSetClearedLines = 0; // NEU: Zähler für die neue Runde zurücksetzen
+        comboSetClearedLines = 0;
         isCurrentSetFromCombo = false;
         console.log("Aktuelle Zonk-Wahrscheinlichkeit:", currentZonkProbability.toFixed(4));
         const { jokerProbability, comboProbability, combos, figures } = gameConfig;
@@ -883,14 +879,14 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let y = 0; y < GRID_SIZE; y++) if (gameBoard[y].every(cell => cell !== 0)) rows.push(y);
         for (let x = 0; x < GRID_SIZE; x++) if (gameBoard.every(row => row[x] !== 0)) cols.push(x);
 
-        const clearedLineCount = rows.length + cols.length; // NEU: Zählt die geplatzten Reihen
+        const clearedLineCount = rows.length + cols.length;
 
         rows.forEach(y => gameBoard[y].fill(0));
         cols.forEach(x => gameBoard.forEach(row => row[x] = 0));
 
         return {
             points: Math.pow(clearedLineCount, 2) * 100,
-            clearedLineCount: clearedLineCount // NEU: Gibt die Anzahl zurück
+            clearedLineCount: clearedLineCount
         };
     }
 
@@ -917,16 +913,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function drawPreview(figure, centerX, centerY) {
+        // Alte Vorschau der Figur entfernen
         currentPreviewCells.forEach(cell => {
             cell.classList.remove('preview', 'invalid');
+
+            // NEU: Entferne die Farb-Klassen nur, wenn die Zelle NICHT bereits belegt ist.
+            // Belegte Zellen müssen ihre Farbe behalten.
             if (!cell.classList.contains('occupied')) {
                 cell.classList.remove('color-normal', 'color-joker', 'color-zonk');
             }
         });
         currentPreviewCells = [];
+
+        // Alten "Platzen"-Effekt von den Zellen entfernen
+        currentClearingPreviewCells.forEach(cell => {
+            cell.classList.remove('clearing-preview');
+            cell.style.transform = '';
+        });
+        currentClearingPreviewCells = [];
+
+
         const placeX = centerX - Math.floor(figure.form[0].length / 2);
         const placeY = centerY - Math.floor(figure.form.length / 2);
         const canBePlaced = canPlace(figure, placeX, placeY);
+
+        // Vorschau für die Figur selbst zeichnen
         figure.form.forEach((row, y) => {
             row.forEach((block, x) => {
                 if (block === 1) {
@@ -945,6 +956,46 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
+
+        // Wenn die Figur platzierbar ist, prüfe, welche Reihen/Spalten platzen würden
+        if (canBePlaced) {
+            const hypotheticalBoard = gameBoard.map(row => [...row]);
+            figure.form.forEach((row, y) => {
+                row.forEach((block, x) => {
+                    if (block === 1) {
+                        hypotheticalBoard[placeY + y][placeX + x] = 1;
+                    }
+                });
+            });
+
+            const rowsToClear = [];
+            const colsToClear = [];
+            for (let y = 0; y < GRID_SIZE; y++) {
+                if (hypotheticalBoard[y].every(cell => cell !== 0)) {
+                    rowsToClear.push(y);
+                }
+            }
+            for (let x = 0; x < GRID_SIZE; x++) {
+                if (hypotheticalBoard.every(row => row[x] !== 0)) {
+                    colsToClear.push(x);
+                }
+            }
+
+            const applyClearingEffect = (x, y) => {
+                const cell = gameBoardElement.children[y * GRID_SIZE + x];
+                if (!currentClearingPreviewCells.includes(cell)) {
+                    cell.classList.add('clearing-preview');
+                    currentClearingPreviewCells.push(cell);
+                }
+            };
+
+            rowsToClear.forEach(y => {
+                for (let x = 0; x < GRID_SIZE; x++) applyClearingEffect(x, y);
+            });
+            colsToClear.forEach(x => {
+                for (let y = 0; y < GRID_SIZE; y++) applyClearingEffect(x, y);
+            });
+        }
     }
 
     function drawFigureInSlot(index) {
