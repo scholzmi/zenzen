@@ -70,12 +70,15 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(`Hintergrund erfolgreich geladen: ${finalImageUrl}`);
             document.body.style.setProperty('--background-image', `url('${finalImageUrl}')`);
             updateThemeFromImage(finalImageUrl);
+            setCookie('theme', finalImageUrl, 365); // Theme im Cookie speichern
         };
 
         img.onerror = () => {
-            console.warn(`Hintergrund '${finalImageUrl}' nicht gefunden. Lade Fallback: ${fallbackUrl}`);
-            document.body.style.setProperty('--background-image', `url('${fallbackUrl}')`);
-            updateThemeFromImage(fallbackUrl);
+            console.warn(`Hintergrund '${finalImageUrl}' nicht gefunden. Lade nächstes Bild.`);
+            // Wenn das Bild nicht geladen werden kann (z.B. aus dem Cookie), lade das nächste
+            currentThemeIndex = (currentThemeIndex + 1) % imageList.length;
+            const nextImage = imageList[currentThemeIndex];
+            setBackgroundImage(nextImage);
         };
     }
     
@@ -103,18 +106,25 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyTheme() {
         const specialThemeUrl = checkForSpecialTheme();
         if (specialThemeUrl) {
-            const specialThemeIndex = imageList.indexOf(specialThemeUrl);
-            if (specialThemeIndex !== -1) {
-                currentThemeIndex = specialThemeIndex;
-            }
             setBackgroundImage(specialThemeUrl);
             console.log("Special Event gefunden!");
             return;
         }
 
-        console.log("Kein spezielles Event heute. Wechsle zum nächsten Bild...");
+        const savedTheme = getCookie('theme');
+        if (savedTheme) {
+            const savedThemeIndex = imageList.indexOf(savedTheme);
+            if (savedThemeIndex !== -1) {
+                currentThemeIndex = savedThemeIndex;
+                setBackgroundImage(savedTheme);
+                console.log(`Gespeichertes Theme aus Cookie geladen: ${savedTheme}`);
+                return;
+            }
+        }
+
+        console.log("Kein spezielles Event oder gültiges Cookie-Theme. Wechsle zum nächsten Bild...");
         if (imageList.length > 0) {
-            currentThemeIndex = (currentThemeIndex + 1) % imageList.length; // Zum nächsten Bild im Zyklus
+            currentThemeIndex = (currentThemeIndex + 1) % imageList.length;
             const nextImage = imageList[currentThemeIndex];
             setBackgroundImage(nextImage);
             console.log(`Neues Theme gesetzt: ${nextImage}`);
