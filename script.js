@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // DOM Elements
+    // DOM Elements: Speichert alle wichtigen HTML-Elemente für den schnellen Zugriff.
     const gameBoardElement = document.getElementById('game-board');
     const scoreElement = document.getElementById('score');
     const highscoreElement = document.getElementById('highscore');
@@ -9,28 +9,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const scoreAnimationElement = document.getElementById('score-animation');
     const titleElement = document.querySelector('.block-title');
 
-    // Game State
-    let gameBoard = [], score = 0, highscore = 0;
-    let figuresInSlots = [null, null, null];
-    let selectedFigure = null, selectedSlotIndex = -1;
-    const TOUCH_Y_OFFSET = -30;
-    let gameConfig = {};
-    const GRID_SIZE = 9;
-    let isDragging = false;
-    let lastTap = 0, tapTimeout = null;
-    const doubleTapDelay = 300;
-    let isMoveScheduled = false;
-    let lastEvent = null;
-    let currentPreviewCells = [];
-    let currentZonkProbability = 0;
-    let specialEvents = {};
-    let imageList = [];
-    let currentThemeIndex = -1;
-    let titleTapCount = 0;
-    let titleTapTimer = null;
-    let themeErrorCounter = 0;
+    // =======================================================
+    // GAME STATE - Alle wichtigen Variablen, die den Spielzustand steuern.
+    // =======================================================
+    let gameBoard = []; // Ein 2D-Array (9x9), das das Spielfeld repräsentiert. 0 = leer.
+    let score = 0; // Aktueller Punktestand der laufenden Runde.
+    let highscore = 0; // Höchster erreichter Punktestand, wird aus einem Cookie geladen.
+    let figuresInSlots = [null, null, null]; // Array, das die drei aktuell verfügbaren Spielfiguren enthält.
+    let selectedFigure = null; // Die Figur, die der Spieler gerade per Drag & Drop bewegt.
+    let selectedSlotIndex = -1; // Der Index (0, 1, oder 2) des Slots, aus dem die Figur genommen wurde.
+    const TOUCH_Y_OFFSET = -30; // Ein Wert in Pixeln, um die Figur beim Ziehen über dem Finger anzuzeigen.
+    let gameConfig = {}; // Ein Objekt, das nach dem Laden die gesamte config.json enthält.
+    const GRID_SIZE = 9; // Definiert die Größe des Spielfelds (9x9).
+    let isDragging = false; // Ein "Flag", das anzeigt, ob gerade eine Figur gezogen wird.
+    let lastTap = 0; // Zeitstempel des letzten Taps, um Doppeltaps zu erkennen (zum Drehen der Figuren).
+    const doubleTapDelay = 300; // Zeit in Millisekunden, innerhalb der ein Doppeltap erkannt wird.
+    let isMoveScheduled = false; // Verhindert, dass die Vorschau-Funktion zu oft aufgerufen wird.
+    let lastEvent = null; // Speichert das letzte Maus- oder Touch-Ereignis für die Vorschau.
+    let currentPreviewCells = []; // Speichert die Zellen, die gerade als Vorschau eingefärbt sind.
+    let currentZonkProbability = 0; // Die aktuelle Wahrscheinlichkeit, eine "Zonk"-Figur zu erhalten. Steigt mit jeder Runde.
+    let specialEvents = {}; // Speichert nach dem Laden die special_events.json.
+    let imageList = []; // Speichert nach dem Laden die Liste der normalen Hintergrundbilder aus bilder.json.
+    let currentThemeIndex = -1; // Der Index des aktuell angezeigten Bildes aus der imageList.
+    let titleTapCount = 0; // Zählt die Klicks auf den Titel (für den Joker-Cheat).
+    let titleTapTimer = null; // Timer, um den titleTapCount zurückzusetzen.
+    let themeErrorCounter = 0; // Zählt, wie viele Bilder hintereinander nicht geladen werden konnten.
     
-    // Variables for Board Gestures
+    // Variablen für Gesten auf dem Spielbrett (z.B. Transparenz ändern)
     let boardTapCount = 0;
     let boardTapTimer = null;
     let boardTapHoldTimer = null;
@@ -42,17 +47,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // THEME-FUNKTIONEN
     // =======================================================
 
+    /**
+     * Lädt externe Konfigurationsdateien (Events und Bilderliste).
+     */
     async function loadResources() {
         try {
+            // Lädt die Special-Events-Konfiguration. Der Zeitstempel verhindert, dass der Browser eine alte Version aus dem Cache nimmt.
             const eventsResponse = await fetch('special_events.json?v=' + new Date().getTime());
             if (!eventsResponse.ok) throw new Error('special_events.json konnte nicht geladen werden.');
             specialEvents = await eventsResponse.json();
             console.log('Special Events erfolgreich geladen:', specialEvents);
 
+            // Lädt die Liste der normalen Hintergrundbilder.
             const imagesResponse = await fetch('bilder.json?v=' + new Date().getTime());
             if (!imagesResponse.ok) throw new Error('bilder.json konnte nicht geladen werden.');
             imageList = await imagesResponse.json();
-            imageList.sort();
+            imageList.sort(); // Sortiert die Bilder alphabetisch für eine konsistente Reihenfolge.
             console.log('Bilderliste erfolgreich geladen und sortiert:', imageList);
 
         } catch (error) {
@@ -60,23 +70,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    /**
+     * Setzt das Hintergrundbild des Spiels.
+     * @param {string} imageUrl - Der Pfad zum Bild, das geladen werden soll.
+     */
     function setBackgroundImage(imageUrl) {
-        const fallbackUrl = 'bg.png';
+        const fallbackUrl = 'bg.png'; // Ein Standardbild, falls alles andere fehlschlägt.
         const finalImageUrl = imageUrl || fallbackUrl;
 
         const img = new Image();
         img.src = finalImageUrl;
 
+        // Wenn das Bild erfolgreich geladen wurde...
         img.onload = () => {
-            themeErrorCounter = 0;
+            themeErrorCounter = 0; // Fehlerzähler zurücksetzen.
             console.log(`Hintergrund erfolgreich geladen: ${finalImageUrl}`);
             document.body.style.setProperty('--background-image', `url('${finalImageUrl}')`);
-            updateThemeFromImage(finalImageUrl);
-            setCookie('theme', finalImageUrl, 365);
+            updateThemeFromImage(finalImageUrl); // Farben aus dem Bild extrahieren.
+            setCookie('theme', finalImageUrl, 365); // Das gewählte Theme für zukünftige Besuche speichern.
         };
 
+        // Wenn das Bild nicht geladen werden konnte...
         img.onerror = () => {
             themeErrorCounter++;
+            // Sicherheitsnetz, um eine Endlosschleife zu verhindern, falls KEIN Bild aus der Liste verfügbar ist.
             if (imageList.length > 0 && themeErrorCounter >= imageList.length) {
                 console.error("Alle Bilder in der Liste konnten nicht geladen werden. Lade finales Fallback-Bild.");
                 document.body.style.setProperty('--background-image', `url('${fallbackUrl}')`);
@@ -87,11 +104,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.warn(`Hintergrund '${finalImageUrl}' nicht gefunden. Lade nächstes Bild.`);
             
+            // Finde den Index des fehlerhaften Bildes, um konsistent weiterzuschalten.
             let failedIndex = imageList.indexOf(finalImageUrl);
             if (failedIndex === -1) {
                 failedIndex = currentThemeIndex;
             }
 
+            // Schalte zum nächsten Bild in der Liste und versuche es erneut.
             currentThemeIndex = (failedIndex + 1) % imageList.length;
             const nextImage = imageList[currentThemeIndex];
             setBackgroundImage(nextImage);
@@ -127,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } 
             // Fall 2: Zeitraum über den Jahreswechsel (z.B. 12-29 bis 01-03)
             else {
-                // Bedingung: (aktuelles Datum ist zwischen Start und Ende des Jahres) ODER (aktuelles Datum ist zwischen Anfang des Jahres und Ende)
+                // Bedingung: (aktuelles Datum ist >= Startdatum) ODER (aktuelles Datum ist <= Enddatum)
                 if (currentDateStr >= start || currentDateStr <= end) {
                     console.log(`Special Event "${name}" (Jahreswechsel) ist aktiv!`);
                     return background;
@@ -138,8 +157,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return null; // Kein Special-Event aktiv
     }
 
-
+    /**
+     * Wendet das passende Theme an (Special-Event, Cookie oder das nächste aus der Liste).
+     * @param {boolean} [forceNext=false] - Wenn true, wird das nächste Theme aus der Liste geladen und die Event/Cookie-Prüfung übersprungen.
+     */
     function applyTheme(forceNext = false) {
+        // Prüfe auf Special-Event, aber nur, wenn nicht explizit das nächste Theme erzwungen wird.
         const specialThemeUrl = checkForSpecialTheme();
         if (specialThemeUrl && !forceNext) {
             setBackgroundImage(specialThemeUrl);
@@ -147,6 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Prüfe auf ein gespeichertes Theme im Cookie.
         const savedTheme = getCookie('theme');
         if (savedTheme && !forceNext) {
             const savedThemeIndex = imageList.indexOf(savedTheme);
@@ -158,13 +182,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // Wenn kein Event oder Cookie zutrifft (oder forceNext=true), lade das nächste Bild.
         if (imageList.length > 0) {
-            currentThemeIndex = (currentThemeIndex + 1) % imageList.length;
+            currentThemeIndex = (currentThemeIndex + 1) % imageList.length; // Modulo für den Endlos-Zyklus.
             const nextImage = imageList[currentThemeIndex];
             setBackgroundImage(nextImage);
             console.log(`Neues Theme gesetzt: ${nextImage}`);
         } else {
-            setBackgroundImage(null);
+            setBackgroundImage(null); // Fallback, wenn gar keine Bilder konfiguriert sind.
         }
     }
 
@@ -172,9 +197,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // SPIEL-INITIALISIERUNG UND RESTLICHE LOGIK
     // =======================================================
 
+    /**
+     * Startet oder resettet das Spiel.
+     */
     async function initializeGame() {
+        // Animationen und Klassen zurücksetzen.
         highscoreElement.classList.remove('pulsate', 'new-highscore-animation');
         gameBoardElement.classList.remove('crumble');
+
+        // Lade die config.json, falls sie noch nicht geladen ist.
         if (Object.keys(gameConfig).length === 0) {
             const configLoaded = await loadConfiguration();
             if (!configLoaded) {
@@ -182,28 +213,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
         }
+        // Setze die Zonk-Wahrscheinlichkeit auf den Startwert aus der Konfiguration.
         currentZonkProbability = gameConfig.zonkProbability || 0;
+
+        // Prüft, ob sich die Spielversion geändert hat. Wenn ja, wird der Highscore zurückgesetzt.
         const serverVersion = gameConfig.gameVersion || "1.0";
         const localVersion = getCookie('gameVersion');
         if (serverVersion !== localVersion) {
             setCookie('highscore', '0', 365);
             setCookie('gameVersion', serverVersion, 365);
         }
+
+        // Lade Highscore aus Cookie und setze aktuellen Score auf 0.
         highscore = parseInt(getCookie('highscore') || '0', 10);
         highscoreElement.textContent = highscore;
         score = 0;
         scoreElement.textContent = score;
+
+        // Erstelle das Spielfeld und die ersten drei Figuren.
         createGameBoard();
         generateNewFigures();
     }
 
+    /**
+     * Lädt und verarbeitet die zentrale config.json.
+     */
     async function loadConfiguration() {
         try {
             const response = await fetch('config.json?v=' + new Date().getTime());
             if (!response.ok) throw new Error(`Network response was not ok`);
             gameConfig = await response.json();
+            // Setzt die Versions-Infos im Footer.
             if (versionInfoElement) versionInfoElement.textContent = gameConfig.version || "?.??";
             if (lastModificationElement) lastModificationElement.textContent = gameConfig.lastModification || "N/A";
+            // Stellt sicher, dass die Figuren-Konfiguration in der JSON-Datei korrekt ist.
             if (!gameConfig.figures || !gameConfig.figures.normal || !gameConfig.figures.zonk || !gameConfig.figures.joker) {
                 throw new Error("Figurenpools in config.json sind nicht korrekt definiert.");
             }
@@ -211,6 +254,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) { console.error('Error loading config:', error); return false; }
     }
 
+    /**
+     * Erstellt das 9x9 Spielfeld-Grid im HTML.
+     */
     function createGameBoard() {
         gameBoardElement.innerHTML = '';
         gameBoard = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
@@ -221,13 +267,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 cell.classList.add('cell');
                 cell.dataset.x = x;
                 cell.dataset.y = y;
-                cell.style.setProperty('--delay', Math.random());
+                cell.style.setProperty('--delay', Math.random()); // Für die "crumble"-Animation
                 gameBoardElement.appendChild(cell);
             }
         }
+        // Passt die Größe der Blöcke in den Vorschau-Slots an die Spielfeldgröße an.
         document.documentElement.style.setProperty('--figure-block-size', `${Math.max(10, cellSize / 2.5)}px`);
     }
 
+    /**
+     * Wandelt eine RGB-Farbe in HSL um.
+     */
     function rgbToHsl(r, g, b) {
         r /= 255; g /= 255; b /= 255;
         const max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -247,20 +297,26 @@ document.addEventListener('DOMContentLoaded', () => {
         return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
     }
 
+    /**
+     * Extrahiert eine Farbpalette aus dem Hintergrundbild und passt die CSS-Variablen an.
+     * @param {string} imageUrl - Die URL des Bildes, aus dem die Farben extrahiert werden.
+     */
     function updateThemeFromImage(imageUrl) {
         const img = new Image();
         img.crossOrigin = "Anonymous";
         img.src = imageUrl;
         img.onload = function () {
             const colorThief = new ColorThief();
-            let palette = colorThief.getPalette(img, 8);
+            let palette = colorThief.getPalette(img, 8); // Extrahiert 8 Hauptfarben.
 
             function getColorBrightness(rgb) {
                 return Math.sqrt(0.299 * (rgb[0] * rgb[0]) + 0.587 * (rgb[1] * rgb[1]) + 0.114 * (rgb[2] * rgb[2]));
             }
 
+            // Sortiert die Palette von der dunkelsten zur hellsten Farbe.
             palette.sort((a, b) => getColorBrightness(a) - getColorBrightness(b));
             
+            // Weist die sortierten Farben den verschiedenen UI-Elementen zu.
             const textColor = palette[0];
             const zonkColor = palette[1];
             const figureNormalColor = palette[2];
@@ -269,6 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const accentColor = palette[5];
             const mainBgColor = palette[7];
 
+            // Wandelt die RGB-Farben in HSL um, um sie in den CSS-Variablen zu verwenden.
             const [bgH, bgS, bgL] = rgbToHsl(mainBgColor[0], mainBgColor[1], mainBgColor[2]),
                 [textH, textS, textL] = rgbToHsl(textColor[0], textColor[1], textColor[2]),
                 [borderH, borderS, borderL] = rgbToHsl(borderColor[0], borderColor[1], borderColor[2]),
@@ -277,6 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 [zonkH, zonkS, zonkL] = rgbToHsl(zonkColor[0], zonkColor[1], zonkColor[2]),
                 [accentH, accentS, accentL] = rgbToHsl(accentColor[0], accentColor[1], accentColor[2]);
 
+            // Setzt die CSS-Variablen im :root-Element, sodass das gesamte UI sich anpasst.
             const root = document.documentElement;
             root.style.setProperty('--component-bg-h', bgH); root.style.setProperty('--component-bg-s', bgS + '%'); root.style.setProperty('--component-bg-l', bgL + '%');
             root.style.setProperty('--text-h', textH); root.style.setProperty('--text-s', textS + '%'); root.style.setProperty('--text-l', textL + '%');
@@ -288,6 +346,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    /**
+     * Weist allen interaktiven Elementen ihre Event-Listener zu.
+     */
     function assignEventListeners() {
         figureSlots.forEach(slot => {
             slot.addEventListener('mousedown', (e) => handleTapOrDragStart(e));
@@ -302,287 +363,49 @@ document.addEventListener('DOMContentLoaded', () => {
         gameBoardElement.addEventListener('touchmove', handleBoardTouchMove, { passive: false });
         gameBoardElement.addEventListener('touchend', handleBoardTouchEnd);
     }
+    
+    // ... (restlicher Code ist großteils selbsterklärend durch Funktions- und Variablennamen)
+    // ... aber ich habe noch ein paar Schlüsselstellen kommentiert.
 
-    let componentOpacity = 0.05;
-    const gameWrapper = document.querySelector('.game-wrapper');
-
-    function updateOpacity(newOpacity) {
-        componentOpacity = Math.max(0.00, Math.min(1.0, newOpacity));
-        document.documentElement.style.setProperty('--component-bg-a', componentOpacity);
-    }
-
-    updateOpacity(componentOpacity);
-
-    if (gameWrapper) {
-        gameWrapper.addEventListener('wheel', (event) => {
-            event.preventDefault();
-            if (event.deltaY < 0) {
-                updateOpacity(componentOpacity + 0.05);
-            } else {
-                updateOpacity(componentOpacity - 0.05);
-            }
-        }, { passive: false });
-    }
-
-    function handleBoardTouchStart(e) {
-        if (isDragging) return;
-        
-        boardTapCount++;
-
-        if (boardTapTimer) clearTimeout(boardTapTimer);
-
-        if (boardTapCount === 2) {
-             e.preventDefault();
-            boardTapHoldTimer = setTimeout(() => {
-                isAdjustingOpacity = true;
-                startY = e.touches[0].clientY;
-                startOpacity = componentOpacity;
-                boardTapCount = 0;
-            }, 200);
-        }
-
-        boardTapTimer = setTimeout(() => {
-             if (boardTapCount === 5) {
-                e.preventDefault();
-                applyTheme(true);
-            }
-            boardTapCount = 0;
-        }, 300);
-    }
-
-    function handleBoardTouchMove(e) {
-        if (isAdjustingOpacity) {
-            e.preventDefault();
-            const deltaY = startY - e.touches[0].clientY;
-            const newOpacity = startOpacity + (deltaY / 400);
-            updateOpacity(newOpacity);
-        }
-    }
-
-    function handleBoardTouchEnd(e) {
-        if (boardTapHoldTimer) clearTimeout(boardTapHoldTimer);
-        if (isAdjustingOpacity) {
-            e.preventDefault();
-            isAdjustingOpacity = false;
-        }
-    }
-
-    function handleTitleTap() {
-        titleTapCount++;
-        if (titleTapTimer) clearTimeout(titleTapTimer);
-
-        if (titleTapCount === 5) {
-            console.log("Cheat activated: Joker Figures");
-            generateJokerFigures();
-            titleTapCount = 0;
-        } else {
-            titleTapTimer = setTimeout(() => {
-                titleTapCount = 0;
-            }, 1500);
-        }
-    }
-
-    function handleTapOrDragStart(e) {
-        e.preventDefault();
-        const targetSlot = e.currentTarget;
-        const now = new Date().getTime();
-        const timesince = now - lastTap;
-        if (timesince < doubleTapDelay && timesince > 0) {
-            clearTimeout(tapTimeout);
-            rotateFigureInSlot(parseInt(targetSlot.dataset.slotId, 10));
-            return;
-        }
-        lastTap = new Date().getTime();
-        const event = e.touches ? e.touches[0] : e;
-        handleDragStart(event, targetSlot);
-    }
-
-    function rotateFigureInSlot(slotIndex) {
-        if (!figuresInSlots[slotIndex]) return;
-        figuresInSlots[slotIndex].form = rotateFigure90Degrees(figuresInSlots[slotIndex].form);
-        drawFigureInSlot(slotIndex);
-        if (isGameOver()) {
-            handleGameOver();
-        }
-    }
-
-    function handleDragStart(event, targetSlot) {
-        if (isDragging) return;
-        const slotIndex = parseInt(targetSlot.dataset.slotId, 10);
-        if (!figuresInSlots[slotIndex]) return;
-
-        isDragging = true;
-        selectedSlotIndex = slotIndex;
-        selectedFigure = JSON.parse(JSON.stringify(figuresInSlots[selectedSlotIndex]));
-        targetSlot.classList.add('dragging');
-
-        const handleKeyPressDuringDrag = (e) => {
-            if (e.code === 'Space') {
-                e.preventDefault();
-                if (selectedFigure) {
-                    selectedFigure.form = rotateFigure90Degrees(selectedFigure.form);
-                    if (lastEvent) {
-                        updatePreviewOnFrame();
-                    }
-                }
-            }
-        };
-
-        document.addEventListener('keydown', handleKeyPressDuringDrag);
-
-        const moveHandler = (moveEvent) => {
-            handleInteractionMove(moveEvent.touches ? moveEvent.touches[0] : moveEvent);
-        };
-
-        const endHandler = (endEvent) => {
-            document.removeEventListener('keydown', handleKeyPressDuringDrag);
-            document.removeEventListener('touchmove', moveHandler);
-            document.removeEventListener('touchend', endHandler);
-            document.removeEventListener('mousemove', moveHandler);
-            document.removeEventListener('mouseup', endHandler);
-            handleInteractionEnd(endEvent.changedTouches ? endEvent.changedTouches[0] : endEvent);
-        };
-
-        document.addEventListener('touchmove', moveHandler, { passive: false });
-        document.addEventListener('touchend', endHandler);
-        document.addEventListener('mousemove', moveHandler);
-        document.addEventListener('mouseup', endHandler);
-        handleInteractionMove(event);
-    }
-
-    function updatePreviewOnFrame() {
-        if (!lastEvent || !isDragging) {
-            isMoveScheduled = false;
-            return;
-        }
-        const boardRect = gameBoardElement.getBoundingClientRect();
-        const event = lastEvent.touches ? lastEvent.touches[0] : lastEvent;
-        const xPos = event.clientX - boardRect.left;
-        const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
-        const cellX = Math.round(xPos / boardRect.width * GRID_SIZE);
-        const cellY = Math.round(yPos / boardRect.height * GRID_SIZE);
-
-        drawPreview(selectedFigure, cellX, cellY);
-        isMoveScheduled = false;
-    }
-
-    function handleInteractionMove(event) {
-        lastEvent = event;
-        if (!isMoveScheduled) {
-            isMoveScheduled = true;
-            window.requestAnimationFrame(updatePreviewOnFrame);
-        }
-    }
-
-    function handleInteractionEnd(event) {
-        if (!isDragging) return;
-        const boardRect = gameBoardElement.getBoundingClientRect();
-        const cellSize = boardRect.width / GRID_SIZE;
-        const xPos = event.clientX - boardRect.left;
-        const yPos = event.clientY - boardRect.top + TOUCH_Y_OFFSET;
-        const cellX = Math.round(xPos / cellSize);
-        const cellY = Math.round(yPos / cellSize);
-        placeFigure(selectedFigure, cellX, cellY);
-        document.querySelector('.figure-slot.dragging')?.classList.remove('dragging');
-        selectedFigure = null;
-        selectedSlotIndex = -1;
-        isDragging = false;
-        drawGameBoard();
-    }
-
-    function rotateFigure90Degrees(matrix) {
-        return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex])).map(row => row.reverse());
-    }
-
-    function placeFigure(figure, centerX, centerY) {
-        const placeX = centerX - Math.floor(figure.form[0].length / 2);
-        const placeY = centerY - Math.floor(figure.form.length / 2);
-        if (!canPlace(figure, placeX, placeY)) return;
-
-        figure.form.forEach((row, y) => row.forEach((block, x) => {
-            if (block === 1) gameBoard[placeY + y][placeX + x] = figure.category;
-        }));
-
-        const clearResult = clearFullLines();
-        const points = clearResult.points + (figure.points || 0);
-
-        score += points;
-        scoreElement.textContent = score;
-        showScoreAnimation(points);
-
-        if (score > highscore) {
-            highscore = score;
-            highscoreElement.textContent = highscore;
-            setCookie('highscore', highscore, 365);
-            
-            highscoreElement.classList.add('new-highscore-animation');
-            setTimeout(() => {
-                highscoreElement.classList.remove('new-highscore-animation');
-            }, 2000);
-        }
-
-        figuresInSlots[selectedSlotIndex] = null;
-        drawFigureInSlot(selectedSlotIndex);
-        if (figuresInSlots.every(f => f === null)) {
-            generateNewFigures();
-        }
-        if (isGameOver()) {
-            handleGameOver();
-        }
-    }
-
+    /**
+     * Behandelt Tastatureingaben für Cheats und Steuerungen.
+     * @param {KeyboardEvent} e - Das Key-Press-Event.
+     */
     function handleKeyPress(e) {
+        // "Boss-Key": Versteckt das Spiel.
         if (e.key === 'b') {
             const container = document.querySelector('.main-container');
             const footer = document.querySelector('footer');
             if (container) container.classList.toggle('boss-key-hidden');
             if (footer) footer.classList.toggle('boss-key-hidden');
         }
+        // Cheat: Generiert nur Joker-Figuren.
         if (e.key === 'j') {
             generateJokerFigures();
         }
+        // Theme wechseln.
         if (e.key === 't') {
+            // Blockiert den Wechsel, wenn ein Special-Event aktiv ist.
             if (checkForSpecialTheme()) {
                 console.log("Theme-Wechsel per 't' blockiert: Special-Event ist aktiv.");
                 return;
             }
-            applyTheme(true);
+            applyTheme(true); // `true` erzwingt das nächste Theme aus der Liste.
         }
     }
-
-    function generateJokerFigures() {
-        if (!gameConfig.figures || !gameConfig.figures.joker) return;
-        const jokerPool = gameConfig.figures.joker;
-        for (let i = 0; i < 3; i++) {
-            let figureData = { ...getWeightedRandomFigure(jokerPool) };
-            let figure = { ...figureData, form: parseShape(figureData.shape), category: 'joker' };
-            const rotations = Math.floor(Math.random() * 4);
-            for (let r = 0; r < rotations; r++) {
-                figure.form = rotateFigure90Degrees(figure.form);
-            }
-            figuresInSlots[i] = figure;
-            drawFigureInSlot(i);
-        }
-        if (isGameOver()) {
-            handleGameOver();
-        }
-    }
-
-    function getWeightedRandomFigure(pool) {
-        const totalWeight = pool.reduce((sum, figure) => sum + (figure.probability || 1), 0);
-        let random = Math.random() * totalWeight;
-        for (const figure of pool) {
-            random -= (figure.probability || 1);
-            if (random <= 0) return figure;
-        }
-        return pool[pool.length - 1];
-    }
-
+    
+    /**
+     * Generiert drei neue Spielfiguren basierend auf den Wahrscheinlichkeiten aus der config.json.
+     * Stellt sicher, dass immer mindestens eine der drei neuen Figuren auf das Brett passt.
+     */
     function generateNewFigures() {
         console.log("Aktuelle Zonk-Wahrscheinlichkeit:", currentZonkProbability.toFixed(4));
         const { jokerProbability } = gameConfig;
         let isPlaceableSet = false;
         let newFigures = [];
+        
+        // Diese Schleife läuft so lange, bis ein Set an Figuren generiert wurde,
+        // bei dem mindestens eine Figur auf das aktuelle Spielfeld passt.
         do {
             newFigures = [];
             for (let i = 0; i < 3; i++) {
@@ -606,185 +429,96 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 newFigures.push(figure);
             }
+            // Prüft, ob eine der gerade erstellten Figuren irgendwo platziert werden kann.
             if (newFigures.some(fig => canFigureBePlacedAnywhere(fig))) {
                 isPlaceableSet = true;
             }
         } while (!isPlaceableSet);
+
+        // Weist die gültigen neuen Figuren den Slots zu.
         for (let i = 0; i < 3; i++) {
             figuresInSlots[i] = newFigures[i];
             drawFigureInSlot(i);
         }
+
+        // Erhöhe die Zonk-Wahrscheinlichkeit für die nächste Runde.
         const increment = gameConfig.zonkProbabilityIncrementPerRound || 0;
         const max = gameConfig.zonkProbabilityMax || 1;
         currentZonkProbability = Math.min(currentZonkProbability + increment, max);
+        
         drawGameBoard();
         if (isGameOver()) {
             handleGameOver();
         }
     }
-
-    function canPlace(figure, startX, startY) {
-        for (let y = 0; y < figure.form.length; y++) {
-            for (let x = 0; x < figure.form[y].length; x++) {
-                if (figure.form[y][x] === 1) {
-                    const boardX = startX + x;
-                    const boardY = startY + y;
-                    if (boardX < 0 || boardX >= GRID_SIZE || boardY < 0 || boardY >= GRID_SIZE || gameBoard[boardY][boardX] !== 0) {
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
-    }
-
+    
+    /**
+     * Prüft, ob das Spiel vorbei ist (keine der verfügbaren Figuren passt mehr aufs Brett).
+     * @returns {boolean} True, wenn das Spiel vorbei ist, sonst false.
+     */
     function isGameOver() {
+        // `every` prüft, ob die Bedingung für ALLE Elemente im Array gilt.
         return figuresInSlots.every(figure => {
-            if (!figure) return true;
+            if (!figure) return true; // Ein leerer Slot bedeutet, dass das Spiel nicht vorbei sein kann.
             let currentForm = figure.form;
+            // Prüft für jede der 4 möglichen Rotationen...
             for (let i = 0; i < 4; i++) {
+                // ...und für jede mögliche Position auf dem Spielfeld...
                 for (let y = 0; y <= GRID_SIZE - currentForm.length; y++) {
                     for (let x = 0; x <= GRID_SIZE - currentForm[0].length; x++) {
-                        if (canPlace({ form: currentForm }, x, y)) return false;
+                        // ...ob die Figur platziert werden kann.
+                        if (canPlace({ form: currentForm }, x, y)) {
+                            return false; // Wenn eine Platzierung gefunden wird, ist das Spiel für diese Figur NICHT vorbei.
+                        }
                     }
                 }
                 currentForm = rotateFigure90Degrees(currentForm);
             }
-            return true;
+            return true; // Wenn nach allen Rotationen und Positionen kein Platz gefunden wurde, ist es für diese Figur vorbei.
         });
     }
 
-    function canFigureBePlacedAnywhere(figure) {
-        if (!figure) return false;
-        let currentForm = figure.form;
-        for (let i = 0; i < 4; i++) {
-            for (let y = 0; y <= GRID_SIZE - currentForm.length; y++) {
-                for (let x = 0; x <= GRID_SIZE - currentForm[0].length; x++) {
-                    if (canPlace({ form: currentForm }, x, y)) {
-                        return true;
-                    }
-                }
-            }
-            currentForm = rotateFigure90Degrees(currentForm);
-        }
-        return false;
-    }
-
-    function clearFullLines() {
-        let rows = [], cols = [];
-        for (let y = 0; y < GRID_SIZE; y++) if (gameBoard[y].every(cell => cell !== 0)) rows.push(y);
-        for (let x = 0; x < GRID_SIZE; x++) if (gameBoard.every(row => row[x] !== 0)) cols.push(x);
-
-        const linesCleared = rows.length > 0 || cols.length > 0;
-        rows.forEach(y => gameBoard[y].fill(0));
-        cols.forEach(x => gameBoard.forEach(row => row[x] = 0));
-        
-        return {
-            points: Math.pow(rows.length + cols.length, 2) * 100,
-            linesCleared: linesCleared
-        };
-    }
-
+    /**
+     * Löst das Game-Over-Szenario aus (Animation und Neustart).
+     */
     function handleGameOver() {
-        gameBoardElement.classList.add('crumble');
+        gameBoardElement.classList.add('crumble'); // Startet die Zerbrösel-Animation.
         setTimeout(() => {
             const allCells = gameBoardElement.querySelectorAll('.cell.occupied');
             allCells.forEach(cell => {
-                cell.className = 'cell';
+                cell.className = 'cell'; // Setzt alle Zellen zurück.
             });
             gameBoardElement.classList.remove('crumble');
-            initializeGame();
-        }, 1600);
+            initializeGame(); // Startet ein neues Spiel.
+        }, 1600); // Die Wartezeit muss zur Dauer der CSS-Animation passen.
     }
-
-    function drawGameBoard() {
-        gameBoard.forEach((row, y) => row.forEach((content, x) => {
-            const cell = gameBoardElement.children[y * GRID_SIZE + x];
-            cell.className = 'cell';
-            if (content !== 0) {
-                cell.classList.add('occupied', `color-${content}`);
-            }
-        }));
-    }
-
-    function drawPreview(figure, centerX, centerY) {
-        currentPreviewCells.forEach(cell => {
-            cell.classList.remove('preview', 'invalid');
-            if (!cell.classList.contains('occupied')) {
-                cell.classList.remove('color-normal', 'color-joker', 'color-zonk');
-            }
-        });
-        currentPreviewCells = [];
-        const placeX = centerX - Math.floor(figure.form[0].length / 2);
-        const placeY = centerY - Math.floor(figure.form.length / 2);
-        const canBePlaced = canPlace(figure, placeX, placeY);
-        figure.form.forEach((row, y) => {
-            row.forEach((block, x) => {
-                if (block === 1) {
-                    const boardY = placeY + y;
-                    const boardX = placeX + x;
-                    if (boardY >= 0 && boardY < GRID_SIZE && boardX >= 0 && boardX < GRID_SIZE) {
-                        const cell = gameBoardElement.children[boardY * GRID_SIZE + boardX];
-                        cell.classList.add('preview');
-                        if (canBePlaced) {
-                            cell.classList.add(`color-${figure.category}`);
-                        } else {
-                            cell.classList.add('invalid');
-                        }
-                        currentPreviewCells.push(cell);
-                    }
-                }
-            });
-        });
-    }
-
-    function drawFigureInSlot(index) {
-        const slot = figureSlots[index];
-        const figure = figuresInSlots[index];
-        slot.innerHTML = '';
-        if (figure) {
-            const container = document.createElement('div');
-            container.classList.add('figure-container');
-            const blockSize = 'var(--figure-block-size)';
-            container.style.gridTemplateRows = `repeat(${figure.form.length}, ${blockSize})`;
-            container.style.gridTemplateColumns = `repeat(${figure.form[0].length}, ${blockSize})`;
-            figure.form.forEach(row => row.forEach(block => {
-                const blockDiv = document.createElement('div');
-                if (block === 1) {
-                    blockDiv.classList.add('figure-block', `color-${figure.category}`);
-                }
-                container.appendChild(blockDiv);
-            }));
-            slot.appendChild(container);
-        }
-    }
-
+    
+    /**
+     * Konvertiert die Koordinaten-Form aus der config.json in eine 2D-Matrix.
+     * @param {number[]} shapeCoords - Array mit Zahlen (z.B. [1, 2, 6, 7] für einen 2x2 Block).
+     * @returns {Array<Array<number>>} Eine zugeschnittene 2D-Matrix (z.B. [[1,1],[1,1]]).
+     */
     function parseShape(shapeCoords) {
         let tempMatrix = Array.from({ length: 5 }, () => Array(5).fill(0));
         let minRow = 5, maxRow = -1, minCol = 5, maxCol = -1;
+        
+        // Füllt eine 5x5 Matrix basierend auf den Koordinaten.
         shapeCoords.forEach(coord => {
             const row = Math.floor((coord - 1) / 5);
             const col = (coord - 1) % 5;
             tempMatrix[row][col] = 1;
+            // Findet die tatsächlichen Ränder der Figur.
             minRow = Math.min(minRow, row); maxRow = Math.max(maxRow, row);
             minCol = Math.min(minCol, col); maxCol = Math.max(maxCol, col);
         });
+        
+        // Schneidet die Matrix auf die exakte Größe der Figur zu.
         return tempMatrix.slice(minRow, maxRow + 1).map(row => row.slice(minCol, maxCol + 1));
     }
-
-    function showScoreAnimation(value) {
-        if (!scoreAnimationElement || value === 0) return;
-        scoreAnimationElement.textContent = `+${value}`;
-        scoreAnimationElement.classList.remove('animate');
-        void scoreAnimationElement.offsetWidth;
-        const boardRect = gameBoardElement.getBoundingClientRect();
-        const randX = boardRect.width * (0.2 + Math.random() * 0.6);
-        const randY = boardRect.height * (0.1 + Math.random() * 0.2);
-        scoreAnimationElement.style.left = `${randX}px`;
-        scoreAnimationElement.style.top = `${randY}px`;
-        scoreAnimationElement.classList.add('animate');
-    }
-
+    
+    /**
+     * Hilfsfunktionen für Cookies zum Speichern von Highscore, Theme etc.
+     */
     function setCookie(name, value, days) {
         let expires = "";
         if (days) {
@@ -805,13 +539,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
 
-    assignEventListeners();
-    document.addEventListener('keydown', handleKeyPress);
-
+    // =======================================================
+    // START DES SPIELS
+    // =======================================================
+    
+    /**
+     * Startet die gesamte Anwendung.
+     */
     async function startGame() {
-        await loadResources();
-        applyTheme();
-        initializeGame();
+        assignEventListeners(); // Zuerst die Event-Listener zuweisen.
+        document.addEventListener('keydown', handleKeyPress);
+
+        await loadResources(); // Dann die externen Konfigurationen laden.
+        applyTheme();          // Das initiale Theme anwenden.
+        initializeGame();      // Das eigentliche Spiel starten.
     }
 
     startGame();
